@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scene 3</title>
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at center, #001a33, #000);
+  font-family: Arial, sans-serif;
+  overflow: hidden;
+  display: flex;
+}
+#cameraBox {
+  width: 55%;
+  height: 100%;
+  background: #000;
+  border-right: 4px solid gold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#cameraFeed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: none;
+}
+#scripturePanel {
+  width: 45%;
+  height: 100%;
+  padding: 40px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+#scriptureTitle {
+  font-size: 42px;
+  font-weight: bold;
+  color: gold;
+  margin-bottom: 20px;
+}
+#scriptureText {
+  font-size: 28px;
+  line-height: 1.4;
+  color: #e6e6e6;
+}
+</style>
+</head>
+<body>
+<div id="cameraBox">
+  <iframe id="cameraFeed" src="cam1.html"></iframe>
+</div>
+<div id="scripturePanel">
+  <div id="scriptureTitle">Scene 3 — Scripture</div>
+  <div id="scriptureText">
+    “For the Lord is good; His mercy is everlasting;  
+    and His truth endureth to all generations.”
+  </div>
+</div>
+</body>
+</html>
+

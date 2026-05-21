@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>V5 Capture Sender</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: Arial;
+      text-align: center;
+    }
+    video {
+      width: 100%;
+      height: auto;
+      background: #111;
+    }
+    button {
+      padding: 15px;
+      margin: 10px;
+      font-size: 18px;
+      width: 80%;
+    }
+  </style>
+</head>
+<body>
+
+<h2>V5 LIVE CAPTURE SENDER</h2>
+
+<video id="preview" autoplay playsinline muted></video>
+
+<button onclick="startStream()">START CAMERA</button>
+<button onclick="stopStream()">STOP</button>
+
+<script>
+let stream;
+let peer;
+
+async function startStream() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment" },
+      audio: true
+    });
+
+    document.getElementById("preview").srcObject = stream;
+
+    connectToServer(stream);
+
+  } catch (err) {
+    alert("Camera error: " + err);
+  }
+}
+
+function connectToServer(stream) {
+  // WebRTC placeholder connection (V5 gateway)
+  const ws = new WebSocket("ws://YOUR_SERVER_IP:3000");
+
+  ws.onopen = () => {
+    ws.send(JSON.stringify({ type: "join", role: "broadcaster" }));
+  };
+
+  ws.onmessage = async (msg) => {
+    const data = JSON.parse(msg.data);
+
+    if (data.type === "offer") {
+      peer = new RTCPeerConnection();
+
+      stream.getTracks().forEach(track => {
+        peer.addTrack(track, stream);
+      });
+
+      await peer.setRemoteDescription(data.offer);
+
+      const answer = await peer.createAnswer();
+      await peer.setLocalDescription(answer);
+
+      ws.send(JSON.stringify({
+        type: "answer",
+        answer: peer.localDescription
+      }));
+    }
+  };
+}
+
+function stopStream() {
+  if (stream) {
+    stream.getTracks().forEach(t => t.stop());
+  }
+  if (peer) {
+    peer.close();
+  }
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Viewer</title>
+
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: black;
+}
+
+/* TRUE FULLSCREEN SCENE SYSTEM */
+#slideContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: black;
+}
+
+.sceneFrame {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  width: 100vw;
+  height: 100vh;
+  border: none;
+  background: black;
+  transition: left 0.6s ease-in-out;
+}
+
+.activeScene {
+  left: 0;
+}
+
+.slideOut {
+  left: -100%;
+}
+
+/* LOGO WATERMARK */
+#logoMark {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 110px;
+  opacity: 0.85;
+  pointer-events: none;
+  animation:
+    logoPulse 4s ease-in-out infinite,
+    logoFadeIn 1.5s ease forwards,
+    logoSpin3D 6s linear infinite;
+}
+
+@keyframes logoPulse {
+  0% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.06); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.85; }
+}
+
+@keyframes logoFadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 0.85; transform: scale(1); }
+}
+
+@keyframes logoSpin3D {
+  0%   { transform: rotateY(0deg); }
+  50%  { transform: rotateY(180deg); }
+  100% { transform: rotateY(360deg); }
+}
+
+/* LOWER THIRD */
+#lowerThird {
+  position: absolute;
+  bottom: 50px;
+  left: 20px;
+  transform: translateX(-150%);
+  background: rgba(0,0,0,0.75);
+  padding: 16px 28px;
+  border-radius: 10px;
+  border: 2px solid gold;
+  color: white;
+  opacity: 0;
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: Arial, sans-serif;
+  text-align: left;
+  box-shadow: 0 0 20px rgba(255,215,0,0.4);
+  overflow: hidden;
+  max-width: 50%;
+}
+
+#lowerThird.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+#lowerThird.hide {
+  opacity: 0;
+  transform: translateX(-150%);
+}
+
+#ltTitle {
+  font-size: 32px;
+  font-weight: bold;
+  color: gold;
+  text-shadow: 0 0 12px gold;
+}
+
+#ltSub {
+  font-size: 20px;
+  margin-top: 4px;
+  color: white;
+}
+
+/* TICKER */
+#tickerBar {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 32px;
+  background: rgba(0,0,0,0.85);
+  border-top: 2px solid gold;
+  color: white;
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  line-height: 32px;
+  white-space: nowrap;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+#tickerText {
+  display: inline-block;
+  padding-left: 100%;
+  animation: tickerMove 18s linear infinite;
+}
+
+@keyframes tickerMove {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+</style>
+</head>
+
+<body>
+
+<!-- SCENE SYSTEM -->
+<div id="slideContainer">
+  <iframe id="sceneA" class="sceneFrame activeScene" src="scene1.html"></iframe>
+  <iframe id="sceneB" class="sceneFrame"></iframe>
+</div>
+
+<!-- LOGO -->
+<img id="logoMark" src="assets/logo.png">
+
+<!-- LOWER THIRD -->
+<div id="lowerThird">
+  <div id="ltTitle"></div>
+  <div id="ltSub"></div>
+</div>
+
+<!-- TICKER -->
+<div id="tickerBar">
+  <div id="tickerText"></div>
+</div>
+
+<script>
+let showingA = true;
+
+/* ⭐ BULLETPROOF WEBSOCKET (WORKS ON ANY DEVICE) */
+function connectWS() {
+  let socket;
+
+  try {
+    socket = new WebSocket("ws://" + location.hostname + ":7345");
+  } catch (e) {
+    socket = new WebSocket("ws://localhost:7345");
+  }
+
+  socket.onopen = () => {
+    console.log("Viewer connected");
+  };
+
+  socket.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    handleMessage(data);
+  };
+
+  socket.onerror = () => {
+    console.log("Viewer WS error, retrying...");
+    setTimeout(connectWS, 1000);
+  };
+
+  socket.onclose = () => {
+    console.log("Viewer WS closed, retrying...");
+    setTimeout(connectWS, 1000);
+  };
+}
+
+connectWS();
+
+/* ⭐ MESSAGE HANDLER */
+function handleMessage(data) {
+
+  /* LOWER THIRD */
+  if (data.type === "lowerthird") {
+    const box = document.getElementById("lowerThird");
+    const title = document.getElementById("ltTitle");
+    const sub = document.getElementById("ltSub");
+
+    if (data.show) {
+      title.textContent = data.title || "";
+      sub.textContent = data.subtitle || "";
+      box.classList.remove("hide");
+      box.classList.add("show");
+    } else {
+      box.classList.remove("show");
+      box.classList.add("hide");
+    }
+    return;
+  }
+
+  /* TICKER */
+  if (data.type === "ticker") {
+    const bar = document.getElementById("tickerBar");
+    const text = document.getElementById("tickerText");
+
+    if (data.show) {
+      text.textContent = data.text || "";
+      bar.style.opacity = "1";
+    } else {
+      bar.style.opacity = "0";
+    }
+    return;
+  }
+
+/* SCRIPTURE (needed so viewer does NOT break auto-switch) */
+if (data.type === "scripture") {
+  // Forward scripture into the active scene iframe
+  const A = document.getElementById("sceneA");
+  const B = document.getElementById("sceneB");
+
+  if (showingA) {
+    A.contentWindow.postMessage(data, "*");
+  } else {
+    B.contentWindow.postMessage(data, "*");
+  }
+
+  return;
+}
+
+
+
+  /* ⭐ SCENE SWITCH (SLIDE TRANSITION) */
+  if (data.type === "scene") {
+    const newScene = data.scene + ".html";
+    const A = document.getElementById("sceneA");
+    const B = document.getElementById("sceneB");
+
+    if (showingA) {
+      B.src = newScene;
+      B.classList.add("activeScene");
+      A.classList.add("slideOut");
+      setTimeout(() => {
+        A.classList.remove("activeScene", "slideOut");
+        A.style.left = "100%";
+      }, 600);
+    } else {
+      A.src = newScene;
+      A.classList.add("activeScene");
+      B.classList.add("slideOut");
+      setTimeout(() => {
+        B.classList.remove("activeScene", "slideOut");
+        B.style.left = "100%";
+      }, 600);
+    }
+    showingA = !showingA;
+  }
+}
+</script>
+
+</body>
+</html>
+

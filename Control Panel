@@ -1,0 +1,79 @@
+From: <Saved by Blink>
+Snapshot-Content-Location: https://kilani31pak.github.io/azizkilaniministries/control
+Subject: Control Panel
+Date: Thu, 14 May 2026 12:58:53 +0200
+MIME-Version: 1.0
+Content-Type: multipart/related;
+	type="text/html";
+	boundary="----MultipartBoundary--DQ7TJuh1ZFd17jLEsTrtSEb3Hf7tH13MEgWsjFmLMW----"
+
+
+------MultipartBoundary--DQ7TJuh1ZFd17jLEsTrtSEb3Hf7tH13MEgWsjFmLMW----
+Content-Type: text/html
+Content-ID: <frame-0BC24E37483FC07246F4124582D87BFE@mhtml.blink>
+Content-Transfer-Encoding: binary
+Content-Location: https://kilani31pak.github.io/azizkilaniministries/control
+
+<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><link rel="stylesheet" type="text/css" href="cid:css-befea496-1ba8-41f2-996e-8d44abb54080@mhtml.blink" />
+  
+  <title>Control Panel</title>
+  
+</head>
+
+<body>
+
+<h2>🎛️ Control Panel</h2>
+
+<!-- LIVE -->
+<div class="section">
+  <h3>🔴 LIVE</h3>
+  <button>Show LIVE</button>
+  <button>Hide LIVE</button>
+</div>
+
+<!-- LOWER THIRD -->
+<div class="section">
+  <h3>📺 Lower Third</h3>
+  <input id="ltTitle" placeholder="Title">
+  <input id="ltSub" placeholder="Subtitle">
+  <button>Show Lower Third</button>
+  <button>Hide Lower Third</button>
+</div>
+
+<!-- TICKER -->
+<div class="section">
+  <h3>📰 Ticker</h3>
+  <input id="tickerInput" placeholder="Ticker text">
+  <button>Show Ticker</button>
+  <button>Hide Ticker</button>
+</div>
+
+<!-- MONITOR -->
+<div class="section">
+  <h3>🎥 Monitor Feed</h3>
+  <input id="monitorURL" placeholder="https://vdo.ninja/?view=AKMStream" <button="">Load Monitor
+</div>
+
+
+
+
+</body></html>
+------MultipartBoundary--DQ7TJuh1ZFd17jLEsTrtSEb3Hf7tH13MEgWsjFmLMW----
+Content-Type: text/css
+Content-Transfer-Encoding: binary
+Content-Location: cid:css-befea496-1ba8-41f2-996e-8d44abb54080@mhtml.blink
+
+@charset "utf-8";
+
+body { margin: 0px; padding: 20px; background: rgb(15, 23, 42); color: white; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+
+h2 { margin-top: 0px; }
+
+button { width: 100%; padding: 15px; margin: 10px 0px; font-size: 1.1rem; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; border-radius: 8px; background: rgb(30, 58, 138); color: white; cursor: pointer; }
+
+button:hover { background: rgb(37, 99, 235); }
+
+input { width: 100%; padding: 12px; margin: 8px 0px; border-radius: 6px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; font-size: 1rem; }
+
+.section { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid rgb(51, 65, 85); }
+------MultipartBoundary--DQ7TJuh1ZFd17jLEsTrtSEb3Hf7tH13MEgWsjFmLMW------

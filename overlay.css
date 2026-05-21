@@ -1,0 +1,37 @@
+/* Reset */
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: black;
+  font-family: Arial, sans-serif;
+}
+
+/* Coming Soon Overlay */
+#comingSoon {
+  display: none; /* hidden until JS shows it */
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  height: 100vh;
+  color: gold;
+  font-size: 2em;
+  text-align: center;
+}
+
+/* Logo styling */
+.logo {
+  width: 200px;
+  margin-bottom: 20px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}

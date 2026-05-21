@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Control Room</title>
+
+<style>
+body {
+  background: #000;
+  color: #fff;
+  font-family: Arial, sans-serif;
+  padding: 20px;
+}
+
+h1, h2 {
+  margin: 10px 0;
+}
+
+button {
+  padding: 10px 16px;
+  margin: 4px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background: #1e88e5;
+  color: white;
+}
+
+button:hover {
+  background: #1565c0;
+}
+
+input {
+  padding: 8px;
+  margin: 4px 0;
+  width: 240px;
+  border-radius: 4px;
+  border: none;
+}
+
+.monitorRow {
+  display: flex;
+  gap: 20px;
+  height: 260px;
+  margin-bottom: 20px;
+}
+
+.monitorBox {
+  flex: 1;
+  background: #000;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 3px solid gold;
+  box-shadow: 0 0 18px rgba(255,215,0,0.4);
+}
+
+.monitorBox iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #000;
+}
+
+.transitionPanel {
+  margin: 10px 0 20px 0;
+  display: flex;
+  gap: 10px;
+}
+
+.transitionPanel button {
+  background: black;
+  border: 2px solid gold;
+  color: gold;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  box-shadow: 0 0 12px rgba(255,215,0,0.4);
+}
+
+.transitionPanel button:hover {
+  background: #222;
+}
+
+.scriptureBox {
+  margin-top: 25px;
+  padding: 15px;
+  border: 2px solid gold;
+  border-radius: 10px;
+  background: #111;
+  color: white;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Control Room</h1>
+
+<h2>Scenes</h2>
+<button onclick="loadPreview('scene1')">Scene 1</button>
+<button onclick="loadPreview('scene2')">Scene 2</button>
+<button onclick="loadPreview('scene3')">Scene 3</button>
+<button onclick="loadPreview('scene4')">Scene 4</button>
+<button onclick="takeScene()">✔ TAKE</button>
+
+<h2>Transitions</h2>
+<div class="transitionPanel">
+  <button onclick="sendTransition('cut')">CUT</button>
+  <button onclick="sendTransition('fade')">FADE</button>
+  <button onclick="sendTransition('wipe')">WIPE</button>
+  <button onclick="sendTransition('slide')">SLIDE</button>
+</div>
+
+<div class="monitorRow">
+  <div class="monitorBox">
+    <iframe id="previewFrame" src="scene1.html"></iframe>
+  </div>
+  <div class="monitorBox">
+    <iframe id="programFrame" src="scene1.html"></iframe>
+  </div>
+</div>
+
+<h2>Lower Third</h2>
+<input id="ltTitle" placeholder="Title"><br>
+<input id="ltSub" placeholder="Subtitle"><br>
+<button onclick="sendLower()">Show Lower Third</button>
+<button onclick="hideLower()">Hide Lower Third</button>
+
+<h2>Ticker</h2>
+<input id="tickerInput" placeholder="Ticker text"><br>
+<button onclick="showTicker()">Show Ticker</button>
+<button onclick="hideTicker()">Hide Ticker</button>
+
+<h2>Cameras</h2>
+<button onclick="switchCam('cam1')">CAM 1</button>
+<button onclick="switchCam('cam2')">CAM 2</button>
+
+<div class="scriptureBox">
+  <h2 style="color:gold;text-align:center;margin-top:0;">📖 Scripture Sender</h2>
+  <p style="font-size:14px;color:#ccc;margin-top:10px;text-align:center;">
+    Copy any verse → Auto‑paste → Auto‑send → Auto‑switch to Scene 3.
+  </p>
+</div>
+
+<div class="scriptureBox" style="margin-top:20px;">
+  <h2 style="color:gold;text-align:center;margin-top:0;">📚 Scripture History</h2>
+
+  <div id="historyList" style="
+      max-height:200px;
+      overflow-y:auto;
+      padding:10px;
+      background:#000;
+      border-radius:8px;
+      border:1px solid gold;">
+    <p style="color:#888;text-align:center;">No scriptures yet.</p>
+  </div>
+</div>
+
+<script>
+const ws = new WebSocket("ws://127.0.0.1:7345");
+
+let currentPreviewScene = "scene1";
+let lastClipboard = "";
+let lastScriptureTitle = "";
+let lastScriptureBody = "";
+window.lastSceneWas3 = false;
+
+/* SYNC FIX — Respond when Scene 3 requests latest scripture */
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+
+  if (data.type === "request_latest_scripture") {
+    if (lastScriptureTitle && lastScriptureBody) {
+      ws.send(JSON.stringify({
+        type: "scripture",
+        title: lastScriptureTitle,
+        text: lastScriptureBody
+      }));
+    }
+  }
+};
+
+/* PREVIEW LOAD */
+function loadPreview(scene){
+  currentPreviewScene = scene;
+  document.getElementById("previewFrame").src = scene + ".html";
+
+  if (scene !== "scene3") {
+    window.lastSceneWas3 = false;
+  }
+}
+
+/* TAKE BUTTON */
+function takeScene(){
+  document.getElementById("programFrame").src = currentPreviewScene + ".html";
+
+  ws.send(JSON.stringify({
+    type: "scene",
+    scene: currentPreviewScene
+  }));
+
+  if (currentPreviewScene !== "scene3") {
+    window.lastSceneWas3 = false;
+  }
+}
+
+/* TRANSITIONS */
+function sendTransition(style){
+  ws.send(JSON.stringify({
+    type: "transition",
+    style: style
+  }));
+}
+
+/* LOWER THIRD */
+function sendLower(){
+  ws.send(JSON.stringify({
+    type: "lowerthird",
+    show: true,
+    title: document.getElementById("ltTitle").value,
+    subtitle: document.getElementById("ltSub").value
+  }));
+}
+
+function hideLower(){
+  ws.send(JSON.stringify({
+    type: "lowerthird",
+    show: false
+  }));
+}
+
+/* TICKER */
+function showTicker(){
+  ws.send(JSON.stringify({
+    type: "ticker",
+    show: true,
+    text: document.getElementById("tickerInput").value
+  }));
+}
+
+function hideTicker(){
+  ws.send(JSON.stringify({
+    type: "ticker",
+    show: false
+  }));
+}
+
+/* CAMERA SWITCH */
+function switchCam(cam){
+  ws.send(JSON.stringify({
+    type: "camera",
+    view: cam
+  }));
+}
+
+/* HISTORY */
+let scriptureHistory = [];
+
+function addToHistory(title, body) {
+  scriptureHistory.unshift({ title, body });
+  if (scriptureHistory.length > 10) scriptureHistory.pop();
+  renderHistory();
+}
+
+function renderHistory() {
+  const box = document.getElementById("historyList");
+
+  if (scriptureHistory.length === 0) {
+    box.innerHTML = `<p style="color:#888;text-align:center;">No scriptures yet.</p>`;
+    return;
+  }
+
+  box.innerHTML = scriptureHistory.map((item, index) => `
+    <div style="
+      padding:10px;
+      margin-bottom:10px;
+      border:1px solid gold;
+      border-radius:6px;
+      background:#111;">
+      
+      <strong style="color:gold;">${item.title}</strong><br>
+      <span style="font-size:14px;color:#ccc;white-space:pre-wrap;">${item.body}</span>
+
+      <button onclick="resendHistory(${index})"
+        style="
+          margin-top:8px;
+          width:100%;
+          padding:8px;
+          background:black;
+          border:1px solid gold;
+          color:gold;
+          border-radius:6px;">
+        🔁 Re‑Send
+      </button>
+    </div>
+  `).join("");
+}
+
+function resendHistory(index) {
+  const item = scriptureHistory[index];
+
+  ws.send(JSON.stringify({
+    type: "scripture",
+    title: item.title,
+    text: item.body
+  }));
+}
+
+/* AUTO‑PASTE + AUTO‑SEND + AUTO‑SWITCH */
+async function checkClipboard() {
+  try {
+    const text = await navigator.clipboard.readText();
+    if (!text || text.trim() === "") return;
+
+    /* IGNORE HTML OR PAGE CONTENT */
+    if (
+      text.includes("<") ||
+      text.includes(">") ||
+      text.includes("html") ||
+      text.includes("button") ||
+      text.includes("script") ||
+      text.includes("iframe") ||
+      text.length > 300
+    ) return;
+
+    /* ANTI‑LOOP */
+    if (text === lastClipboard) return;
+    lastClipboard = text;
+
+    let lines = text.split("\n")
+      .map(l => l.trim())
+      .filter(l => l !== "");
+
+    if (lines.length === 0) return;
+
+    let title = lines[0];
+    let body = lines.slice(1).join("\n").trim();
+
+    body = body.replace(/^\d+\s*/, "");
+
+    if (!body) {
+      body = title;
+      title = "Scripture";
+    }
+
+    lastScriptureTitle = title;
+    lastScriptureBody = body;
+
+    ws.send(JSON.stringify({
+      type: "scripture",
+      title: title,
+      text: body
+    }));
+
+    addToHistory(title, body);
+
+    /* AUTO‑SWITCH TO SCENE 3 */
+    if (!window.lastSceneWas3) {
+      document.getElementById("previewFrame").src = "scene3.html";
+      document.getElementById("programFrame").src = "scene3.html";
+
+      ws.send(JSON.stringify({
+        type: "scene",
+        scene: "scene3"
+      }));
+
+      window.lastSceneWas3 = true;
+    }
+
+  } catch (err) {
+    console.log("Clipboard read blocked:", err);
+  }
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) checkClipboard();
+});
+
+setInterval(checkClipboard, 3000);
+
+</script>
+
+</body>
+</html>
+

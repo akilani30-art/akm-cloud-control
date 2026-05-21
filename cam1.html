@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Camera 1</title>
+
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: black;
+}
+
+#camFrame {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  border: none;
+  background: black;
+  object-fit: cover; /* forces full coverage */
+}
+</style>
+</head>
+
+<body>
+<iframe
+  id="camFrame"
+  src="https://vdo.ninja/?view=CAMERA1&cleanoutput&autoplay=1&stretch=1&cover=1&noaudio=1"
+  allow="camera; microphone"
+  allowfullscreen
+  style="width:100vw; height:100vh; border:none;"
+></iframe>
+</body>
+</html>

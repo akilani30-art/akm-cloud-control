@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scene 3</title>
+
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at center, #001a33, #000);
+  font-family: Arial, sans-serif;
+  overflow: hidden;
+  display: flex;
+}
+
+#cameraBox {
+  width: 55%;
+  height: 100%;
+  background: #000;
+  border-right: 4px solid gold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#cameraFeed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: none;
+}
+
+#scripturePanel {
+  width: 45%;
+  height: 100%;
+  padding: 40px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  border-left: 3px solid rgba(255, 215, 0, 0.4);
+  border-right: 3px solid rgba(255, 215, 0, 0.4);
+}
+
+#scriptureTitle {
+  font-size: 30px;
+  font-weight: bold;
+  color: gold;
+  margin-top: -190px;
+  text-shadow: 0 0 8px rgba(0,0,0,0.7);
+}
+
+#scriptureText {
+  font-size: 28px;
+  line-height: 1.35;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-top: 10px;
+  margin-top: -1px;
+  white-space: pre-wrap;
+  text-shadow: 0 0 8px rgba(0,0,0,0.7);
+}
+</style>
+</head>
+
+<body>
+
+<div id="cameraBox">
+  <iframe id="cameraFeed" src="cam1.html"></iframe>
+</div>
+
+<div id="scripturePanel">
+  <div id="scriptureTitle">Scene 3 — Scripture</div>
+  <div id="scriptureText">
+    “For the Lord is good; His mercy is everlasting;
+    and His truth endureth to all generations.”
+  </div>
+</div>
+
+<script>
+function connectWS() {
+  let ws;
+
+  try {
+    ws = new WebSocket("ws://127.0.0.1:7345");
+  } catch (e) {
+    ws = new WebSocket("ws://localhost:7345");
+  }
+
+  ws.onopen = () => {
+    console.log("Scene 3 WebSocket connected");
+
+    ws.send(JSON.stringify({
+      type: "request_latest_scripture"
+    }));
+  };
+
+  ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+
+    if (data.type === "scripture") {
+      document.getElementById("scriptureTitle").innerText = data.title;
+      document.getElementById("scriptureText").innerText = data.text;
+    }
+  };
+
+  ws.onerror = () => setTimeout(connectWS, 1000);
+  ws.onclose = () => setTimeout(connectWS, 1000);
+}
+
+connectWS();
+</script>
+
+</body>
+</html>
+

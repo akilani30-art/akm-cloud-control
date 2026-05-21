@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scene 4</title>
+<style>
+body {
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #330000, #000000);
+  font-family: Arial, sans-serif;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+#topBar {
+  height: 80px;
+  background: rgba(0,0,0,0.7);
+  color: gold;
+  display: flex;
+  align-items: center;
+  padding: 0 30px;
+  font-size: 32px;
+}
+#main {
+  flex: 1;
+  display: flex;
+}
+#cameraArea {
+  width: 70%;
+  height: 100%;
+}
+#cameraFeed {
+  width: 100%;
+  height: 100%;
+  border: none;
+  object-fit: cover;
+}
+#side {
+  width: 30%;
+  height: 100%;
+  color: white;
+  padding: 30px;
+  box-sizing: border-box;
+}
+#sideTitle {
+  font-size: 30px;
+  color: #ffcc00;
+  margin-bottom: 10px;
+}
+#sideText {
+  font-size: 22px;
+  line-height: 1.4;
+}
+</style>
+</head>
+<body>
+<div id="topBar">Scene 4 — Special Segment</div>
+<div id="main">
+  <div id="cameraArea">
+    <iframe id="cameraFeed" src="cam1.html"></iframe>
+  </div>
+  <div id="side">
+    <div id="sideTitle">Notes</div>
+    <div id="sideText">
+      Use this scene for special segments, interviews, or announcements with supporting text on the side.
+    </div>
+  </div>
+</div>
+</body>
+</html>
+

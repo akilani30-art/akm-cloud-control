@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>TV Output Overlay</title>
+
+<style id="themeStyles">
+/* DEFAULT THEME = RED + BLACK */
+:root {
+  --primary: #CC0000;
+  --background: #111111;
+  --text: #FFFFFF;
+}
+</style>
+
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--background);
+}
+
+#video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  background: var(--background);
+  transform: scale(1.55);
+  transform-origin: center top;
+  z-index: 2;
+}
+
+.live {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: var(--primary);
+  color: var(--text);
+  padding: 8px 12px;
+  font-weight: bold;
+  z-index: 10;
+}
+
+.lower-third {
+  position: absolute;
+  bottom: 120px;
+  left: 0;
+  background: var(--primary);
+  color: var(--text);
+  padding: 12px 22px;
+  font-size: 24px;
+  font-weight: bold;
+  transform: translateX(-100%);
+  opacity: 0;
+  transition: 0.6s ease;
+  z-index: 10;
+}
+
+.lower-third.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.sub-text {
+  font-size: 18px;
+  color: var(--text);
+}
+
+.breaking-bar {
+  position: absolute;
+  bottom: 60px;
+  left: 0;
+  width: 100vw;
+  background: var(--primary);
+  color: var(--text);
+  padding: 14px 20px;
+  font-size: 24px;
+  font-weight: bold;
+  display: none;
+  transform: translateY(-100%);
+  transition: 0.5s ease;
+  z-index: 11;
+}
+
+.ticker-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100vw;
+  background: var(--background);
+  padding: 14px 0;
+  overflow: hidden;
+  transition: bottom 0.5s ease;
+  z-index: 12;
+}
+
+.ticker-container.push-down {
+  bottom: -60px;
+}
+
+.ticker {
+  display: inline-block;
+  white-space: nowrap;
+  color: var(--text);
+  padding-left: 100%;
+  animation: scroll 15s linear infinite;
+  font-size: 24px;
+}
+
+@keyframes scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+</style>
+</head>
+
+<body>
+
+<iframe id="video"
+src="https://vdo.ninja/?view=cam1&clean&noaudio&codec=h264&novideoeffects&transparent=0">
+</iframe>
+
+<div class="live">LIVE</div>
+
+<div class="lower-third" id="lt-title">
+  <span class="sub-text" id="lt-sub"></span>
+</div>
+
+<div class="breaking-bar" id="breaking-bar">BREAKING NEWS</div>
+
+<div class="ticker-container" id="ticker-box">
+  <div class="ticker" id="ticker-text">Prayer • Healing • Deliverance • Join Live Now • Stay Connected •</div>
+</div>
+
+<script>
+const ws = new WebSocket("ws://192.168.0.214:7345");
+
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+
+  if (data.type === "camera") {
+    document.getElementById("video").src =
+      `https://vdo.ninja/?view=${data.view}&clean&noaudio&codec=h264&novideoeffects&transparent=0`;
+  }
+
+  if (data.type === "lowerthird") {
+    const lt = document.getElementById("lt-title");
+    if (!data.show) lt.classList.remove("show");
+    else {
+      lt.innerHTML = data.title + "<br><span class='sub-text'>" + data.subtitle + "</span>";
+      lt.classList.add("show");
+    }
+  }
+
+  if (data.type === "ticker") {
+    document.getElementById("ticker-text").innerText = data.text;
+  }
+
+  if (data.type === "breaking") {
+    const bar = document.getElementById("breaking-bar");
+    const ticker = document.getElementById("ticker-box");
+
+    if (data.active) {
+      bar.style.display = "block";
+      bar.innerText = data.text || "BREAKING NEWS";
+      bar.style.transform = "translateY(0)";
+      ticker.classList.add("push-down");
+    } else {
+      bar.style.transform = "translateY(-100%)";
+      ticker.classList.remove("push-down");
+      setTimeout(() => bar.style.display = "none", 500);
+    }
+  }
+
+  /* THEME SWITCHING */
+  if (data.type === "theme") {
+    const theme = data.value;
+
+    if (theme === "red") {
+      document.documentElement.style.setProperty("--primary", "#CC0000");
+      document.documentElement.style.setProperty("--background", "#111111");
+      document.documentElement.style.setProperty("--text", "#FFFFFF");
+    }
+
+    if (theme === "gold") {
+      document.documentElement.style.setProperty("--primary", "#D4AF37");
+      document.documentElement.style.setProperty("--background", "#000000");
+      document.documentElement.style.setProperty("--text", "#FFFFFF");
+    }
+
+    if (theme === "blue") {
+      document.documentElement.style.setProperty("--primary", "#0078FF");
+      document.documentElement.style.setProperty("--background", "#0A0A0A");
+      document.documentElement.style.setProperty("--text", "#FFFFFF");
+    }
+  }
+};
+</script>
+
+</body>
+</html>
+

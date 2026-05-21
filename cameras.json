@@ -1,0 +1,4 @@
+{
+  "camera1": "rtmp://127.0.0.1/live/camera1",
+  "camera2": "rtmp://127.0.0.1/live/camera2"
+}
