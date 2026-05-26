@@ -183,7 +183,8 @@ function connectWS() {
   try {
     socket = new WebSocket("ws://" + location.hostname + ":7345");
   } catch (e) {
-    socket = new WebSocket("ws://localhost:7345");
+    socket = new WebSocket("wss://ntsc-gtk-wooden-greatly.trycloudflare.com
+ ");
   }
 
   socket.onopen = () => {
