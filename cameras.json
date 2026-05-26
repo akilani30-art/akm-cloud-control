@@ -1,4 +1,14 @@
 {
-  "camera1": "rtmp://127.0.0.1/live/camera1",
-  "camera2": "rtmp://127.0.0.1/live/camera2"
+  "cameras": [
+    {
+      "id": "cam1",
+      "name": "Camera 1",
+      "url": "https://vdo.ninja/?view=CAMERA1&cleanoutput&autoplay=1"
+    },
+    {
+      "id": "cam2",
+      "name": "Camera 2",
+      "url": "https://vdo.ninja/?view=CAMERA2&cleanoutput&autoplay=1"
+    }
+  ]
 }
