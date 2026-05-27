@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scene 2</title>
+<style>
+body {
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at center, #001a33, #000);
+  font-family: Arial, sans-serif;
+  display: flex;
+  overflow: hidden;
+}
+#left {
+  width: 60%;
+  height: 100%;
+}
+#cameraFeed {
+  width: 100%;
+  height: 100%;
+  border: none;
+  object-fit: cover;
+}
+#right {
+  width: 40%;
+  height: 100%;
+  color: white;
+  padding: 40px 30px;
+  box-sizing: border-box;
+}
+#title {
+  font-size: 40px;
+  color: gold;
+  margin-bottom: 20px;
+}
+#text {
+  font-size: 24px;
+  line-height: 1.4;
+}
+</style>
+</head>
+<body>
+<div id="left">
+  <iframe id="cameraFeed" src="cam1.html"></iframe>
+</div>
+<div id="right">
+  <div id="title">Scene 2 — Teaching</div>
+  <div id="text">
+    Use this layout for teaching, announcements, or key points while the camera stays on the left.
+  </div>
+</div>
+</body>
+</html>
