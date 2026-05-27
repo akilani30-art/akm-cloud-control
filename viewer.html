@@ -102,12 +102,18 @@
   color: gold;
     }
   
+  
 
 /* animation */
 @keyframes tickerMove {
   0% { transform: translateX(0%); }
   100% { transform: translateX(-50%); }
 }
+  @keyframes flash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+    }
+    
 
 /* pause on hover */
 #tickerWrapper:hover #tickerTrack {
@@ -328,6 +334,15 @@ const incomingUrl = (incoming.src || "").split("?")[0].split("/").pop();
     // Stage both off-screen
     A.style.left = "100%";
     B.style.left = "100%";
+
+    if (data.label === "ALERT") {
+  label.style.background = "#ff1744";
+  label.style.animation = "flash 1s infinite";
+} else {
+  label.style.background = "#c62828";
+  label.style.animation = "none";
+  }
+  
 
     // Put incoming on-screen immediately
     incoming.style.left = "0";
