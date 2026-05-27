@@ -458,7 +458,8 @@ if (data.type === "ticker") {
 
   // Reset animation
   track.style.animation = "none";
-  void track.offsetWidth;
+track.offsetHeight; // force reflow more reliably
+
 
   track.innerHTML = build + build;
 
