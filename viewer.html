@@ -258,8 +258,8 @@ function switchScene(newScene, style="slide"){
     outgoing.classList.remove("activeScene","slideOut");
     outgoing.style.left = "100%";
     showingA = !showingA;
-  }, 600);
-  }
+  }, style === "wipe" ? 350 : 600);
+ }
   
 
 /* ✅ MESSAGE HANDLER */
