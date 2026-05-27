@@ -266,9 +266,10 @@ function switchScene(newScene, style = "cut") {
 
   if (!newScene.endsWith(".html")) newScene += ".html";
 
-  const target = normalizeUrl(newScene);
-  const outgoingUrl = normalizeUrl(outgoing.getAttribute("src") || outgoing.src);
-  const incomingUrl = normalizeUrl(incoming.getAttribute("src") || incoming.src);
+const target = newScene;
+const outgoingUrl = (outgoing.getAttribute("src") || "").split("/").pop();
+const incomingUrl = (incoming.getAttribute("src") || "").split("/").pop();
+  
 
   // ✅ already showing → do nothing
   if (outgoingUrl === target || outgoingUrl.endsWith("/" + newScene)) {
