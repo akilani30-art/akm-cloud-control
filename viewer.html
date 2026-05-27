@@ -378,20 +378,24 @@ function handleMessage(data) {
     return;
   }
 
-  // Split into items
   const items = text.split("|").map(t => t.trim()).filter(Boolean);
 
-  // Build spans
   const build = items.map(item =>
     `<span class="tickerItem">${item}</span>`
   ).join("");
 
-  // ✅ Duplicate for seamless loop
+  // ✅ Restart animation cleanly
+  track.style.animation = "none";
+  void track.offsetWidth;
+
   track.innerHTML = build + build;
+
+  track.style.animation = "tickerMove 20s linear infinite";
 
   bar.style.opacity = data.show ? "1" : "0";
   return;
   }
+  
   
 
   if (data.type === "scripture") {
