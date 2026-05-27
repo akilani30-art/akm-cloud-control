@@ -472,6 +472,12 @@ if (data.type === "ticker") {
     (showingA ? A : B).contentWindow.postMessage(data, "*");
     return;
   }
+  if (data.label === "ALERT") {
+  label.style.background = "#ff1744";
+} else {
+  label.style.background = "#c62828";
+  }
+  
 }
 </script>
 </body>
