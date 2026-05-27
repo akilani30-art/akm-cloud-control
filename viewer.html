@@ -39,7 +39,7 @@
   transform: translateX(-150%);
 }
 
-/* tickerBar*/ {
+#tickerBar {
   position: fixed;
   bottom: 0;
   width: 100%;
@@ -311,7 +311,7 @@ function handleMessage(data) {
 
   if (data.type === "ticker") {
     const bar = document.getElementById("tickerBar");
-    document.getElementById("tickerText").textContent = data.text || "";
+    document.getElementById("tickerTrack").textContent = data.text || "";
     bar.style.opacity = data.show ? "1" : "0";
     return;
   }
