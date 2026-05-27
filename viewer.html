@@ -248,10 +248,17 @@ if (data.type === "scripture") {
 
 
   /* ⭐ SCENE SWITCH (SLIDE TRANSITION) */
-  if (data.type === "scene") {
-    const newScene = data.scene + ".html";
-    const A = document.getElementById("sceneA");
-    const B = document.getElementById("sceneB");
+if (data.type === "scene") {
+  let newScene = data.scene;
+
+  if (!newScene.endsWith(".html")) {
+    newScene += ".html";
+  }
+
+  switchScene(newScene, transitionStyle);
+  return;
+}
+
 
     if (showingA) {
       B.src = newScene;
