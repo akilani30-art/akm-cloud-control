@@ -307,9 +307,9 @@ function switchScene(newScene, style = "cut") {
   if (!newScene.endsWith(".html")) newScene += ".html";
 
   const target = newScene;
-  const outgoingUrl = (outgoing.getAttribute("src") || "").split("?")[0].split("/").pop();
-  const incomingUrl = (incoming.getAttribute("src") || "").split("?")[0].split("/").pop();
-
+const outgoingUrl = (outgoing.src || "")
+const incomingUrl = (incoming.src || "")
+  
   // Already showing
   if (outgoingUrl === target) return;
 
