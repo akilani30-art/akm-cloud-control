@@ -211,20 +211,7 @@ let lastScriptureTitle = "";
 let lastScriptureBody = "";
 window.lastSceneWas3 = false;
 
-/* SYNC FIX — Respond when Scene 3 requests latest scripture */
-ws.onmessage = (event) => {
-  const data = JSON.parse(event.data);
-
-  if (data.type === "request_latest_scripture") {
-    if (lastScriptureTitle && lastScriptureBody) {
-      ws.send(JSON.stringify({
-        type: "scripture",
-        title: lastScriptureTitle,
-        text: lastScriptureBody
-      }));
-    }
-  }
-};
+/* SYNC FIX — Respond when Scene 3 requests latest scripture *
 
 /* PREVIEW LOAD */
 function loadPreview(scene){
