@@ -202,7 +202,6 @@ html, body {
 
 
 <script>
-let isTransitioning = false;
 let socket;
 let showingA = true;
 let transitionStyle = "slide";
@@ -242,9 +241,7 @@ function connectWS() {
 }
 
 connectWS();
-
 /* ✅ REPLACE OLD switchScene WITH THIS */
-let isTransitioning = false;
 
 function normalizeUrl(url) {
   try { return new URL(url, location.href).href; }
@@ -252,10 +249,80 @@ function normalizeUrl(url) {
 }
 
 function switchScene(newScene, style = "cut") {
-  // ... (full code I gave you)
+  if (isTransitioning) return;
+
+  const A = document.getElementById("sceneA");
+  const B = document.getElementById("sceneB");
+
+  const incoming = showingA ? B : A;
+  const outgoing = showingA ? A : B;
+
+  if (!newScene.endsWith(".html")) newScene += ".html";
+
+  const target = normalizeUrl(newScene);
+  const outgoingUrl = normalizeUrl(outgoing.getAttribute("src") || outgoing.src);
+  const incomingUrl = normalizeUrl(incoming.getAttribute("src") || incoming.src);
+
+  // ✅ already showing → do nothing
+  if (outgoingUrl === target || outgoingUrl.endsWith("/" + newScene)) {
+    return;
   }
-  
-  
+
+  const doSwap = () => {
+    isTransitioning = true;
+
+    // reset
+    A.classList.remove("activeScene", "slideOut");
+    B.classList.remove("activeScene", "slideOut");
+
+    A.style.left = "100%";
+    B.style.left = "100%";
+
+    // show incoming
+    incoming.style.left = "0";
+    incoming.classList.add("activeScene");
+
+    if (style === "cut") {
+      showingA = !showingA;
+      isTransitioning = false;
+      return;
+    }
+
+    // animate outgoing
+    outgoing.style.left = "0";
+    outgoing.classList.add("activeScene");
+
+    requestAnimationFrame(() => {
+      outgoing.classList.add("slideOut");
+    });
+
+    const duration = (style === "wipe") ? 350 : 600;
+
+    setTimeout(() => {
+      outgoing.classList.remove("activeScene", "slideOut");
+      outgoing.style.left = "100%";
+
+      showingA = !showingA;
+      isTransitioning = false;
+    }, duration);
+  };
+
+  // ✅ already loaded → just swap
+  if (incomingUrl === target || incomingUrl.endsWith("/" + newScene)) {
+    doSwap();
+    return;
+  }
+
+  // ✅ load then swap
+  incoming.onload = () => {
+    incoming.onload = null;
+    doSwap();
+  };
+
+  incoming.src = newScene;
+}
+
+
 /* ✅ MESSAGE HANDLER */
 function handleMessage(data) {
 
