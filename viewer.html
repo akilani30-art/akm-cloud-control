@@ -390,7 +390,9 @@ function handleMessage(data) {
 
   track.innerHTML = build + build;
 
-  track.style.animation = "tickerMove 20s linear infinite";
+  const duration = Math.max(10, items.join("").length / 5);
+track.style.animation = `tickerMove ${duration}s linear infinite`;
+
 
   bar.style.opacity = data.show ? "1" : "0";
   return;
