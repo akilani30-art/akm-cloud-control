@@ -242,60 +242,20 @@ function connectWS() {
 }
 
 connectWS();
-function switchScene(newScene, style="cut") {
-  const A = document.getElementById("sceneA");
-  const B = document.getElementById("sceneB");
 
-  const incoming = showingA ? B : A;
-  const outgoing = showingA ? A : B;
+/* ✅ REPLACE OLD switchScene WITH THIS */
+let isTransitioning = false;
 
-  // ✅ Prevent reloading same scene
-  if (incoming.src.includes(newScene)) {
-    return;
-  }
+function normalizeUrl(url) {
+  try { return new URL(url, location.href).href; }
+  catch { return url; }
+}
 
-  // ✅ Disable transitions for instant switching
-  A.style.transition = "none";
-  B.style.transition = "none";
-
-  // ✅ Load scene FIRST
-  incoming.onload = () => {
-
-    // ✅ Instant CUT (no flicker)
-    A.classList.remove("activeScene", "slideOut");
-    B.classList.remove("activeScene", "slideOut");
-
-    A.style.left = "100%";
-    B.style.left = "100%";
-
-    incoming.style.left = "0";
-    incoming.classList.add("activeScene");
-
-    showingA = !showingA;
-
-    // ✅ Restore transitions AFTER switch
-    requestAnimationFrame(() => {
-      A.style.transition = "";
-      B.style.transition = "";
-    });
-  };
-
-  incoming.src = newScene;
+function switchScene(newScene, style = "cut") {
+  // ... (full code I gave you)
   }
   
-
-  /* ✅ SLIDE / WIPE */
-  incoming.classList.add("activeScene");
-  outgoing.classList.add("slideOut");
-
-  setTimeout(() => {
-    outgoing.classList.remove("activeScene","slideOut");
-    outgoing.style.left = "100%";
-    showingA = !showingA;
-  }, style === "wipe" ? 350 : 600);
- }
   
-
 /* ✅ MESSAGE HANDLER */
 function handleMessage(data) {
 
