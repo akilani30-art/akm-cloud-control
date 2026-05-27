@@ -242,55 +242,47 @@ function connectWS() {
 }
 
 connectWS();
-function switchScene(newScene, style="slide"){
+function switchScene(newScene, style="cut") {
   const A = document.getElementById("sceneA");
   const B = document.getElementById("sceneB");
 
   const incoming = showingA ? B : A;
   const outgoing = showingA ? A : B;
 
-  incoming.src = newScene;
-
-  /* ✅ CUT */
-  if (style === "cut") {
-    outgoing.classList.remove("activeScene","slideOut");
-    incoming.classList.add("activeScene");
-    outgoing.style.left = "100%";
-    showingA = !showingA;
+  // ✅ Prevent reloading same scene
+  if (incoming.src.includes(newScene)) {
     return;
   }
 
-  /* ✅ FADE */
-  if (style === "fade") {
-    incoming.style.opacity = "0";
+  // ✅ Disable transitions for instant switching
+  A.style.transition = "none";
+  B.style.transition = "none";
+
+  // ✅ Load scene FIRST
+  incoming.onload = () => {
+
+    // ✅ Instant CUT (no flicker)
+    A.classList.remove("activeScene", "slideOut");
+    B.classList.remove("activeScene", "slideOut");
+
+    A.style.left = "100%";
+    B.style.left = "100%";
+
     incoming.style.left = "0";
-    outgoing.style.left = "0";
-
     incoming.classList.add("activeScene");
 
+    showingA = !showingA;
+
+    // ✅ Restore transitions AFTER switch
     requestAnimationFrame(() => {
-      incoming.style.transition = "opacity 0.6s";
-      outgoing.style.transition = "opacity 0.6s";
-
-      incoming.style.opacity = "1";
-      outgoing.style.opacity = "0";
+      A.style.transition = "";
+      B.style.transition = "";
     });
+  };
 
-    setTimeout(() => {
-  outgoing.classList.remove("activeScene","slideOut");
-  outgoing.style.left = "100%";
-
-  // ✅ reset styles
-  outgoing.style.opacity = "1";
-  outgoing.style.transition = "";
-  incoming.style.transition = "";
-  incoming.style.opacity = "";
-
-  showingA = !showingA;
-}, 650);
-  
-    return;
+  incoming.src = newScene;
   }
+  
 
   /* ✅ SLIDE / WIPE */
   incoming.classList.add("activeScene");
