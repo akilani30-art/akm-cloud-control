@@ -395,7 +395,7 @@ function handleMessage(data) {
     return;
   }
 
-  if (data.type === "ticker") {
+if (data.type === "ticker") {
   const bar = document.getElementById("tickerBar");
   const track = document.getElementById("tickerTrack");
 
@@ -412,6 +412,20 @@ function handleMessage(data) {
   const build = items.map(item =>
     `<span class="tickerItem">${item}</span>`
   ).join("");
+
+  // Reset animation
+  track.style.animation = "none";
+  void track.offsetWidth;
+
+  track.innerHTML = build + build;
+
+  // ✅ Auto speed
+  const duration = Math.max(10, items.join("").length / 5);
+  track.style.animation = `tickerMove ${duration}s linear infinite`;
+
+  bar.style.opacity = data.show ? "1" : "0";
+  return;
+}
 
   // ✅ Restart animation cleanly
   track.style.animation = "none";
