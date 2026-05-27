@@ -272,8 +272,8 @@ const incomingUrl = (incoming.getAttribute("src") || "").split("/").pop();
   
 
   // ✅ already showing → do nothing
-  if (outgoingUrl === target || outgoingUrl.endsWith("/" + newScene)) {
-    return;
+if (outgoingUrl === target) {
+  
   }
 
   const doSwap = () => {
@@ -316,8 +316,8 @@ const incomingUrl = (incoming.getAttribute("src") || "").split("/").pop();
   };
 
   // ✅ already loaded → just swap
-  if (incomingUrl === target || incomingUrl.endsWith("/" + newScene)) {
-    doSwap();
+  if (incomingUrl === target) {
+  
     return;
   }
 
