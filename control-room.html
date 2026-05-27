@@ -17,11 +17,7 @@ h1, h2 {
   margin: 10px 0;
 }
 
-<div id="wsStatus" class="wsStatus offline">
-  <span class="dot"></span>
-  <span class="label">OFFLINE</span>
-</div>
-  
+
   .wsStatus{
   display:inline-flex;
   align-items:center;
@@ -128,6 +124,13 @@ input {
 <body>
 
 <h1>Control Room</h1>
+
+<!-- ✅ STATUS INDICATOR -->
+<div id="wsStatus" class="wsStatus offline">
+  <span class="dot"></span>
+  <span class="label">OFFLINE</span>
+</div>
+  
 
 <h2>Scenes</h2>
 <button onclick="loadPreview('scene1')">Scene 1</button>
