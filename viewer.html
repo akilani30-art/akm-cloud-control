@@ -250,11 +250,6 @@ function connectWS() {
 connectWS();
 /* ✅ REPLACE OLD switchScene WITH THIS */
 
-function normalizeUrl(url) {
-  try { return new URL(url, location.href).href; }
-  catch { return url; }
-}
-
 function switchScene(newScene, style = "cut") {
   if (isTransitioning) return;
 
