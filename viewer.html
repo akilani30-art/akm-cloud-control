@@ -418,6 +418,23 @@ const incomingUrl = (incoming.src || "").split("?")[0].split("/").pop();
   // Force reload even if same scene
   incoming.setAttribute("src", newScene + "?t=" + Date.now());
   }
+
+  function updateClock() {
+  const el = document.getElementById("tickerClock");
+  const now = new Date();
+
+  const time = now.toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+  el.textContent = time;
+}
+
+// update every second
+setInterval(updateClock, 1000);
+updateClock();
+  
   
 
 /* ✅ MESSAGE HANDLER */
