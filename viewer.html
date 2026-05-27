@@ -75,6 +75,35 @@
 .tickerItem {
   padding: 0 40px;
 }
+  #tickerTrack {
+  min-width: 200%;
+  }
+  .tickerItem::after {
+  content: " • ";
+  margin-left: 20px;
+  color: gold;
+  }
+  #tickerBar::before,
+#tickerBar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 80px;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+#tickerBar::before {
+  left: 0;
+  background: linear-gradient(to right, black, transparent);
+}
+
+#tickerBar::after {
+  right: 0;
+  background: linear-gradient(to left, black, transparent);
+}
+
 
 @keyframes tickerMove {
   0% {
