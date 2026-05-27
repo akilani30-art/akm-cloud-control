@@ -429,8 +429,12 @@ function handleMessage(data) {
 if (data.type === "ticker") {
   const bar = document.getElementById("tickerBar");
   const track = document.getElementById("tickerTrack");
+  const label = document.getElementById("tickerLabel");
 
   const text = data.text || "";
+
+  // ✅ Optional: dynamic label
+  label.textContent = data.label || "BREAKING NEWS";
 
   if (!text) {
     track.innerHTML = "";
@@ -458,19 +462,6 @@ if (data.type === "ticker") {
   return;
 }
 
-  // ✅ Restart animation cleanly
-  track.style.animation = "none";
-  void track.offsetWidth;
-
-  track.innerHTML = build + build;
-
-  const duration = Math.max(10, items.join("").length / 5);
-track.style.animation = `tickerMove ${duration}s linear infinite`;
-
-
-  bar.style.opacity = data.show ? "1" : "0";
-  return;
-  }
   
   
 
