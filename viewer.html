@@ -267,20 +267,30 @@ function switchScene(newScene, style = "cut") {
   const outgoingUrl = (outgoing.getAttribute("src") || "").split("/").pop();
   const incomingUrl = (incoming.getAttribute("src") || "").split("/").pop();
 
-  // ✅ Already showing this scene → do nothing
+  // ✅ Already showing → do nothing
   if (outgoingUrl === target) return;
 
   const doSwap = () => {
     isTransitioning = true;
 
-    // Reset both frames
+    // ✅ Disable transitions during reset to avoid “reset animation”
+    A.classList.add("noTrans");
+    B.classList.add("noTrans");
+
+    // Reset classes & positions instantly
     A.classList.remove("activeScene", "slideOut");
     B.classList.remove("activeScene", "slideOut");
-
     A.style.left = "100%";
     B.style.left = "100%";
 
-    // Show incoming
+    // Force reflow so the browser applies the instant reset
+    void A.offsetHeight;
+
+    // Re-enable transitions for the actual animation
+    A.classList.remove("noTrans");
+    B.classList.remove("noTrans");
+
+    // Bring incoming on
     incoming.style.left = "0";
     incoming.classList.add("activeScene");
 
@@ -308,13 +318,13 @@ function switchScene(newScene, style = "cut") {
     }, duration);
   };
 
-  // ✅ If the hidden iframe already has the target loaded → just swap
+  // ✅ If hidden iframe already has target → swap immediately (NO reload needed)
   if (incomingUrl === target) {
     doSwap();
     return;
   }
 
-  // ✅ Otherwise load it, then swap on load
+  // ✅ Otherwise load then swap
   incoming.onload = () => {
     incoming.onload = null;
     doSwap();
