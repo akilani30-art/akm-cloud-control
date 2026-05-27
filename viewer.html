@@ -101,16 +101,20 @@
 .sceneFrame {
   position: absolute;
   top: 0;
-  left: 0;              /* all frames stacked */
+  left: 0;
   width: 100vw;
   height: 100vh;
   border: none;
   background: black;
 
-  opacity: 0;           /* hidden by default */
-  pointer-events: none; /* clicks only on active */
-  transition: none;     /* INSTANT switching */
+  opacity: 0;
+  pointer-events: none;
+
+  /* ✅ KEEP THIS */
+  transition: left 0.6s ease, opacity 0.2s linear;
 }
+  
+  
 
 .sceneFrame.activeScene {
   opacity: 1;
