@@ -333,14 +333,14 @@ connectWS();
     return;
   }
 
-  // Otherwise load then swap
   incoming.onload = () => {
-    incoming.onload = null;
-    doSwap();
-  };
+  incoming.onload = null;
+  doSwap();
+};
 
-  incoming.setAttribute("src", newScene);
-  }
+// ✅ Force reload even if same scene
+incoming.setAttribute("src", newScene + "?t=" + Date.now());
+  
   
 
 /* ✅ MESSAGE HANDLER */
