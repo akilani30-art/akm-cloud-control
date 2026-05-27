@@ -217,18 +217,33 @@ function switchScene(newScene, style="slide"){
     outgoing.style.left = "100%";
     showingA = !showingA;
     return;
+if (style === "fade") {
+  incoming.style.opacity = "0";
+  incoming.style.left = "0";
+  outgoing.style.left = "0";
+
+  incoming.classList.add("activeScene");
+
+  requestAnimationFrame(() => {
+    incoming.style.transition = "opacity 0.6s";
+    outgoing.style.transition = "opacity 0.6s";
+
+    incoming.style.opacity = "1";
+    outgoing.style.opacity = "0";
+  });
+
+  setTimeout(() => {
+    outgoing.classList.remove("activeScene","slideOut");
+    outgoing.style.left = "100%";
+    outgoing.style.opacity = "1";
+    outgoing.style.transition = "";
+    incoming.style.transition = "";
+    showingA = !showingA;
+  }, 650);
+
+  return;
   }
-
-  if (style === "fade") {
-    incoming.style.opacity = "0";
-    incoming.classList.add("activeScene");
-
-    requestAnimationFrame(() => {
-      incoming.style.transition = "opacity 0.6s";
-      outgoing.style.transition = "opacity 0.6s";
-      incoming.style.opacity = "1";
-      outgoing.style.opacity = "0";
-    });
+  
 
     setTimeout(() => {
       outgoing.classList.remove("activeScene");
