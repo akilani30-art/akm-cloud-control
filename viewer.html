@@ -235,14 +235,18 @@ function switchScene(newScene, style="slide"){
     });
 
     setTimeout(() => {
-      outgoing.classList.remove("activeScene","slideOut");
-      outgoing.style.left = "100%";
-      outgoing.style.opacity = "1";
-      outgoing.style.transition = "";
-      incoming.style.transition = "";
-      showingA = !showingA;
-    }, 650);
+  outgoing.classList.remove("activeScene","slideOut");
+  outgoing.style.left = "100%";
 
+  // ✅ reset styles
+  outgoing.style.opacity = "1";
+  outgoing.style.transition = "";
+  incoming.style.transition = "";
+  incoming.style.opacity = "";
+
+  showingA = !showingA;
+}, 650);
+  
     return;
   }
 
