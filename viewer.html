@@ -423,8 +423,15 @@ if (data.type === "ticker") {
 
   const text = data.text || "";
 
-  // ✅ Optional: dynamic label
+  // ✅ Label text
   label.textContent = data.label || "BREAKING NEWS";
+
+  // ✅ Label color
+  if (data.label === "ALERT") {
+    label.style.background = "#ff1744";
+  } else {
+    label.style.background = "#c62828";
+  }
 
   if (!text) {
     track.innerHTML = "";
@@ -444,7 +451,7 @@ if (data.type === "ticker") {
 
   track.innerHTML = build + build;
 
-  // ✅ Auto speed
+  // Auto speed
   const duration = Math.max(10, items.join("").length / 5);
   track.style.animation = `tickerMove ${duration}s linear infinite`;
 
@@ -452,7 +459,6 @@ if (data.type === "ticker") {
   return;
 }
 
-  
   
 
   if (data.type === "scripture") {
