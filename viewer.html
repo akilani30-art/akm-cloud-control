@@ -367,11 +367,32 @@ function handleMessage(data) {
   }
 
   if (data.type === "ticker") {
-    const bar = document.getElementById("tickerBar");
-    document.getElementById("tickerTrack").textContent = data.text || "";
-    bar.style.opacity = data.show ? "1" : "0";
+  const bar = document.getElementById("tickerBar");
+  const track = document.getElementById("tickerTrack");
+
+  const text = data.text || "";
+
+  if (!text) {
+    track.innerHTML = "";
+    bar.style.opacity = "0";
     return;
   }
+
+  // Split into items
+  const items = text.split("|").map(t => t.trim()).filter(Boolean);
+
+  // Build spans
+  const build = items.map(item =>
+    `<span class="tickerItem">${item}</span>`
+  ).join("");
+
+  // ✅ Duplicate for seamless loop
+  track.innerHTML = build + build;
+
+  bar.style.opacity = data.show ? "1" : "0";
+  return;
+  }
+  
 
   if (data.type === "scripture") {
     const A = document.getElementById("sceneA");
