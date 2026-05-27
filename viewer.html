@@ -53,19 +53,19 @@ html, body {
 
 </style>
 </head>
+<body>
 
-#
-
-<!<body>
-
-<!-- ✅ STATUS INDICATOR (MUST BE HERE, NOT IN STYLE) -->
+<!-- ✅ STATUS INDICATOR -->
 <div id="wsStatus" class="wsStatus offline">
   <span class="dot"></span>
   <span class="label">OFFLINE</span>
 </div>
 
-<!-- SCENE SYSTEM -->
+<!-- ✅ SCENE SYSTEM (REQUIRED) -->
 <div id="slideContainer">
+  <iframe id="sceneA" class="sceneFrame activeScene" src="scene1.html"></iframe>
+  <iframe id="sceneB" class="sceneFrame"></iframe>
+</div>
 
 <!-- LOGO -->
 <img id="logoMark" src="logo.png">
@@ -82,10 +82,20 @@ html, body {
 </div>
 
 <script>
+let socket;
 let showingA = true;
+let transitionStyle = "slide";
 
-/* ⭐ BULLETPROOF WEBSOCKET (WORKS ON ANY DEVICE) */
+/* ✅ STATUS */
+function setWSStatus(state){
+  const el = document.getElementById("wsStatus");
+  const label = el.querySelector(".label");
+  el.classList.remove("online","offline","connecting");
+  el.classList.add(state);
+  label.textContent = state.toUpperCase();
+}
 
+/* ✅ WEBSOCKET */
 function connectWS() {
   const WS_URL = "wss://continuous-shakira-expenditure-refuse.trycloudflare.com";
 
@@ -93,7 +103,7 @@ function connectWS() {
   socket = new WebSocket(WS_URL);
 
   socket.onopen = () => {
-    console.log("✅ Connected:", WS_URL);
+    console.log("✅ Connected");
     setWSStatus("online");
   };
 
@@ -102,13 +112,9 @@ function connectWS() {
     handleMessage(data);
   };
 
-  socket.onerror = (e) => {
-    console.log("❌ WS error:", e);
-    setWSStatus("offline");
-  };
+  socket.onerror = () => setWSStatus("offline");
 
-  socket.onclose = (e) => {
-    console.log("⚠️ WS closed, retrying...", e.code);
+  socket.onclose = () => {
     setWSStatus("offline");
     setTimeout(connectWS, 1000);
   };
@@ -116,38 +122,7 @@ function connectWS() {
 
 connectWS();
 
-  let socket;
-let transitionStyle = "slide"; // default
-function setWSStatus(state){
-  const el = document.getElementById("wsStatus");
-  const label = el.querySelector(".label");
-  el.classList.remove("online","offline","connecting");
-  el.classList.add(state);
-  label.textContent = state.toUpperCase();
-  }
-  
- 
-/* ⭐ MESSAGE HANDLER */
-function handleMessage(data) {
-
-  /* LOWER THIRD */
-  if (data.type === "lowerthird") {
-    const box = document.getElementById("lowerThird");
-    const title = document.getElementById("ltTitle");
-    const sub = document.getElementById("ltSub");
-
-    if (data.show) {
-      title.textContent = data.title || "";
-      sub.textContent = data.subtitle || "";
-      box.classList.remove("hide");
-      box.classList.add("show");
-    } else {
-      box.classList.remove("show");
-      box.classList.add("hide");
-    }
-    return;
-  }
-
+/* ✅ SCENE SWITCH ENGINE */
 function switchScene(newScene, style="slide"){
   const A = document.getElementById("sceneA");
   const B = document.getElementById("sceneB");
@@ -155,10 +130,8 @@ function switchScene(newScene, style="slide"){
   const incoming = showingA ? B : A;
   const outgoing = showingA ? A : B;
 
-  // Load incoming
   incoming.src = newScene;
 
-  // CUT = instant swap
   if (style === "cut") {
     outgoing.classList.remove("activeScene","slideOut");
     incoming.classList.add("activeScene");
@@ -167,121 +140,78 @@ function switchScene(newScene, style="slide"){
     return;
   }
 
-  // FADE = crossfade using opacity
   if (style === "fade") {
-    // stack both frames
-    outgoing.style.left = "0";
-    incoming.style.left = "0";
-
-    incoming.style.transition = "opacity 0.6s ease";
-    outgoing.style.transition = "opacity 0.6s ease";
-
     incoming.style.opacity = "0";
     incoming.classList.add("activeScene");
 
     requestAnimationFrame(() => {
+      incoming.style.transition = "opacity 0.6s";
+      outgoing.style.transition = "opacity 0.6s";
       incoming.style.opacity = "1";
       outgoing.style.opacity = "0";
     });
 
     setTimeout(() => {
-      outgoing.classList.remove("activeScene","slideOut");
-      outgoing.style.left = "100%";
+      outgoing.classList.remove("activeScene");
       outgoing.style.opacity = "1";
-      outgoing.style.transition = "";
-      incoming.style.transition = "";
       showingA = !showingA;
     }, 650);
 
     return;
   }
 
-  // WIPE = treat as faster slide
-  let duration = (style === "wipe") ? 0.35 : 0.6;
-
-  incoming.style.transition = `left ${duration}s ease-in-out`;
-  outgoing.style.transition = `left ${duration}s ease-in-out`;
-
-  // SLIDE/WIPE = your existing slide behavior
+  // slide / wipe
   incoming.classList.add("activeScene");
   outgoing.classList.add("slideOut");
 
   setTimeout(() => {
     outgoing.classList.remove("activeScene","slideOut");
     outgoing.style.left = "100%";
-    outgoing.style.transition = "";
-    incoming.style.transition = "";
     showingA = !showingA;
-  }, Math.ceil(duration*1000) + 50);
-  }
-  
-  
-  /* TICKER */
-  if (data.type === "ticker") {
-    const bar = document.getElementById("tickerBar");
-    const text = document.getElementById("tickerText");
+  }, 600);
+}
 
-    if (data.show) {
-      text.textContent = data.text || "";
-      bar.style.opacity = "1";
-    } else {
-      bar.style.opacity = "0";
-    }
+/* ✅ MESSAGE HANDLER */
+function handleMessage(data) {
+
+  if (data.type === "transition") {
+    transitionStyle = data.style;
     return;
   }
 
-/* SCRIPTURE (needed so viewer does NOT break auto-switch) */
-if (data.type === "scripture") {
-  // Forward scripture into the active scene iframe
-  const A = document.getElementById("sceneA");
-  const B = document.getElementById("sceneB");
-
-  if (showingA) {
-    A.contentWindow.postMessage(data, "*");
-  } else {
-    B.contentWindow.postMessage(data, "*");
+  if (data.type === "scene") {
+    let scene = data.scene;
+    if (!scene.endsWith(".html")) scene += ".html";
+    switchScene(scene, transitionStyle);
+    return;
   }
 
-  return;
-}
+  if (data.type === "lowerthird") {
+    const box = document.getElementById("lowerThird");
+    document.getElementById("ltTitle").textContent = data.title || "";
+    document.getElementById("ltSub").textContent = data.subtitle || "";
 
-
-
-  /* ⭐ SCENE SWITCH (SLIDE TRANSITION) */
-if (data.type === "scene") {
-  let newScene = data.scene;
-
-  if (!newScene.endsWith(".html")) {
-    newScene += ".html";
+    box.classList.toggle("show", data.show);
+    box.classList.toggle("hide", !data.show);
+    return;
   }
 
-  switchScene(newScene, transitionStyle);
-  return;
-}
+  if (data.type === "ticker") {
+    const bar = document.getElementById("tickerBar");
+    document.getElementById("tickerText").textContent = data.text || "";
+    bar.style.opacity = data.show ? "1" : "0";
+    return;
+  }
 
+  if (data.type === "scripture") {
+    const A = document.getElementById("sceneA");
+    const B = document.getElementById("sceneB");
 
-    if (showingA) {
-      B.src = newScene;
-      B.classList.add("activeScene");
-      A.classList.add("slideOut");
-      setTimeout(() => {
-        A.classList.remove("activeScene", "slideOut");
-        A.style.left = "100%";
-      }, 600);
-    } else {
-      A.src = newScene;
-      A.classList.add("activeScene");
-      B.classList.add("slideOut");
-      setTimeout(() => {
-        B.classList.remove("activeScene", "slideOut");
-        B.style.left = "100%";
-      }, 600);
-    }
-    showingA = !showingA;
+    (showingA ? A : B).contentWindow.postMessage(data, "*");
+    return;
   }
 }
 </script>
-
 </body>
 </html>
 
