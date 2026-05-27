@@ -266,43 +266,40 @@ function switchScene(newScene, style = "cut") {
 
   if (!newScene.endsWith(".html")) newScene += ".html";
 
-const target = newScene;
-const outgoingUrl = (outgoing.getAttribute("src") || "").split("/").pop();
-const incomingUrl = (incoming.getAttribute("src") || "").split("/").pop();
-  
+  // Compare by filename only (stable)
+  const target = newScene;
+  const outgoingUrl = (outgoing.getAttribute("src") || "").split("/").pop();
+  const incomingUrl = (incoming.getAttribute("src") || "").split("/").pop();
 
-  // ✅ already showing → do nothing
-if (outgoingUrl === target) {
-  
-  }
+  // ✅ Already showing this scene → do nothing
+  if (outgoingUrl === target) return;
 
   const doSwap = () => {
     isTransitioning = true;
 
-    // reset
+    // Reset both frames
     A.classList.remove("activeScene", "slideOut");
     B.classList.remove("activeScene", "slideOut");
 
     A.style.left = "100%";
     B.style.left = "100%";
 
-    // show incoming
+    // Show incoming
     incoming.style.left = "0";
     incoming.classList.add("activeScene");
 
+    // CUT = instant
     if (style === "cut") {
       showingA = !showingA;
       isTransitioning = false;
       return;
     }
 
-    // animate outgoing
+    // Slide/Wipe = animate outgoing off
     outgoing.style.left = "0";
     outgoing.classList.add("activeScene");
 
-    requestAnimationFrame(() => {
-      outgoing.classList.add("slideOut");
-    });
+    requestAnimationFrame(() => outgoing.classList.add("slideOut"));
 
     const duration = (style === "wipe") ? 350 : 600;
 
@@ -315,20 +312,22 @@ if (outgoingUrl === target) {
     }, duration);
   };
 
-  // ✅ already loaded → just swap
+  // ✅ If the hidden iframe already has the target loaded → just swap
   if (incomingUrl === target) {
-  
+    doSwap();
     return;
   }
 
-  // ✅ load then swap
+  // ✅ Otherwise load it, then swap on load
   incoming.onload = () => {
     incoming.onload = null;
     doSwap();
   };
 
-  incoming.src = newScene;
-}
+  incoming.setAttribute("src", newScene);
+  }
+  
+
 
 
 /* ✅ MESSAGE HANDLER */
