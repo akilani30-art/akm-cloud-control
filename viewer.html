@@ -250,9 +250,7 @@ function connectWS() {
 
 connectWS();
 /* ✅ REPLACE OLD switchScene WITH THIS */
-
-
-    function switchScene(newScene, style = "cut") {
+function switchScene(newScene, style = "cut") {
   if (isTransitioning) return;
 
   const A = document.getElementById("sceneA");
@@ -264,9 +262,9 @@ connectWS();
   if (!newScene.endsWith(".html")) newScene += ".html";
 
   const target = newScene;
-  const outgoingUrl = ((outgoing.getAttribute("src") || "")).split("?")[0].split("/").pop();
-const incomingUrl = ((incoming.getAttribute("src") || "")).split("?")[0].split("/").pop();
-  
+  const outgoingUrl = (outgoing.getAttribute("src") || "").split("?")[0].split("/").pop();
+  const incomingUrl = (incoming.getAttribute("src") || "").split("?")[0].split("/").pop();
+
   // Already showing
   if (outgoingUrl === target) return;
 
@@ -334,15 +332,13 @@ const incomingUrl = ((incoming.getAttribute("src") || "")).split("?")[0].split("
   }
 
   incoming.onload = () => {
-  incoming.onload = null;
-  doSwap();
-};
+    incoming.onload = null;
+    doSwap();
+  };
 
-// ✅ Force reload even if same scene
-incoming.setAttribute("src", newScene + "?t=" + Date.now());
-}
-  
-  
+  // Force reload even if same scene
+  incoming.setAttribute("src", newScene + "?t=" + Date.now());
+  }
   
 
 /* ✅ MESSAGE HANDLER */
