@@ -161,15 +161,23 @@ input {
 
 <script>
 const WS_URL = "wss://continuous-shakira-expenditure-refuse.trycloudflare.com";
+
 let ws;
 let sendQueue = [];
 
+// State
+let currentPreviewScene = "scene1";
+let lastClipboard = "";
+let lastScriptureTitle = "";
+let lastScriptureBody = "";
+let lastSceneWas3 = false;
+
+// ---------- WebSocket ----------
 function connectWS() {
   ws = new WebSocket(WS_URL);
 
   ws.onopen = () => {
     console.log("✅ Control connected:", WS_URL);
-    // flush queued messages
     while (sendQueue.length) ws.send(sendQueue.shift());
   };
 
@@ -183,7 +191,7 @@ function connectWS() {
   ws.onmessage = (event) => {
     const data = JSON.parse(event.data);
 
-    // Respond when viewer/scene requests scripture
+    // Viewer/Scene 3 asks for latest scripture
     if (data.type === "request_latest_scripture") {
       if (lastScriptureTitle && lastScriptureBody) {
         sendJSON({
@@ -203,44 +211,28 @@ function sendJSON(obj) {
 }
 
 connectWS();
-  
 
-let currentPreviewScene = "scene1";
-let lastClipboard = "";
-let lastScriptureTitle = "";
-let lastScriptureBody = "";
-window.lastSceneWas3 = false;
-
-/* SYNC FIX — Respond when Scene 3 requests latest scripture *
-
-/* PREVIEW LOAD */
-function loadPreview(scene){
+// ---------- Preview / Program ----------
+function loadPreview(scene) {
   currentPreviewScene = scene;
   document.getElementById("previewFrame").src = scene + ".html";
-
-  if (scene !== "scene3") {
-    window.lastSceneWas3 = false;
-  }
+  if (scene !== "scene3") lastSceneWas3 = false;
 }
 
-/* TAKE BUTTON */
-function takeScene(){
+function takeScene() {
   document.getElementById("programFrame").src = currentPreviewScene + ".html";
-
   sendJSON({ type: "scene", scene: currentPreviewScene });
 
-  if (currentPreviewScene !== "scene3") window.lastSceneWas3 = false;
-  }
+  if (currentPreviewScene !== "scene3") lastSceneWas3 = false;
 }
 
-/* TRANSITIONS */
-function sendTransition(style){
+// ---------- Transitions ----------
+function sendTransition(style) {
   sendJSON({ type: "transition", style });
-  }));
 }
 
-/* LOWER THIRD */
-function sendLower(){
+// ---------- Lower Third ----------
+function sendLower() {
   sendJSON({
     type: "lowerthird",
     show: true,
@@ -248,45 +240,30 @@ function sendLower(){
     subtitle: document.getElementById("ltSub").value
   });
 }
-function hideLower(){
+
+function hideLower() {
   sendJSON({ type: "lowerthird", show: false });
-  }));
 }
 
-function hideLower(){
-  ws.send(JSON.stringify({
-    type: "lowerthird",
-    show: false
-  }));
-}
-
-/* TICKER */
-  function showTicker(){
+// ---------- Ticker ----------
+function showTicker() {
   sendJSON({
     type: "ticker",
     show: true,
     text: document.getElementById("tickerInput").value
   });
 }
-function hideTicker(){
+
+function hideTicker() {
   sendJSON({ type: "ticker", show: false });
-  }));
 }
 
-function hideTicker(){
-  ws.send(JSON.stringify({
-    type: "ticker",
-    show: false
-  }));
-}
-
-/* CAMERA SWITCH */
-function switchCam(cam){
+// ---------- Camera ----------
+function switchCam(cam) {
   sendJSON({ type: "camera", view: cam });
-  }));
 }
 
-/* HISTORY */
+// ---------- Scripture History ----------
 let scriptureHistory = [];
 
 function addToHistory(title, body) {
@@ -297,32 +274,17 @@ function addToHistory(title, body) {
 
 function renderHistory() {
   const box = document.getElementById("historyList");
-
   if (scriptureHistory.length === 0) {
     box.innerHTML = `<p style="color:#888;text-align:center;">No scriptures yet.</p>`;
     return;
   }
 
   box.innerHTML = scriptureHistory.map((item, index) => `
-    <div style="
-      padding:10px;
-      margin-bottom:10px;
-      border:1px solid gold;
-      border-radius:6px;
-      background:#111;">
-      
+    <div style="padding:10px;margin-bottom:10px;border:1px solid gold;border-radius:6px;background:#111;">
       <strong style="color:gold;">${item.title}</strong><br>
       <span style="font-size:14px;color:#ccc;white-space:pre-wrap;">${item.body}</span>
-
       <button onclick="resendHistory(${index})"
-        style="
-          margin-top:8px;
-          width:100%;
-          padding:8px;
-          background:black;
-          border:1px solid gold;
-          color:gold;
-          border-radius:6px;">
+        style="margin-top:8px;width:100%;padding:8px;background:black;border:1px solid gold;color:gold;border-radius:6px;">
         🔁 Re‑Send
       </button>
     </div>
@@ -331,75 +293,50 @@ function renderHistory() {
 
 function resendHistory(index) {
   const item = scriptureHistory[index];
-
-  ws.sendsendJSON(stringify({
-    type: "scripture",
-    title: item.title,
-    text: item.body
-  }));
+  sendJSON({ type: "scripture", title: item.title, text: item.body });
 }
 
-/* AUTO‑PASTE + AUTO‑SEND + AUTO‑SWITCH */
+// ---------- Auto Clipboard -> Scripture + Auto Scene 3 ----------
 async function checkClipboard() {
   try {
     const text = await navigator.clipboard.readText();
     if (!text || text.trim() === "") return;
 
-    /* IGNORE HTML OR PAGE CONTENT */
+    // ignore code/html noise
     if (
-      text.includes("<") ||
-      text.includes(">") ||
-      text.includes("html") ||
-      text.includes("button") ||
-      text.includes("script") ||
-      text.includes("iframe") ||
+      text.includes("<") || text.includes(">") ||
+      text.toLowerCase().includes("html") ||
+      text.toLowerCase().includes("button") ||
+      text.toLowerCase().includes("script") ||
+      text.toLowerCase().includes("iframe") ||
       text.length > 300
     ) return;
 
-    /* ANTI‑LOOP */
     if (text === lastClipboard) return;
     lastClipboard = text;
 
-    let lines = text.split("\n")
-      .map(l => l.trim())
-      .filter(l => l !== "");
-
+    let lines = text.split("\n").map(l => l.trim()).filter(Boolean);
     if (lines.length === 0) return;
 
     let title = lines[0];
     let body = lines.slice(1).join("\n").trim();
-
     body = body.replace(/^\d+\s*/, "");
 
-    if (!body) {
-      body = title;
-      title = "Scripture";
-    }
+    if (!body) { body = title; title = "Scripture"; }
 
     lastScriptureTitle = title;
     lastScriptureBody = body;
 
-    ws.send(JSON.stringify({
-      type: "scripture",
-      title: title,
-      text: body
-    }));
-
+    sendJSON({ type: "scripture", title, text: body });
     addToHistory(title, body);
 
-    /* AUTO‑SWITCH TO SCENE 3 */
-    if (!window.lastSceneWas3) {
+    // Auto take Scene 3 once
+    if (!lastSceneWas3) {
       document.getElementById("previewFrame").src = "scene3.html";
       document.getElementById("programFrame").src = "scene3.html";
-
-      ws.send(JSON.stringify({
-        type: "scene",
-        scene: "scene3"
-      }));
-
-      window.lastSceneWas3 = true;
+      sendJSON({ type: "scene", scene: "scene3" });
+      lastSceneWas3 = true;
     }
-
   } catch (err) {
     console.log("Clipboard read blocked:", err);
   }
@@ -408,11 +345,9 @@ async function checkClipboard() {
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) checkClipboard();
 });
-
 setInterval(checkClipboard, 3000);
-
 </script>
-
+  
 </body>
 </html>
 
