@@ -160,7 +160,50 @@ input {
 </div>
 
 <script>
-const ws = new WebSocket("wss://ntsc-gtk-wooden-greatly.trycloudflare.com");
+const WS_URL = "wss://ntsc-gtk-wooden-greatly.trycloudflare.com";
+let ws;
+let sendQueue = [];
+
+function connectWS() {
+  ws = new WebSocket(WS_URL);
+
+  ws.onopen = () => {
+    console.log("✅ Control connected:", WS_URL);
+    // flush queued messages
+    while (sendQueue.length) ws.send(sendQueue.shift());
+  };
+
+  ws.onerror = (e) => console.log("❌ Control WS error", e);
+
+  ws.onclose = (e) => {
+    console.log("⚠️ Control WS closed, retrying...", e.code);
+    setTimeout(connectWS, 1000);
+  };
+
+  ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+
+    // Respond when viewer/scene requests scripture
+    if (data.type === "request_latest_scripture") {
+      if (lastScriptureTitle && lastScriptureBody) {
+        sendJSON({
+          type: "scripture",
+          title: lastScriptureTitle,
+          text: lastScriptureBody
+        });
+      }
+    }
+  };
+}
+
+function sendJSON(obj) {
+  const msg = JSON.stringify(obj);
+  if (ws && ws.readyState === WebSocket.OPEN) ws.send(msg);
+  else sendQueue.push(msg);
+}
+
+connectWS();
+  
 
 let currentPreviewScene = "scene1";
 let lastClipboard = "";
