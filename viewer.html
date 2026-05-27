@@ -138,10 +138,7 @@
   
 
 
-/* ✅ Pause on hover */
-#tickerBar:hover #tickerTrack {
-  animation-play-state: paused;
-}
+
   #tickerBar {
   box-shadow: 0 -2px 10px rgba(0,0,0,0.5);
   }
@@ -465,11 +462,6 @@ if (data.type === "ticker") {
 
     (showingA ? A : B).contentWindow.postMessage(data, "*");
     return;
-  }
-  if (data.label === "ALERT") {
-  label.style.background = "#ff1744";
-} else {
-  label.style.background = "#c62828";
   }
   
 }
