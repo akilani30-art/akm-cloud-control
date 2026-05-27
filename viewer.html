@@ -432,10 +432,13 @@ if (data.type === "ticker") {
 
   // ✅ Label color
   if (data.label === "ALERT") {
-    label.style.background = "#ff1744";
-  } else {
-    label.style.background = "#c62828";
-  }
+  label.style.background = "#ff1744";
+  label.style.animation = "flash 1s infinite";
+} else {
+  label.style.background = "#c62828";
+  label.style.animation = "none";
+}
+
 
   if (!text) {
     track.innerHTML = "";
