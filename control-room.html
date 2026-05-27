@@ -227,31 +227,29 @@ function loadPreview(scene){
 function takeScene(){
   document.getElementById("programFrame").src = currentPreviewScene + ".html";
 
-  ws.send(JSON.stringify({
-    type: "scene",
-    scene: currentPreviewScene
-  }));
+  sendJSON({ type: "scene", scene: currentPreviewScene });
 
-  if (currentPreviewScene !== "scene3") {
-    window.lastSceneWas3 = false;
+  if (currentPreviewScene !== "scene3") window.lastSceneWas3 = false;
   }
 }
 
 /* TRANSITIONS */
 function sendTransition(style){
-  ws.send(JSON.stringify({
-    type: "transition",
-    style: style
+  sendJSON({ type: "transition", style });
   }));
 }
 
 /* LOWER THIRD */
 function sendLower(){
-  ws.send(JSON.stringify({
+  sendJSON({
     type: "lowerthird",
     show: true,
     title: document.getElementById("ltTitle").value,
     subtitle: document.getElementById("ltSub").value
+  });
+}
+function hideLower(){
+  sendJSON({ type: "lowerthird", show: false });
   }));
 }
 
@@ -263,11 +261,15 @@ function hideLower(){
 }
 
 /* TICKER */
-function showTicker(){
-  ws.send(JSON.stringify({
+  function showTicker(){
+  sendJSON({
     type: "ticker",
     show: true,
     text: document.getElementById("tickerInput").value
+  });
+}
+function hideTicker(){
+  sendJSON({ type: "ticker", show: false });
   }));
 }
 
@@ -280,9 +282,7 @@ function hideTicker(){
 
 /* CAMERA SWITCH */
 function switchCam(cam){
-  ws.send(JSON.stringify({
-    type: "camera",
-    view: cam
+  sendJSON({ type: "camera", view: cam });
   }));
 }
 
@@ -332,7 +332,7 @@ function renderHistory() {
 function resendHistory(index) {
   const item = scriptureHistory[index];
 
-  ws.send(JSON.stringify({
+  ws.sendsendJSON(stringify({
     type: "scripture",
     title: item.title,
     text: item.body
