@@ -200,8 +200,6 @@ function connectWS() {
 }
 
 connectWS();
-
-/* ✅ SCENE SWITCH ENGINE */
 function switchScene(newScene, style="slide"){
   const A = document.getElementById("sceneA");
   const B = document.getElementById("sceneB");
@@ -211,50 +209,44 @@ function switchScene(newScene, style="slide"){
 
   incoming.src = newScene;
 
+  /* ✅ CUT */
   if (style === "cut") {
     outgoing.classList.remove("activeScene","slideOut");
     incoming.classList.add("activeScene");
     outgoing.style.left = "100%";
     showingA = !showingA;
     return;
-if (style === "fade") {
-  incoming.style.opacity = "0";
-  incoming.style.left = "0";
-  outgoing.style.left = "0";
-
-  incoming.classList.add("activeScene");
-
-  requestAnimationFrame(() => {
-    incoming.style.transition = "opacity 0.6s";
-    outgoing.style.transition = "opacity 0.6s";
-
-    incoming.style.opacity = "1";
-    outgoing.style.opacity = "0";
-  });
-
-  setTimeout(() => {
-    outgoing.classList.remove("activeScene","slideOut");
-    outgoing.style.left = "100%";
-    outgoing.style.opacity = "1";
-    outgoing.style.transition = "";
-    incoming.style.transition = "";
-    showingA = !showingA;
-  }, 650);
-
-  return;
   }
-  
+
+  /* ✅ FADE */
+  if (style === "fade") {
+    incoming.style.opacity = "0";
+    incoming.style.left = "0";
+    outgoing.style.left = "0";
+
+    incoming.classList.add("activeScene");
+
+    requestAnimationFrame(() => {
+      incoming.style.transition = "opacity 0.6s";
+      outgoing.style.transition = "opacity 0.6s";
+
+      incoming.style.opacity = "1";
+      outgoing.style.opacity = "0";
+    });
 
     setTimeout(() => {
-      outgoing.classList.remove("activeScene");
+      outgoing.classList.remove("activeScene","slideOut");
+      outgoing.style.left = "100%";
       outgoing.style.opacity = "1";
+      outgoing.style.transition = "";
+      incoming.style.transition = "";
       showingA = !showingA;
     }, 650);
 
     return;
   }
 
-  // slide / wipe
+  /* ✅ SLIDE / WIPE */
   incoming.classList.add("activeScene");
   outgoing.classList.add("slideOut");
 
@@ -263,7 +255,8 @@ if (style === "fade") {
     outgoing.style.left = "100%";
     showingA = !showingA;
   }, 600);
-}
+  }
+  
 
 /* ✅ MESSAGE HANDLER */
 function handleMessage(data) {
