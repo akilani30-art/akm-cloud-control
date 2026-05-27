@@ -177,18 +177,14 @@ html, body {
 let showingA = true;
 
 /* ⭐ BULLETPROOF WEBSOCKET (WORKS ON ANY DEVICE) */
-function connectWS() {
-  let socket;
 
-  try {
-    socket = new WebSocket("ws://" + location.hostname + ":7345");
-  } catch (e) {
-    socket = new WebSocket("wss://ntsc-gtk-wooden-greatly.trycloudflare.com
- ");
-  }
+function connectWS() {
+  const WS_URL = "wss://ntsc-gtk-wooden-greatly.trycloudflare.com";
+
+  socket = new WebSocket(WS_URL);
 
   socket.onopen = () => {
-    console.log("Viewer connected");
+    console.log("✅ Connected:", WS_URL);
   };
 
   socket.onmessage = (event) => {
@@ -196,19 +192,18 @@ function connectWS() {
     handleMessage(data);
   };
 
-  socket.onerror = () => {
-    console.log("Viewer WS error, retrying...");
-    setTimeout(connectWS, 1000);
+  socket.onerror = (e) => {
+    console.log("❌ WS error:", e);
   };
 
-  socket.onclose = () => {
-    console.log("Viewer WS closed, retrying...");
+  socket.onclose = (e) => {
+    console.log("⚠️ WS closed, retrying...", e.code);
     setTimeout(connectWS, 1000);
   };
 }
 
 connectWS();
-
+ 
 /* ⭐ MESSAGE HANDLER */
 function handleMessage(data) {
 
