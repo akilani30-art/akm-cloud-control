@@ -252,7 +252,8 @@ function connectWS() {
 connectWS();
 /* ✅ REPLACE OLD switchScene WITH THIS */
 
-function switchScene(newScene, style = "cut") {
+
+    function switchScene(newScene, style = "cut") {
   if (isTransitioning) return;
 
   const A = document.getElementById("sceneA");
@@ -263,49 +264,57 @@ function switchScene(newScene, style = "cut") {
 
   if (!newScene.endsWith(".html")) newScene += ".html";
 
-  // Compare by filename only (stable)
   const target = newScene;
-  const outgoingUrl = (outgoing.getAttribute("src") || "").split("/").pop();
-  const incomingUrl = (incoming.getAttribute("src") || "").split("/").pop();
+  const outgoingUrl = ((outgoing.getAttribute("src") || outgoing.src || "") + "").split("/").pop();
+  const incomingUrl = ((incoming.getAttribute("src") || incoming.src || "") + "").split("/").pop();
 
-  // ✅ Already showing → do nothing
+  // Already showing
   if (outgoingUrl === target) return;
 
   const doSwap = () => {
     isTransitioning = true;
 
-    // ✅ Disable transitions during reset to avoid “reset animation”
+    // Disable transitions while we "stage" positions
     A.classList.add("noTrans");
     B.classList.add("noTrans");
 
-    // Reset classes & positions instantly
+    // Clear classes
     A.classList.remove("activeScene", "slideOut");
     B.classList.remove("activeScene", "slideOut");
+
+    // Stage both off-screen
     A.style.left = "100%";
     B.style.left = "100%";
 
-    // Force reflow so the browser applies the instant reset
-    void A.offsetHeight;
-
-    // Re-enable transitions for the actual animation
-    A.classList.remove("noTrans");
-    B.classList.remove("noTrans");
-
-    // Bring incoming on
+    // Put incoming on-screen immediately
     incoming.style.left = "0";
     incoming.classList.add("activeScene");
 
-    // CUT = instant
     if (style === "cut") {
+      // Cut: hide outgoing immediately
+      outgoing.classList.remove("activeScene", "slideOut");
+      outgoing.style.left = "100%";
+
+      // Re-enable transitions
+      void A.offsetHeight;
+      A.classList.remove("noTrans");
+      B.classList.remove("noTrans");
+
       showingA = !showingA;
       isTransitioning = false;
       return;
     }
 
-    // Slide/Wipe = animate outgoing off
+    // For slide/wipe: outgoing must start at 0 (NO animation in)
     outgoing.style.left = "0";
     outgoing.classList.add("activeScene");
 
+    // Force layout, then re-enable transitions
+    void A.offsetHeight;
+    A.classList.remove("noTrans");
+    B.classList.remove("noTrans");
+
+    // Now animate outgoing off
     requestAnimationFrame(() => outgoing.classList.add("slideOut"));
 
     const duration = (style === "wipe") ? 350 : 600;
@@ -319,13 +328,13 @@ function switchScene(newScene, style = "cut") {
     }, duration);
   };
 
-  // ✅ If hidden iframe already has target → swap immediately (NO reload needed)
+  // If hidden iframe already has it loaded, swap immediately
   if (incomingUrl === target) {
     doSwap();
     return;
   }
 
-  // ✅ Otherwise load then swap
+  // Otherwise load then swap
   incoming.onload = () => {
     incoming.onload = null;
     doSwap();
@@ -334,8 +343,6 @@ function switchScene(newScene, style = "cut") {
   incoming.setAttribute("src", newScene);
   }
   
-
-
 
 /* ✅ MESSAGE HANDLER */
 function handleMessage(data) {
