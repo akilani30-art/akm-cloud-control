@@ -5,6 +5,36 @@
 <title>Viewer</title>
 
 <style>
+  /* ✅ SCENE SYSTEM */
+#slideContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: black;
+}
+
+.sceneFrame {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  width: 100vw;
+  height: 100vh;
+  border: none;
+  background: black;
+  transition: left 0.6s ease-in-out;
+}
+
+.activeScene {
+  left: 0;
+}
+
+.slideOut {
+  left: -100%;
+}
+  
 
 /* ✅ STATUS INDICATOR */
 .wsStatus{
