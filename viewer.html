@@ -264,9 +264,9 @@ connectWS();
   if (!newScene.endsWith(".html")) newScene += ".html";
 
   const target = newScene;
-  const outgoingUrl = ((outgoing.getAttribute("src") || outgoing.src || "") + "").split("/").pop();
-  const incomingUrl = ((incoming.getAttribute("src") || incoming.src || "") + "").split("/").pop();
-
+  const outgoingUrl = ((outgoing.getAttribute("src") || "")).split("?")[0].split("/").pop();
+const incomingUrl = ((incoming.getAttribute("src") || "")).split("?")[0].split("/").pop();
+  
   // Already showing
   if (outgoingUrl === target) return;
 
