@@ -54,55 +54,81 @@
   position: fixed;
   bottom: 0;
   width: 100%;
-  height: 32px;
-  background: rgba(0,0,0,0.9);
-  border-top: 2px solid gold;
-  color: white; 
-  overflow: hidden;
+  height: 40px;
   display: flex;
   align-items: center;
-  font-family: Arial, sans-serif;
+  background: rgba(0,0,0,0.95);
+  border-top: 2px solid gold;
   z-index: 9999;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
 }
-  
 
+/* 🔴 Breaking label */
+#tickerLabel {
+  background: #c62828;
+  color: white;
+  font-weight: bold;
+  padding: 0 20px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+/* scrolling area */
+#tickerWrapper {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* track */
 #tickerTrack {
   display: inline-flex;
   white-space: nowrap;
-  animation: tickerMove 20s linear infinite;
+  animation: tickerMove linear infinite;
 }
 
+/* items */
 .tickerItem {
   padding: 0 40px;
+  color: white;
 }
-  #tickerTrack {
-  min-width: 200%;
-  }
-  .tickerItem::after {
-  content: " • ";
-  margin-left: 20px;
-  color: gold;
-  }
-  #tickerBar::before,
-#tickerBar::after {
+
+/* animation */
+@keyframes tickerMove {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+/* pause on hover */
+#tickerWrapper:hover #tickerTrack {
+  animation-play-state: paused;
+}
+
+/* fade edges (PRO look) */
+#tickerWrapper::before,
+#tickerWrapper::after {
   content: "";
   position: absolute;
   top: 0;
-  width: 80px;
+  width: 60px;
   height: 100%;
   z-index: 2;
   pointer-events: none;
 }
 
-#tickerBar::before {
+#tickerWrapper::before {
   left: 0;
   background: linear-gradient(to right, black, transparent);
 }
 
-#tickerBar::after {
+#tickerWrapper::after {
   right: 0;
   background: linear-gradient(to left, black, transparent);
-}
+  }
+  
 
 
 @keyframes tickerMove {
