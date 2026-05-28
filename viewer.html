@@ -50,6 +50,19 @@
   gap: 8px;
   z-index: 9999;
 }
+  .liveDot {
+  width: 6px;
+  height: 6px;
+  background: white;
+  border-radius: 50%;
+  animation: dotBlink 1s infinite;
+}
+
+@keyframes dotBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+    }
+  
 
 /* LIVE badge */
  #liveBadge {
