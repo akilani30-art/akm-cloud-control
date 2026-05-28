@@ -14,13 +14,12 @@
   
 
 /* ✅ KEEP KEYFRAMES OUTSIDE */
-@keyframes logoIdle {
-  0%   { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  @keyframes logoIdle {
   0%   { transform: rotate(0deg) scale(1); }
   50%  { transform: rotate(180deg) scale(1.02); }
   100% { transform: rotate(360deg) scale(1); }
-}
+  }
+  
   
 
 
@@ -39,7 +38,6 @@
   will-change: transform, opacity;
 
   /* ✅ smooth transitions */
-  transition: filter 0.3s ease, opacity 0.3s ease;
   transition: filter 0.3s ease, opacity 0.3s ease;
   animation-fill-mode: both;
   }
