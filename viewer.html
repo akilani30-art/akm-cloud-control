@@ -598,6 +598,14 @@ track.offsetHeight; // force reflow more reliably
 
 
   track.innerHTML = build + build;
+  const badge = document.getElementById("liveBadge");
+
+if (data.label === "STOP") {
+  badge.style.display = "none";   // hide when stopped
+} else {
+  badge.style.display = "flex";   // show otherwise
+  }
+  
 
   // Auto speed
   const duration = Math.max(10, items.join("").length / 5);
