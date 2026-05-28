@@ -31,6 +31,9 @@
 
   opacity: 0.85;
   transform-origin: center;
+  image-rendering: -webkit-optimize-contrast;
+  }
+  
 
   animation: logoIdle 20s linear infinite;
   will-change: transform, opacity;
@@ -73,6 +76,7 @@
   padding: 3px 7px;
   border-radius: 2px;
   letter-spacing: 1px;
+  position: relative;
 
   display: flex;
   align-items: center;
@@ -88,7 +92,7 @@
 /* Pulse effect */
 @keyframes livePulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  50% { opacity: 0.75; }
 }
   
   
