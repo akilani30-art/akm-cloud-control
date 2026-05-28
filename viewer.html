@@ -496,6 +496,18 @@ if (data.type === "ticker") {
     bar.style.opacity = "0";
     return;
   }
+  const logo = document.getElementById("logoMark");
+
+if (data.label === "ALERT") {
+  logo.style.animation = "logoAlert 2s linear infinite";
+  logo.style.opacity = "1";
+  logo.style.filter = "drop-shadow(0 0 10px red)";
+} else {
+  logo.style.animation = "logoIdle 20s linear infinite";
+  logo.style.opacity = "0.85";
+  logo.style.filter = "none";
+  }
+  
 
   const items = text.split("|").map(t => t.trim()).filter(Boolean);
 
