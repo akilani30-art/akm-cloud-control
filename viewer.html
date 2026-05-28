@@ -41,6 +41,40 @@
   transition: filter 0.3s ease, opacity 0.3s ease;
   animation-fill-mode: both;
   }
+  #logoWrapper {
+  position: fixed;
+  top: 15px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 9999;
+}
+
+/* LIVE badge */
+#liveBadge {
+  background: red;
+  color: white;
+  font-weight: bold;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  letter-spacing: 1px;
+
+  /* subtle glow */
+  box-shadow: 0 0 6px red;
+
+  /* pulse animation */
+  animation: livePulse 1.5s infinite;
+}
+
+/* Pulse effect */
+@keyframes livePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+  
   
 
 
