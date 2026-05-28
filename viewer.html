@@ -4,7 +4,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Viewer</title>
 <style>
-  #logoMark {
+  @keyframes logoAlert {
+  0%   { transform: rotate(0deg) scale(1); }
+  50%  { transform: rotate(180deg) scale(1.1); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+/* ✅ KEEP KEYFRAMES OUTSIDE */
+@keyframes logoIdle {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+#logoMark {
   position: fixed;
   top: 15px;
   right: 20px;
@@ -17,14 +29,10 @@
 
   animation: logoIdle 20s linear infinite;
   will-change: transform, opacity;
-}  /* ✅ YOU MISSED THIS */
 
-/* ✅ Now this is OUTSIDE (correct) */
-@keyframes logoIdle {
-  0%   { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-  
+  /* ✅ smooth transitions */
+  transition: filter 0.3s ease, opacity 0.3s ease;
+  }
   
 
 
