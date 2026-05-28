@@ -5,16 +5,24 @@
 <title>Viewer</title>
 
 <style>
-  #logoMark {
+@keyframes spinLogo {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+#logoMark {
   position: fixed;
   top: 0px;
   right: 20px;
-  width: 60px;   /* adjust size */
+  width: 60px;
   height: auto;
-  z-index: 9999;  /* make sure it's on top */
-  opacity: 0.9;   /* optional */
-  }
-    
+  z-index: 9999;
+  opacity: 0.9;
+
+  /* ✅ ADD THIS */
+  animation: spinLogo 12s linear infinite;
+}
+
   /* ✅ SCENE SYSTEM */
 #slideContainer {
   position: fixed;
