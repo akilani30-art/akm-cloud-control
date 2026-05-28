@@ -4,23 +4,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Viewer</title>
 <style>
- @keyframes spinLogo {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-
 #logoMark {
   position: fixed;
-  top: 0px;
+  top: 15px;
   right: 20px;
-  width: 60px;
+  width: 65px;
   height: auto;
   z-index: 9999;
-  opacity: 0.9;
 
-  
-  animation: spinLogo 2s linear infinite;
+  opacity: 0.85;
+  transform-origin: center;
+
+  /* ✅ subtle motion instead of constant spin */
+  animation: logoIdle 20s linear infinite;
+
+  /* ✅ smooth rendering */
+  will-change: transform, opacity;
 }
+
+/* ✅ Very slow, almost unnoticeable rotation */
+@keyframes logoIdle {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+ }
+ 
 
 
 
