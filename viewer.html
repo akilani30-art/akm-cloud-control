@@ -52,22 +52,25 @@
 }
 
 /* LIVE badge */
-#liveBadge {
-  background: red;
+ #liveBadge {
+  background: #e00000;
   color: white;
   font-weight: bold;
   font-family: Arial, sans-serif;
-  font-size: 12px;
-  padding: 4px 8px;
-  border-radius: 4px;
+  font-size: 11px;
+  padding: 3px 6px;
+  border-radius: 3px;
   letter-spacing: 1px;
 
-  /* subtle glow */
-  box-shadow: 0 0 6px red;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 
-  /* pulse animation */
+  box-shadow: 0 0 6px rgba(255,0,0,0.7);
+
   animation: livePulse 1.5s infinite;
 }
+
 
 /* Pulse effect */
 @keyframes livePulse {
