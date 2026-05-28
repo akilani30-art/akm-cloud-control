@@ -600,10 +600,18 @@ track.offsetHeight; // force reflow more reliably
   const badge = document.getElementById("liveBadge");
 
 if (data.label === "STOP") {
-  badge.style.display = "none";   // hide when stopped
+  badge.style.display = "none";
 } else {
-  badge.style.display = "flex";   // show otherwise
-  }
+  badge.style.display = "flex";
+}
+
+/* 🔥 Extra: change color during ALERT */
+if (data.label === "ALERT") {
+  badge.style.background = "#ff1744";
+} else {
+  badge.style.background = "#e00000";
+}
+
   
 
   // Auto speed
