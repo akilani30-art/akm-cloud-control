@@ -255,11 +255,19 @@ function connectWS() {
   };
 }
 
+ const MAX_QUEUE = 100;
+
 function sendJSON(obj) {
   const msg = JSON.stringify(obj);
-  if (ws && ws.readyState === WebSocket.OPEN) ws.send(msg);
-  else sendQueue.push(msg);
+
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(msg);
+  } else {
+    sendQueue.push(msg);
+    if (sendQueue.length > MAX_QUEUE) sendQueue.shift();
+  }
 }
+
 
 function setWSStatus(state){
   const el = document.getElementById("wsStatus");
