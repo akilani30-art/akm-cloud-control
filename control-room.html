@@ -268,6 +268,7 @@ function sendJSON(obj) {
   }
 }
 
+  
 
 function setWSStatus(state){
   const el = document.getElementById("wsStatus");
@@ -412,7 +413,18 @@ function resendHistory(index) {
   lastScriptureTitle = item.title;
   lastScriptureBody = item.body;
 }
+function saveHistory() {
+  localStorage.setItem("scriptureHistory", JSON.stringify(scriptureHistory));
+}
 
+function loadHistory() {
+  try {
+    scriptureHistory = JSON.parse(localStorage.getItem("scriptureHistory")) || [];
+  } catch {
+    scriptureHistory = [];
+  }
+  renderHistory();
+  }
 
 // ---------- Auto Clipboard -> Scripture + Auto Scene 3 ----------
 async function checkClipboard() {
