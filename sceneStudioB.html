@@ -119,7 +119,14 @@ if (url.includes("youtube.com/embed")) {
 
       console.log("Loading video:", url);
 
-      frame.src = url;
+// ✅ FORCE reload
+frame.src = "";
+
+setTimeout(() => {
+  frame.src = url;
+  frame.focus();
+}, 100);
+
     }
   }
 });
