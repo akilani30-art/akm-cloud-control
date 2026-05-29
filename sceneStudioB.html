@@ -39,12 +39,13 @@ body {
   animation: pulseGlow 4s infinite;
 }
 
-/* Media */
+/* Media elements */
 .playerContainer iframe,
 .playerContainer video {
   width: 100%;
   height: 100%;
   border: none;
+  background: black;
 }
 
 /* Title */
@@ -60,7 +61,6 @@ body {
   z-index: 3;
 }
 
-/* Animation */
 @keyframes pulseGlow {
   0%,100% { box-shadow: 0 0 20px rgba(255,215,0,0.3); }
   50% { box-shadow: 0 0 40px rgba(255,215,0,0.6); }
@@ -74,27 +74,34 @@ body {
 
 <div id="mediaTitle">Studio B</div>
 
-<div class="playerContainer">
-  <iframe id="mediaFrame"
-    src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-    allow="autoplay; encrypted-media"
-    allowfullscreen>
-  </iframe>
+<div class="playerContainer" id="playerContainer">
+  <!-- Dynamic player goes here -->
 </div>
 
 <script>
 
-/* ✅ Convert links to embeddable format */
-function convertToEmbed(url) {
-  if (!url) return "";
+/* ✅ Detect media type */
+function detectType(url) {
+  if (!url) return "unknown";
 
-  // YouTube watch link
+  if (url.includes("youtube.com") || url.includes("youtu.be")) {
+    return "youtube";
+  }
+
+  if (url.match(/\.(mp4|webm|ogg)(\?|$)/i)) {
+    return "video";
+  }
+
+  return "iframe"; // fallback (streams, embeds, etc.)
+}
+
+/* ✅ Convert YouTube */
+function toYouTubeEmbed(url) {
   if (url.includes("youtube.com/watch?v=")) {
     const id = url.split("v=")[1].split("&")[0];
     return `https://www.youtube.com/embed/${id}?autoplay=1`;
   }
 
-  // YouTube short link
   if (url.includes("youtu.be/")) {
     const id = url.split("youtu.be/")[1].split("?")[0];
     return `https://www.youtube.com/embed/${id}?autoplay=1`;
@@ -103,20 +110,50 @@ function convertToEmbed(url) {
   return url;
 }
 
-/* ✅ Listen for messages from Viewer */
+/* ✅ Load media */
+function loadMedia(url) {
+  const container = document.getElementById("playerContainer");
+  container.innerHTML = ""; // clear previous
+
+  const type = detectType(url);
+
+  if (type === "youtube") {
+    const iframe = document.createElement("iframe");
+    iframe.src = toYouTubeEmbed(url);
+    iframe.allow = "autoplay; encrypted-media";
+    iframe.allowFullscreen = true;
+    container.appendChild(iframe);
+    return;
+  }
+
+  if (type === "video") {
+    const video = document.createElement("video");
+    video.src = url;
+    video.autoplay = true;
+    video.controls = true;
+    video.playsInline = true;
+    container.appendChild(video);
+    return;
+  }
+
+  // fallback (streams, unknown embeds)
+  const iframe = document.createElement("iframe");
+  iframe.src = url;
+  iframe.allow = "autoplay";
+  container.appendChild(iframe);
+}
+
+/* ✅ Listen for messages */
 window.addEventListener("message", (event) => {
   const data = event.data;
 
   if (data.type === "studioB") {
-    const frame = document.getElementById("mediaFrame");
     const title = document.getElementById("mediaTitle");
 
-    // Update title
     title.textContent = data.title || "Studio B";
 
-    // Load media
-    if (data.url && frame) {
-      frame.src = convertToEmbed(data.url);
+    if (data.url) {
+      loadMedia(data.url);
     }
   }
 });
