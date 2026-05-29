@@ -237,7 +237,14 @@ function connectWS() {
     }
   };
 }
-
+function playStudioB() {
+  sendJSON({
+    type: "studioB",
+    title: "Now Playing",
+    url: document.getElementById("studioBUrl").value
+  });
+  }
+  
 
 
 function sendJSON(obj) {
