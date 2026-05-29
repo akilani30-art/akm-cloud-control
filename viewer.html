@@ -520,7 +520,23 @@ const incomingUrl = (incoming.src || "").split("?")[0].split("/").pop();
       isTransitioning = false;
     }, duration);
   };
+if (data.type === "studioB_control") {
 
+  const A = document.getElementById("sceneA");
+  const B = document.getElementById("sceneB");
+
+  A.contentWindow.postMessage(data, "*");
+  B.contentWindow.postMessage(data, "*");
+
+  // ✅ If DJ presses PLAY → force Studio B live
+  if (data.action === "play") {
+    switchScene("sceneStudioB.html", transitionStyle);
+  }
+
+  return;
+  }
+  
+  
   // If hidden iframe already has it loaded, swap immediately
   if (incomingUrl === target) {
     doSwap();
