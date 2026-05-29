@@ -666,7 +666,16 @@ if (data.label === "ALERT") {
 }
 
   
+if (data.type === "studioB") {
+  const A = document.getElementById("sceneA");
+  const B = document.getElementById("sceneB");
 
+  console.log("Forwarding StudioB message to scene");
+
+  (showingA ? A : B).contentWindow.postMessage(data, "*");
+  return;
+  }
+  
   if (data.type === "scripture") {
     const A = document.getElementById("sceneA");
     const B = document.getElementById("sceneB");
