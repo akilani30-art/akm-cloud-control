@@ -418,13 +418,11 @@ function setWSStatus(state){
   label.textContent = state.toUpperCase();
 }
 
-/* ✅ WEBSOCKET */
+const WS_URL = "wss://heather-extended-budgets-subsection.trycloudflare.com";
+
 function connectWS() {
-  
-const WS_URL = "wss://heather-extended-budgets-subsection.trycloudflare.com";                           
   setWSStatus("connecting");
   socket = new WebSocket(WS_URL);
-
   socket.onopen = () => {
     console.log("✅ Connected");
     setWSStatus("online");
