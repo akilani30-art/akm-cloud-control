@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
@@ -6,368 +6,158 @@
 <title>Studio B</title>
 
 <style>
-  body {
-    margin: 0;
-    background: black;
-    color: white;
-    font-family: Arial, sans-serif;
-    overflow: hidden;
-  }
+body {
+  margin: 0;
+  background: black;
+  color: white;
+  font-family: Arial, sans-serif;
+  overflow: hidden;
+}
 
-  /* Background glow */
-  .bgGlow {
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at center, rgba(255,215,0,0.08), transparent 70%);
-    z-index: 0;
-  }
+/* Background glow */
+.bgGlow {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, rgba(255,215,0,0.08), transparent 70%);
+  z-index: 0;
+}
 
-  /* Title */
-  #mediaTitle {
-    position: absolute;
-    top: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 28px;
-    font-weight: bold;
-    color: gold;
-    text-shadow: 0 0 10px rgba(255,215,0,0.6);
-    z-index: 3;
-    text-align: center;
-    padding: 0 16px;
-    max-width: 92vw;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+/* Player container */
+.playerContainer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  height: 70%;
+  border: 3px solid gold;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 0 30px rgba(255,215,0,0.3);
+  z-index: 2;
+  animation: pulseGlow 4s infinite;
+}
 
-  /* Player container */
-  .playerContainer {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 80%;
-    height: 70%;
-    border: 3px solid gold;
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 0 30px rgba(255,215,0,0.3);
-    z-index: 2;
-    background: black;
-    animation: pulseGlow 4s infinite;
-  }
+/* Media elements */
+.playerContainer iframe,
+.playerContainer video {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: black;
+}
 
-  /* Media elements */
-  .playerContainer iframe,
-  .playerContainer video {
-    width: 100%;
-    height: 100%;
-    border: none;
-    background: black;
-  }
+/* Title */
+#mediaTitle {
+  position: absolute;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 28px;
+  font-weight: bold;
+  color: gold;
+  text-shadow: 0 0 10px rgba(255,215,0,0.6);
+  z-index: 3;
+}
 
-  @keyframes pulseGlow {
-    0%,100% { box-shadow: 0 0 20px rgba(255,215,0,0.3); }
-    50% { box-shadow: 0 0 40px rgba(255,215,0,0.6); }
-  }
-
-  /* Autoplay/audio unlock overlay */
-  #unlockOverlay {
-    position: absolute;
-    inset: 0;
-    z-index: 10;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0,0,0,0.65);
-    backdrop-filter: blur(4px);
-    cursor: pointer;
-    user-select: none;
-  }
-
-  #unlockCard {
-    border: 2px solid gold;
-    border-radius: 14px;
-    padding: 18px 20px;
-    background: rgba(0,0,0,0.78);
-    box-shadow: 0 0 22px rgba(255,215,0,0.25);
-    text-align: center;
-    max-width: 520px;
-  }
-
-  #unlockCard h3 {
-    margin: 0 0 10px 0;
-    color: gold;
-    font-size: 18px;
-  }
-
-  #unlockCard p {
-    margin: 0;
-    color: #ddd;
-    font-size: 14px;
-    line-height: 1.4;
-  }
-
-  #unlockHint {
-    margin-top: 12px;
-    display: inline-block;
-    padding: 10px 14px;
-    border-radius: 10px;
-    background: black;
-    border: 1px solid gold;
-    color: gold;
-    font-weight: bold;
-  }
+@keyframes pulseGlow {
+  0%,100% { box-shadow: 0 0 20px rgba(255,215,0,0.3); }
+  50% { box-shadow: 0 0 40px rgba(255,215,0,0.6); }
+}
 </style>
 </head>
 
 <body>
-  <div class="bgGlow"></div>
 
-  <div id="mediaTitle">Studio B</div>
+<div class="bgGlow"></div>
 
-  <div class="playerContainer" id="playerContainer">
-    <!-- Dynamic player goes here -->
-  </div>
+<div id="mediaTitle">Studio B</div>
 
-  <div id="unlockOverlay" title="Click to enable audio">
-    <div id="unlockCard">
-      <h3>🔊 Enable Audio / Autoplay</h3>
-      <p>
-        Your browser may block autoplay with sound until you click once on this screen.
-        <br>Click below to unlock audio for Studio B.
-      </p>
-      <div id="unlockHint">CLICK TO ENABLE</div>
-    </div>
-  </div>
+<div class="playerContainer" id="playerContainer">
+  <!-- Dynamic player goes here -->
+</div>
 
 <script>
-  // -----------------------------
-  // State
-  // -----------------------------
-  let currentPlayer = null;   // iframe or video element
-  let currentType = null;     // "youtube" | "video" | "iframe"
-  let lastUrl = "";
-  let lastTitle = "Studio B";
 
-  // audio unlock flag (persisted)
-  let audioUnlocked = (localStorage.getItem("studioB_audioUnlocked") === "1");
+/* ✅ Detect media type */
+function detectType(url) {
+  if (!url) return "unknown";
 
+  if (url.includes("youtube.com") || url.includes("youtu.be")) {
+    return "youtube";
+  }
+
+  if (url.match(/\.(mp4|webm|ogg)(\?|$)/i)) {
+    return "video";
+  }
+
+  return "iframe"; // fallback (streams, embeds, etc.)
+}
+
+/* ✅ Convert YouTube */
+function toYouTubeEmbed(url) {
+  if (url.includes("youtube.com/watch?v=")) {
+    const id = url.split("v=")[1].split("&")[0];
+    return `https://www.youtube.com/embed/${id}?autoplay=1`;
+  }
+
+  if (url.includes("youtu.be/")) {
+    const id = url.split("youtu.be/")[1].split("?")[0];
+    return `https://www.youtube.com/embed/${id}?autoplay=1`;
+  }
+
+  return url;
+}
+
+/* ✅ Load media */
+function loadMedia(url) {
   const container = document.getElementById("playerContainer");
-  const titleEl = document.getElementById("mediaTitle");
-  const unlockOverlay = document.getElementById("unlockOverlay");
+  container.innerHTML = ""; // clear previous
 
-  // -----------------------------
-  // Helpers
-  // -----------------------------
-  function detectType(url) {
-    if (!url) return "unknown";
-    const u = url.toLowerCase();
-    if (u.includes("youtube.com") || u.includes("youtu.be")) return "youtube";
-    if (u.match(/\.(mp4|webm|ogg)(\?|$)/i)) return "video";
-    return "iframe";
-  }
+  const type = detectType(url);
 
-  function toYouTubeEmbed(url) {
-    // Convert to embed URL (with API enabled)
-    let id = null;
-
-    if (url.includes("youtube.com/watch?v=")) {
-      id = url.split("v=")[1]?.split("&")[0];
-    } else if (url.includes("youtu.be/")) {
-      id = url.split("youtu.be/")[1]?.split("?")[0];
-    }
-
-    if (!id) return url;
-
-    const origin = encodeURIComponent(window.location.origin);
-    // Start muted to satisfy autoplay policies; unmute after user unlock
-    return `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&enablejsapi=1&origin=${origin}`;
-  }
-
-  function showUnlockOverlay(show) {
-    unlockOverlay.style.display = show ? "flex" : "none";
-  }
-
-  async function tryPlayVideo(videoEl) {
-    try {
-      await videoEl.play();
-      showUnlockOverlay(false);
-      return true;
-    } catch (e) {
-      // Autoplay blocked
-      showUnlockOverlay(true);
-      return false;
-    }
-  }
-
-  function youtubeCmd(func) {
-    if (!currentPlayer || currentType !== "youtube") return;
-    const msg = JSON.stringify({ event: "command", func, args: "" });
-    try { currentPlayer.contentWindow.postMessage(msg, "*"); } catch {}
-  }
-
-  function youtubeMute(mute) {
-    youtubeCmd(mute ? "mute" : "unMute");
-  }
-
-  // -----------------------------
-  // Player loader
-  // -----------------------------
-  function loadMedia(url) {
-    lastUrl = url || lastUrl;
-    if (!lastUrl) return;
-
-    container.innerHTML = "";
-    currentPlayer = null;
-    currentType = detectType(lastUrl);
-
-    if (currentType === "youtube") {
-      const iframe = document.createElement("iframe");
-      iframe.src = toYouTubeEmbed(lastUrl);
-      iframe.allow = "autoplay; encrypted-media";
-      iframe.allowFullscreen = true;
-
-      currentPlayer = iframe;
-      container.appendChild(iframe);
-
-      // If audio already unlocked, unmute after a moment
-      setTimeout(() => {
-        if (audioUnlocked) youtubeMute(false);
-      }, 900);
-
-      return;
-    }
-
-    if (currentType === "video") {
-      const video = document.createElement("video");
-      video.src = lastUrl;
-      video.playsInline = true;
-      video.controls = true;
-
-      // Start muted if not unlocked (autoplay policy)
-      video.muted = !audioUnlocked;
-      video.autoplay = true;
-
-      currentPlayer = video;
-      container.appendChild(video);
-
-      // Try to play; if blocked show overlay
-      setTimeout(() => tryPlayVideo(video), 50);
-      return;
-    }
-
-    // fallback iframe (some streams/embeds)
+  if (type === "youtube") {
     const iframe = document.createElement("iframe");
-    iframe.src = lastUrl;
-    iframe.allow = "autoplay";
-    currentPlayer = iframe;
+    iframe.src = toYouTubeEmbed(url);
+    iframe.allow = "autoplay; encrypted-media";
+    iframe.allowFullscreen = true;
     container.appendChild(iframe);
-
-    // Most iframe sources can't be controlled; hide overlay
-    showUnlockOverlay(false);
+    return;
   }
 
-  // -----------------------------
-  // Control handler
-  // -----------------------------
-  function handleControl(action) {
-    if (!action) return;
-
-    // MP4/Video element controls
-    if (currentType === "video" && currentPlayer) {
-      const v = currentPlayer;
-
-      if (action === "play") {
-        v.muted = !audioUnlocked ? true : false;
-        tryPlayVideo(v);
-        return;
-      }
-
-      if (action === "pause") {
-        v.pause();
-        return;
-      }
-
-      if (action === "stop") {
-        v.pause();
-        try { v.currentTime = 0; } catch {}
-        return;
-      }
-    }
-
-    // YouTube controls via postMessage API
-    if (currentType === "youtube" && currentPlayer) {
-      if (action === "play") {
-        youtubeCmd("playVideo");
-        // unmute only if unlocked
-        setTimeout(() => youtubeMute(!audioUnlocked), 200);
-        if (!audioUnlocked) showUnlockOverlay(true);
-        return;
-      }
-
-      if (action === "pause") {
-        youtubeCmd("pauseVideo");
-        return;
-      }
-
-      if (action === "stop") {
-        youtubeCmd("stopVideo");
-        youtubeMute(true);
-        return;
-      }
-    }
-
-    // iframe fallback cannot be controlled reliably
+  if (type === "video") {
+    const video = document.createElement("video");
+    video.src = url;
+    video.autoplay = true;
+    video.controls = true;
+    video.playsInline = true;
+    container.appendChild(video);
+    return;
   }
 
-  // -----------------------------
-  // One-time audio unlock click
-  // -----------------------------
-  unlockOverlay.addEventListener("click", async () => {
-    audioUnlocked = true;
-    localStorage.setItem("studioB_audioUnlocked", "1");
-    showUnlockOverlay(false);
+  // fallback (streams, unknown embeds)
+  const iframe = document.createElement("iframe");
+  iframe.src = url;
+  iframe.allow = "autoplay";
+  container.appendChild(iframe);
+}
 
-    // Apply unlock immediately
-    if (currentType === "video" && currentPlayer) {
-      currentPlayer.muted = false;
-      await tryPlayVideo(currentPlayer);
+/* ✅ Listen for messages */
+window.addEventListener("message", (event) => {
+  const data = event.data;
+
+  if (data.type === "studioB") {
+    const title = document.getElementById("mediaTitle");
+
+    title.textContent = data.title || "Studio B";
+
+    if (data.url) {
+      loadMedia(data.url);
     }
+  }
+});
 
-    if (currentType === "youtube" && currentPlayer) {
-      youtubeMute(false);
-      youtubeCmd("playVideo");
-    }
-  });
-
-  // -----------------------------
-  // Message listener from Viewer
-  // -----------------------------
-  window.addEventListener("message", (event) => {
-    const data = event.data || {};
-
-    // LOAD MEDIA
-    if (data.type === "studioB") {
-      lastTitle = data.title || "Studio B";
-      titleEl.textContent = lastTitle;
-
-      if (data.url) {
-        loadMedia(data.url);
-      }
-      return;
-    }
-
-    // PLAY/PAUSE/STOP
-    if (data.type === "studioB_control") {
-      handleControl(data.action);
-      return;
-    }
-  });
-
-  // Optional: start blank (no default media)
-  // If you want a default, set lastUrl and call loadMedia(lastUrl).
 </script>
 
 </body>
