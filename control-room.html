@@ -243,13 +243,7 @@ function connectWS() {
       }
     }
   };
-}
-
-
-
-  
-
-  
+} 
 
 
 function sendJSON(obj) {
@@ -275,7 +269,6 @@ function setWSStatus(state){
   label.textContent = state.toUpperCase();
   }
 
-  
   
 function takeScene() {
   document.getElementById("programFrame").src = currentPreviewScene + ".html";
@@ -337,7 +330,7 @@ function renderHistory() {
     return;
   }
 
-  box.innerHTML = scriptureHistory.map((item, index) => `
+  box.innerHTML = scriptureHistory.map((item, index) => 
     <div style="padding:10px;margin-bottom:10px;border:1px solid gold;border-radius:6px;background:#111;">
       <strong style="color:gold;">${item.title}</strong><br>
       <span style="font-size:14px;color:#ccc;white-space:pre-wrap;">${item.body}</span>
