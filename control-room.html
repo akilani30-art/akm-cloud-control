@@ -17,8 +17,7 @@ h1, h2 {
   margin: 10px 0;
 }
 
-
-  .wsStatus{
+.wsStatus{
   display:inline-flex;
   align-items:center;
   gap:10px;
@@ -42,7 +41,7 @@ h1, h2 {
 
 .wsStatus.connecting .dot{ background:#ffea00; box-shadow:0 0 18px rgba(255,234,0,0.8); }
 .wsStatus.connecting .label{ color:#ffea00; }
-  
+
 button {
   padding: 10px 16px;
   margin: 4px;
@@ -130,16 +129,14 @@ input {
   <span class="dot"></span>
   <span class="label">OFFLINE</span>
 </div>
-  
 
 <h2>Scenes</h2>
 <button onclick="loadPreview('scene1')">Scene 1</button>
 <button onclick="loadPreview('scene2')">Scene 2</button>
 <button onclick="loadPreview('scene3')">Scene 3</button>
 <button onclick="loadPreview('scene4')">Scene 4</button>
-  <button onclick="loadPreview('sceneStudioB')">Studio B</button>
+<button onclick="loadPreview('sceneStudioB')">Studio B</button>
 <button onclick="takeScene()">✔ TAKE</button>
-  
 
 <h2>Transitions</h2>
 <div class="transitionPanel">
@@ -149,12 +146,10 @@ input {
   <button onclick="sendTransition('slide')">SLIDE</button>
 </div>
 
-  <h2>Studio B Player</h2>
-
+<h2>Studio B Player</h2>
 <input id="studioBUrl" placeholder="Paste YouTube / Spotify / Stream URL">
 <br>
 <button onclick="playStudioB()">▶ Play in Studio B</button>
-  
 
 <div class="monitorRow">
   <div class="monitorBox">
@@ -202,7 +197,8 @@ input {
 </div>
 
 <script>
-const WS_URL ="wss://heather-extended-budgets-subsection.trycloudflare.com";                         
+const WS_URL = "wss://heather-extended-budgets-subsection.trycloudflare.com";
+
 let ws;
 let sendQueue = [];
 
@@ -216,7 +212,15 @@ let lastSceneWas3 = false;
 // ---------- WebSocket ---------
 function connectWS() {
   setWSStatus("connecting");
-  ws = new WebSocket(WS_URL);
+
+  try {
+    ws = new WebSocket(WS_URL);
+  } catch (e) {
+    console.log("❌ WebSocket init failed:", e);
+    setWSStatus("offline");
+    setTimeout(connectWS, 1500);
+    return;
+  }
 
   ws.onopen = () => {
     console.log("✅ Control connected:", WS_URL);
@@ -236,20 +240,32 @@ function connectWS() {
   };
 
   ws.onmessage = (event) => {
-    const data = JSON.parse(event.data);
+    let data;
+    try {
+      data = JSON.parse(event.data);
+    } catch {
+      return;
+    }
     if (data.type === "request_latest_scripture") {
       if (lastScriptureTitle && lastScriptureBody) {
         sendJSON({ type:"scripture", title:lastScriptureTitle, text:lastScriptureBody });
       }
     }
   };
-} 
-
+}
 
 function sendJSON(obj) {
   const msg = JSON.stringify(obj);
   if (ws && ws.readyState === WebSocket.OPEN) ws.send(msg);
   else sendQueue.push(msg);
+}
+
+function setWSStatus(state){
+  const el = document.getElementById("wsStatus");
+  const label = el.querySelector(".label");
+  el.classList.remove("online","offline","connecting");
+  el.classList.add(state);
+  label.textContent = state.toUpperCase();
 }
 
 connectWS();
@@ -261,15 +277,6 @@ function loadPreview(scene) {
   if (scene !== "scene3") lastSceneWas3 = false;
 }
 
-function setWSStatus(state){
-  const el = document.getElementById("wsStatus");
-  const label = el.querySelector(".label");
-  el.classList.remove("online","offline","connecting");
-  el.classList.add(state);
-  label.textContent = state.toUpperCase();
-  }
-
-  
 function takeScene() {
   document.getElementById("programFrame").src = currentPreviewScene + ".html";
   sendJSON({ type: "scene", scene: currentPreviewScene });
@@ -314,8 +321,27 @@ function switchCam(cam) {
   sendJSON({ type: "camera", view: cam });
 }
 
+// ---------- Studio B ----------
+function playStudioB() {
+  const url = document.getElementById("studioBUrl").value.trim();
+  if (!url) return;
+
+  // Tell receiver to load this URL
+  sendJSON({ type: "studioB", url });
+
+  // Optional: switch preview to Studio B and TAKE immediately
+  loadPreview("sceneStudioB");
+  takeScene();
+}
+
 // ---------- Scripture History ----------
 let scriptureHistory = [];
+
+function escapeHTML(str) {
+  return (str ?? "").replace(/[&<>"']/g, (m) => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[m]));
+}
 
 function addToHistory(title, body) {
   scriptureHistory.unshift({ title, body });
@@ -325,50 +351,48 @@ function addToHistory(title, body) {
 
 function renderHistory() {
   const box = document.getElementById("historyList");
+
   if (scriptureHistory.length === 0) {
     box.innerHTML = `<p style="color:#888;text-align:center;">No scriptures yet.</p>`;
     return;
   }
 
-  box.innerHTML = scriptureHistory.map((item, index) =>' 
+  box.innerHTML = scriptureHistory.map((item, index) => `
     <div style="padding:10px;margin-bottom:10px;border:1px solid gold;border-radius:6px;background:#111;">
-      <strong style="color:gold;">${item.title}</strong><br>
-      <span style="font-size:14px;color:#ccc;white-space:pre-wrap;">${item.body}</span>
+      <strong style="color:gold;">${escapeHTML(item.title)}</strong><br>
+      <span style="font-size:14px;color:#ccc;white-space:pre-wrap;">${escapeHTML(item.body)}</span>
       <button onclick="resendHistory(${index})"
         style="margin-top:8px;width:100%;padding:8px;background:black;border:1px solid gold;color:gold;border-radius:6px;">
         🔁 Re‑Send
       </button>
     </div>
-  ').join("");
+  `).join("");
 }
 
 function resendHistory(index) {
   const item = scriptureHistory[index];
+  if (!item) return;
   sendJSON({ type: "scripture", title: item.title, text: item.body });
+  lastScriptureTitle = item.title;
+  lastScriptureBody = item.body;
 }
-function playStudioB() {
-  const url = document.getElementById("studioBUrl").value.trim();
-  if (!url) return;
 
-  // Tell receiver to load this URL
-  sendJSON({ type: "studioB", url });
-  loadPreview("sceneStudioB");
-  takeScene();
-  }
-  
 // ---------- Auto Clipboard -> Scripture + Auto Scene 3 ----------
 async function checkClipboard() {
   try {
+    if (!navigator.clipboard || !navigator.clipboard.readText) return;
+
     const text = await navigator.clipboard.readText();
     if (!text || text.trim() === "") return;
 
     // ignore code/html noise
+    const lower = text.toLowerCase();
     if (
       text.includes("<") || text.includes(">") ||
-      text.toLowerCase().includes("html") ||
-      text.toLowerCase().includes("button") ||
-      text.toLowerCase().includes("script") ||
-      text.toLowerCase().includes("iframe") ||
+      lower.includes("html") ||
+      lower.includes("button") ||
+      lower.includes("script") ||
+      lower.includes("iframe") ||
       text.length > 300
     ) return;
 
@@ -380,6 +404,8 @@ async function checkClipboard() {
 
     let title = lines[0];
     let body = lines.slice(1).join("\n").trim();
+
+    // strip leading verse number(s)
     body = body.replace(/^\d+\s*/, "");
 
     if (!body) { body = title; title = "Scripture"; }
@@ -392,6 +418,7 @@ async function checkClipboard() {
 
     // Auto take Scene 3 once
     if (!lastSceneWas3) {
+      currentPreviewScene = "scene3";
       document.getElementById("previewFrame").src = "scene3.html";
       document.getElementById("programFrame").src = "scene3.html";
       sendJSON({ type: "scene", scene: "scene3" });
@@ -407,7 +434,6 @@ document.addEventListener("visibilitychange", () => {
 });
 setInterval(checkClipboard, 3000);
 </script>
-  
+
 </body>
 </html>
-
