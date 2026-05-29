@@ -346,7 +346,13 @@ function resendHistory(index) {
   const item = scriptureHistory[index];
   sendJSON({ type: "scripture", title: item.title, text: item.body });
 }
+function playStudioB() {
+  const url = document.getElementById("studioBUrl").value.trim();
+  if (!url) return;
 
+  // Tell receiver to load this URL
+  sendJSON({ type: "studioB", url });
+  
 // ---------- Auto Clipboard -> Scripture + Auto Scene 3 ----------
 async function checkClipboard() {
   try {
