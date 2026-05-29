@@ -455,8 +455,7 @@ function switchScene(newScene, style = "cut") {
   const outgoing = showingA ? A : B;
 
   if (!newScene.endsWith(".html")) newScene += ".html";
-  function switchScene(newScene, style = "cut") {
-
+  
    // ✅ Prevent duplicate switching
   if (currentScene === newScene) return;
 
