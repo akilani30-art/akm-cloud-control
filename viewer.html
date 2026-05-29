@@ -598,7 +598,6 @@ if (data.type === "ticker") {
   label.style.animation = "none";
 }
 
-
   if (!text) {
     track.innerHTML = "";
     bar.style.opacity = "0";
@@ -622,7 +621,20 @@ else {
   logo.style.opacity = "0.85";
   logo.style.filter = "none";
   }
-      
+      if (data.type === "studioB") {
+  // ✅ Forward to scene (already in your code)
+  const A = document.getElementById("sceneA");
+  const B = document.getElementById("sceneB");
+
+  A.contentWindow.postMessage(data, "*");
+  B.contentWindow.postMessage(data, "*");
+
+  // ✅ AUTO SWITCH to Studio B scene
+  switchScene("sceneStudioB.html", transitionStyle);
+
+  return;
+  }
+  
   
 
   const items = text.split("|").map(t => t.trim()).filter(Boolean);
