@@ -285,7 +285,20 @@ function loadPreview(scene) {
   currentPreviewScene = scene;
   document.getElementById("previewFrame").src = scene + ".html";
   if (scene !== "scene3") lastSceneWas3 = false;
+document.querySelectorAll("button").forEach(btn => {
+  btn.style.outline = "none";
+});
+
+const buttons = document.querySelectorAll("button");
+buttons.forEach(btn => {
+  if (btn.innerText.toLowerCase().includes(scene.toLowerCase().replace("scene","scene "))) {
+    btn.style.outline = "2px solid gold";
+  }
+});
+
+  
 }
+  
 
 function takeScene() {
   document.getElementById("programFrame").src = currentPreviewScene + ".html";
