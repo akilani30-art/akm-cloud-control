@@ -408,11 +408,6 @@ let showingA = true;
 let transitionStyle = "slide";
 let isTransitioning = false;
 let currentScene = "scene1.html";
-  if (!newScene.endsWith(".html")) newScene += ".html";
-
-// ✅ Prevent unnecessary switching
-if (currentScene === newScene) return;
-  
   
   
 
@@ -460,6 +455,13 @@ function switchScene(newScene, style = "cut") {
   const outgoing = showingA ? A : B;
 
   if (!newScene.endsWith(".html")) newScene += ".html";
+  function switchScene(newScene, style = "cut") {
+
+   // ✅ Prevent duplicate switching
+  if (currentScene === newScene) return;
+
+  if (isTransitioning) return;
+  
 
   const target = newScene;
 const outgoingUrl = (outgoing.src || "").split("?")[0].split("/").pop();
