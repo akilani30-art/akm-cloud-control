@@ -407,6 +407,13 @@ let socket;
 let showingA = true;
 let transitionStyle = "slide";
 let isTransitioning = false;
+let currentScene = "scene1.html";
+  if (!newScene.endsWith(".html")) newScene += ".html";
+
+// ✅ Prevent unnecessary switching
+if (currentScene === newScene) return;
+  
+  
   
 
 /* ✅ STATUS */
