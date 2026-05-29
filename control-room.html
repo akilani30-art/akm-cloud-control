@@ -516,6 +516,19 @@ document.addEventListener("visibilitychange", () => {
   if (!document.hidden) checkClipboard();
 });
 setInterval(checkClipboard, 3000);
+
+  document.addEventListener("keydown", (e) => {
+  if (e.key === " ") { // SPACE = TAKE
+    e.preventDefault();
+    takeScene();
+  }
+
+  if (e.key === "1") loadPreview("scene1");
+  if (e.key === "2") loadPreview("scene2");
+  if (e.key === "3") loadPreview("scene3");
+  if (e.key === "4") loadPreview("scene4");
+});
+
 </script>
 
 </body>
