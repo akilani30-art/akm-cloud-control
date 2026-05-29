@@ -27,9 +27,11 @@
 </div>
 
 <div class="row">
-  <input id="djToken" placeholder="DJ Access Token (required)" />
-  <button onclick="connect()">Connect</button>
+  <input id="djUser" placeholder="Username" />
+  <input id="djPass" placeholder="Password" />
+  <button onclick="loginAndConnect()">Connect</button>
 </div>
+
 
 <hr style="border:1px solid rgba(255,255,255,.12);margin:18px 0">
 
@@ -58,22 +60,66 @@ function setStatus(state){
 const API_BASE = "https://YOURDOMAIN.com"; // or http://YOUR-IP:7345 if local
 let ws;
 
+const API_BASE = "https://YOURDOMAIN.com"; // change this
+const WS_BASE = "wss://YOURDOMAIN.com/ws"; // change this
+
+let ws;
+
+function setStatus(state){
+  const el = document.getElementById("wsStatus");
+  const label = el.querySelector(".label");
+  el.classList.remove("online","offline","connecting");
+  el.classList.add(state);
+  label.textContent = state.toUpperCase();
+}
+
 async function loginAndConnect(){
   const username = document.getElementById("djUser").value.trim();
   const password = document.getElementById("djPass").value.trim();
 
-  const res = await fetch(`${API_BASE}/auth/login`, {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({ username, password })
-  });
+  if(!username || !password){
+    alert("Enter username & password");
+    return;
+  }
 
-  if (!res.ok) { alert("Login failed"); return; }
-  const { token } = await res.json();
+  try {
+    setStatus("connecting");
 
-  ws = new WebSocket(`wss://YOURDOMAIN.com/ws?token=${encodeURIComponent(token)}`);
-  ws.onopen = () => console.log("✅ DJ connected");
-  ws.onclose = () => console.log("❌ DJ disconnected");
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ username, password })
+    });
+
+    if (!res.ok) {
+      setStatus("offline");
+      alert("Login failed");
+      return;
+    }
+
+    const { token } = await res.json();
+
+    ws = new WebSocket(`${WS_BASE}?token=${encodeURIComponent(token)}`);
+
+    ws.onopen = () => {
+      console.log("✅ Connected");
+      setStatus("online");
+    };
+
+    ws.onclose = () => {
+      console.log("❌ Disconnected");
+      setStatus("offline");
+    };
+
+    ws.onerror = () => {
+      console.log("⚠️ Error");
+      setStatus("offline");
+    };
+
+  } catch (err) {
+    console.error(err);
+    setStatus("offline");
+  }
 }
 
 
