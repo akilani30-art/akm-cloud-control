@@ -323,14 +323,40 @@ function switchCam(cam) {
 }
 
 // ---------- Studio B ----------
-function playStudioB() {
-  const url = document.getElementById("studioBUrl").value.trim();
-  if (!url) return;
+function toEmbedUrl(url) {
+  try {
+    const u = new URL(url);
 
-  // Tell receiver to load this URL
+    // YouTube
+    if (u.hostname.includes("youtube.com")) {
+      const id = u.searchParams.get("v");
+      if (id) return `https://www.youtube.com/embed/${id}?autoplay=1`;
+    }
+
+    if (u.hostname === "youtu.be") {
+      const id = u.pathname.slice(1);
+      return `https://www.youtube.com/embed/${id}?autoplay=1`;
+    }
+
+    // Spotify
+    if (u.hostname.includes("spotify.com")) {
+      return `https://open.spotify.com/embed${u.pathname}`;
+    }
+
+    return url;
+  } catch {
+    return url;
+  }
+}
+
+function playStudioB() {
+  const raw = document.getElementById("studioBUrl").value.trim();
+  if (!raw) return;
+
+  const url = toEmbedUrl(raw);
+
   sendJSON({ type: "studioB", url });
 
-  // Optional: switch preview to Studio B and TAKE immediately
   loadPreview("sceneStudioB");
   takeScene();
 }
