@@ -55,20 +55,27 @@ function setStatus(state){
   label.textContent = state.toUpperCase();
 }
 
-function connect(){
-  const token = document.getElementById("djToken").value.trim();
-  if(!token) return;
+const API_BASE = "https://YOURDOMAIN.com"; // or http://YOUR-IP:7345 if local
+let ws;
 
-  // IMPORTANT: token passed to server; server must validate it.
-  const url = `${WS_BASE}?role=dj&token=${encodeURIComponent(token)}`;
+async function loginAndConnect(){
+  const username = document.getElementById("djUser").value.trim();
+  const password = document.getElementById("djPass").value.trim();
 
-  setStatus("connecting");
-  ws = new WebSocket(url);
+  const res = await fetch(`${API_BASE}/auth/login`, {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ username, password })
+  });
 
-  ws.onopen = () => setStatus("online");
-  ws.onclose = () => setStatus("offline");
-  ws.onerror = () => setStatus("offline");
+  if (!res.ok) { alert("Login failed"); return; }
+  const { token } = await res.json();
+
+  ws = new WebSocket(`wss://YOURDOMAIN.com/ws?token=${encodeURIComponent(token)}`);
+  ws.onopen = () => console.log("✅ DJ connected");
+  ws.onclose = () => console.log("❌ DJ disconnected");
 }
+
 
 function sendJSON(obj){
   if(ws && ws.readyState === WebSocket.OPEN){
