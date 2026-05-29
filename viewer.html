@@ -121,6 +121,56 @@
   opacity: 0;
   transition: all 0.6s ease;
   }
+  /* ✨ GOLD SHIMMER EFFECT */
+#lowerThird {
+  position: absolute;
+  bottom: 50px;
+  left: 20px;
+  transform: translateX(-150%);
+  background: rgba(0,0,0,0.75);
+  padding: 16px 28px;
+  border-radius: 10px;
+  border: 2px solid gold;
+  color: white;
+  opacity: 0;
+  transition: all 0.6s ease;
+
+  /* ✅ shimmer setup */
+  overflow: hidden;
+}
+
+/* shimmer layer */
+#lowerThird::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 60%;
+  height: 100%;
+
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    rgba(255,215,0,0.15) 30%,
+    rgba(255,215,0,0.6) 50%,
+    rgba(255,215,0,0.15) 70%,
+    transparent 100%
+  );
+
+  transform: skewX(-25deg);
+}
+
+/* animate shimmer ONLY when visible */
+#lowerThird.show::before {
+  animation: shimmerMove 2.5s infinite;
+}
+
+/* shimmer animation */
+@keyframes shimmerMove {
+  0% { left: -150%; }
+  100% { left: 150%; }
+  }
+  
 
 #lowerThird.show {
   opacity: 1;
