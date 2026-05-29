@@ -352,6 +352,9 @@ function playStudioB() {
 
   // Tell receiver to load this URL
   sendJSON({ type: "studioB", url });
+  loadPreview("sceneStudioB");
+  takeScene();
+  }
   
 // ---------- Auto Clipboard -> Scripture + Auto Scene 3 ----------
 async function checkClipboard() {
