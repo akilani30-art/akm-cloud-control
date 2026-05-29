@@ -668,11 +668,11 @@ if (data.type === "studioB") {
   const A = document.getElementById("sceneA");
   const B = document.getElementById("sceneB");
 
-  // Send to BOTH scenes (important for preload)
+  // Send to BOTH scenes (preload safe)
   A.contentWindow.postMessage(data, "*");
   B.contentWindow.postMessage(data, "*");
 
-  // ✅ AUTO SWITCH
+  // ✅ AUTO SWITCH TO STUDIO B
   switchScene("sceneStudioB.html", transitionStyle);
 
   return;
@@ -694,7 +694,8 @@ if (data.type === "studioB_control") {
   }
 
   return;
-  }
+}
+
                               
 }
 </script>
