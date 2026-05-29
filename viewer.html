@@ -650,65 +650,276 @@ track.offsetHeight; // force reflow more reliably
   const badge = document.getElementById("liveBadge");
 
 if (data.label === "STOP") {
-  badge.style.display = "none";
-} else {
-  badge.style.display = "flex";
+<script>
+let socket;
+let showingA = true;
+let transitionStyle = "slide";
+let isTransitioning = false;
+let currentScene = "scene1.html";
+
+/* ✅ STATUS */
+function setWSStatus(state){
+  const el = document.getElementById("wsStatus");
+  const label = el.querySelector(".label");
+  el.classList.remove("online","offline","connecting");
+  el.classList.add(state);
+  label.textContent = state.toUpperCase();
 }
 
-/* 🔥 Extra: change color during ALERT */
-if (data.label === "ALERT") {
-  badge.style.background = "#ff1744";
-} else {
-  badge.style.background = "#e00000";
+const WS_URL = "wss://heather-extended-budgets-subsection.trycloudflare.com";
+
+/* ✅ WEBSOCKET */
+function connectWS() {
+  setWSStatus("connecting");
+  socket = new WebSocket(WS_URL);
+
+  socket.onopen = () => {
+    console.log("✅ Connected");
+    setWSStatus("online");
+  };
+
+  socket.onmessage = (event) => {
+    let data;
+    try { data = JSON.parse(event.data); }
+    catch { return; } // ignore non-JSON messages safely
+    handleMessage(data);
+  };
+
+  socket.onerror = () => setWSStatus("offline");
+
+  socket.onclose = () => {
+    setWSStatus("offline");
+    setTimeout(connectWS, 1000);
+  };
 }
 
-  
+connectWS();
 
-  // Auto speed
-  const duration = Math.max(10, items.join("").length / 5);
-  track.style.animation = `tickerMove ${duration}s linear infinite`;
+/* ✅ SCENE SWITCHER */
+function switchScene(newScene, style = "cut") {
+  if (!newScene) return;
+  if (!newScene.endsWith(".html")) newScene += ".html";
 
-  bar.style.opacity = data.show ? "1" : "0";
-  return;
-}
+  // ✅ Prevent duplicate switching (stops flicker)
+  if (currentScene === newScene) return;
 
-  // ✅ DJ LOADS MEDIA
-if (data.type === "studioB") {
+  // ✅ Ignore while transition is running
+  if (isTransitioning) return;
 
   const A = document.getElementById("sceneA");
   const B = document.getElementById("sceneB");
 
-  // Send to BOTH scenes (preload safe)
-  A.contentWindow.postMessage(data, "*");
-  B.contentWindow.postMessage(data, "*");
+  const incoming = showingA ? B : A;
+  const outgoing = showingA ? A : B;
 
-  // ✅ AUTO SWITCH TO STUDIO B
-  switchScene("sceneStudioB.html", transitionStyle);
+  const target = newScene;
+  const outgoingUrl = (outgoing.src || "").split("?")[0].split("/").pop();
+  const incomingUrl = (incoming.src || "").split("?")[0].split("/").pop();
 
-  return;
-}
-
-
-// ✅ DJ CONTROLS PLAYBACK
-if (data.type === "studioB_control") {
-
-  const A = document.getElementById("sceneA");
-  const B = document.getElementById("sceneB");
-
-  A.contentWindow.postMessage(data, "*");
-  B.contentWindow.postMessage(data, "*");
-
-  // ✅ ONLY SWITCH ON PLAY
-  if (data.action === "play") {
-    switchScene("sceneStudioB.html", transitionStyle);
+  // Already showing
+  if (outgoingUrl === target) {
+    currentScene = target; // keep state aligned
+    return;
   }
 
-  return;
+  const doSwap = () => {
+    isTransitioning = true;
+
+    // Disable transitions while we stage positions
+    A.classList.add("noTrans");
+    B.classList.add("noTrans");
+
+    // Clear classes
+    A.classList.remove("activeScene", "slideOut");
+    B.classList.remove("activeScene", "slideOut");
+
+    // Stage both off-screen (to the right)
+    A.style.left = "100%";
+    B.style.left = "100%";
+
+    // Put incoming on-screen immediately
+    incoming.style.left = "0";
+    incoming.classList.add("activeScene");
+
+    if (style === "cut") {
+      // Cut: hide outgoing immediately
+      outgoing.classList.remove("activeScene", "slideOut");
+      outgoing.style.left = "100%";
+
+      // Re-enable transitions
+      void A.offsetHeight;
+      A.classList.remove("noTrans");
+      B.classList.remove("noTrans");
+
+      showingA = !showingA;
+      currentScene = target;
+      isTransitioning = false;
+      return;
+    }
+
+    // Slide/Wipe: outgoing starts at 0 with no anim-in
+    outgoing.style.left = "0";
+    outgoing.classList.add("activeScene");
+
+    // Force layout, then re-enable transitions
+    void A.offsetHeight;
+    A.classList.remove("noTrans");
+    B.classList.remove("noTrans");
+
+    // Animate outgoing off to the left
+    requestAnimationFrame(() => outgoing.classList.add("slideOut"));
+
+    const duration = (style === "wipe") ? 350 : 600;
+
+    setTimeout(() => {
+      outgoing.classList.remove("activeScene", "slideOut");
+      outgoing.style.left = "100%";
+
+      showingA = !showingA;
+      currentScene = target;
+      isTransitioning = false;
+    }, duration);
+  };
+
+  // If hidden iframe already has it loaded, swap immediately
+  if (incomingUrl === target) {
+    doSwap();
+    return;
+  }
+
+  incoming.onload = () => {
+    incoming.onload = null;
+    doSwap();
+  };
+
+  // Force reload even if same src cached
+  incoming.setAttribute("src", target + "?t=" + Date.now());
 }
 
-                              
+/* ✅ CLOCK */
+function updateClock() {
+  const el = document.getElementById("tickerClock");
+  const now = new Date();
+  el.textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+/* ✅ MESSAGE HANDLER */
+function handleMessage(data) {
+
+  if (data.type === "transition") {
+    transitionStyle = data.style;
+    return;
+  }
+
+  if (data.type === "scene") {
+    let scene = data.scene;
+    if (!scene.endsWith(".html")) scene += ".html";
+    switchScene(scene, transitionStyle);
+    return;
+  }
+
+  // ✅ DJ LOADS MEDIA → send to scenes + auto switch Studio B
+  if (data.type === "studioB") {
+    const A = document.getElementById("sceneA");
+    const B = document.getElementById("sceneB");
+
+    A.contentWindow.postMessage(data, "*");
+    B.contentWindow.postMessage(data, "*");
+
+    switchScene("sceneStudioB.html", transitionStyle);
+    return;
+  }
+
+  // ✅ DJ CONTROLS PLAYBACK → send to scenes + switch ONLY on PLAY
+  if (data.type === "studioB_control") {
+    const A = document.getElementById("sceneA");
+    const B = document.getElementById("sceneB");
+
+    A.contentWindow.postMessage(data, "*");
+    B.contentWindow.postMessage(data, "*");
+
+    if (data.action === "play") {
+      switchScene("sceneStudioB.html", transitionStyle);
+    }
+    return;
+  }
+
+  if (data.type === "lowerthird") {
+    const box = document.getElementById("lowerThird");
+    document.getElementById("ltTitle").textContent = data.title || "";
+    document.getElementById("ltSub").textContent = data.subtitle || "";
+    box.classList.toggle("show", !!data.show);
+    box.classList.toggle("hide", !data.show);
+    return;
+  }
+
+  if (data.type === "ticker") {
+    const bar = document.getElementById("tickerBar");
+    const track = document.getElementById("tickerTrack");
+    const label = document.getElementById("tickerLabel");
+
+    const text = data.text || "";
+    label.textContent = data.label || "BREAKING NEWS";
+
+    if (data.label === "ALERT") {
+      label.style.background = "#ff1744";
+      label.style.animation = "flash 1s infinite";
+    } else {
+      label.style.background = "#c62828";
+      label.style.animation = "none";
+    }
+
+    if (!text) {
+      track.innerHTML = "";
+      bar.style.opacity = "0";
+      return;
+    }
+
+    const logo = document.getElementById("logoMark");
+    if (data.label === "ALERT") {
+      logo.style.animation = "logoAlert 2s linear infinite";
+      logo.style.opacity = "1";
+      logo.style.filter = "drop-shadow(0 0 10px red)";
+    } else if (data.label === "STOP") {
+      logo.style.animation = "none";
+      logo.style.transform = "rotate(0deg)";
+      logo.style.opacity = "0.85";
+      logo.style.filter = "none";
+    } else {
+      logo.style.animation = "logoIdle 20s linear infinite";
+      logo.style.opacity = "0.85";
+      logo.style.filter = "none";
+    }
+
+    const items = text.split("|").map(t => t.trim()).filter(Boolean);
+    const build = items.map(item => `<span class="tickerItem">${item}</span>`).join("");
+
+    track.style.animation = "none";
+    track.offsetHeight; // reflow
+    track.innerHTML = build + build;
+
+    const badge = document.getElementById("liveBadge");
+    badge.style.display = (data.label === "STOP") ? "none" : "flex";
+    badge.style.background = (data.label === "ALERT") ? "#ff1744" : "#e00000";
+
+    const duration = Math.max(10, items.join("").length / 5);
+    track.style.animation = `tickerMove ${duration}s linear infinite`;
+    bar.style.opacity = data.show ? "1" : "0";
+    return;
+  }
+
+  if (data.type === "scripture") {
+    const A = document.getElementById("sceneA");
+    const B = document.getElementById("sceneB");
+    A.contentWindow.postMessage(data, "*");
+    B.contentWindow.postMessage(data, "*");
+    return;
+  }
 }
 </script>
+
 </body>
 </html>
 
