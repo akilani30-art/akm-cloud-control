@@ -503,6 +503,7 @@ const incomingUrl = (incoming.src || "").split("?")[0].split("/").pop();
       B.classList.remove("noTrans");
 
       showingA = !showingA;
+      currentScene = target;
       isTransitioning = false;
       return;
     }
@@ -526,6 +527,7 @@ const incomingUrl = (incoming.src || "").split("?")[0].split("/").pop();
       outgoing.style.left = "100%";
 
       showingA = !showingA;
+      currentScene = target;
       isTransitioning = false;
     }, duration);
   }; 
