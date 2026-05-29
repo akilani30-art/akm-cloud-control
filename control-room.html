@@ -425,6 +425,13 @@ function loadHistory() {
   }
   renderHistory();
   }
+  function addToHistory(title, body) {
+  scriptureHistory.unshift({ title, body });
+  if (scriptureHistory.length > 10) scriptureHistory.pop();
+  saveHistory();
+  renderHistory();
+  }
+  
 
 // ---------- Auto Clipboard -> Scripture + Auto Scene 3 ----------
 async function checkClipboard() {
