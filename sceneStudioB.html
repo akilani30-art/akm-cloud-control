@@ -84,6 +84,7 @@ html, body {
   
 
 </div>window.addEventListener("message", (event) => {
+  window.addEventListener("message", (event) => {
   const data = event.data;
 
   if (data.type !== "studioB") return;
@@ -99,5 +100,22 @@ html, body {
 
   // ✅ Convert YouTube link
   if (url.includes("youtube.com/watch?v=")) {
-    const
+    const id = url.split("v=")[1].split("&")[0];
+    url = "https://www.youtube.com/embed/" + id;
+  }
 
+  // ✅ Add autoplay params
+  if (url.includes("youtube.com/embed")) {
+    url += (url.includes("?") ? "&" : "?") +
+      "autoplay=1&mute=1&controls=1&playsinline=1";
+  }
+
+  console.log("✅ FINAL URL:", url);
+
+  // ✅ FORCE reload
+  frame.src = "about:blank";
+
+  setTimeout(() => {
+    frame.src = url;
+  }, 100);
+});
