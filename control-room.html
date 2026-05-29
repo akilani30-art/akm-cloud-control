@@ -117,8 +117,11 @@ input {
   background: #111;
   color: white;
 }
-  
 
+.sceneBtn.activeScene {
+  outline: 2px solid gold;
+  box-shadow: 0 0 12px rgba(255,215,0,0.6);
+}
 </style>
 </head>
 
@@ -126,18 +129,17 @@ input {
 
 <h1>Control Room</h1>
 
-<!-- ✅ STATUS INDICATOR -->
 <div id="wsStatus" class="wsStatus offline">
   <span class="dot"></span>
   <span class="label">OFFLINE</span>
 </div>
 
 <h2>Scenes</h2>
-<button onclick="loadPreview('scene1')">Scene 1</button>
-<button onclick="loadPreview('scene2')">Scene 2</button>
-<button onclick="loadPreview('scene3')">Scene 3</button>
-<button onclick="loadPreview('scene4')">Scene 4</button>
-<button onclick="loadPreview('sceneStudioB')">Studio B</button>
+<button class="sceneBtn" data-scene="scene1" onclick="loadPreview('scene1')">Scene 1</button>
+<button class="sceneBtn" data-scene="scene2" onclick="loadPreview('scene2')">Scene 2</button>
+<button class="sceneBtn" data-scene="scene3" onclick="loadPreview('scene3')">Scene 3</button>
+<button class="sceneBtn" data-scene="scene4" onclick="loadPreview('scene4')">Scene 4</button>
+<button class="sceneBtn" data-scene="sceneStudioB" onclick="loadPreview('sceneStudioB')">Studio B</button>
 <button onclick="takeScene()">✔ TAKE</button>
 
 <h2>Transitions</h2>
@@ -180,8 +182,19 @@ input {
 <div class="scriptureBox">
   <h2 style="color:gold;text-align:center;margin-top:0;">📖 Scripture Sender</h2>
   <p style="font-size:14px;color:#ccc;margin-top:10px;text-align:center;">
-    Copy any verse → Auto‑paste → Auto‑send → Auto‑switch to Scene 3.
+    Copy any verse → Auto‑send → Auto‑switch to Scene 3.
   </p>
+
+  <button onclick="enableClipboard()" style="
+    margin-top:10px;
+    width:100%;
+    padding:10px;
+    background:black;
+    border:1px solid gold;
+    color:gold;
+    border-radius:6px;">
+    ✅ Enable Auto Clipboard
+  </button>
 </div>
 
 <div class="scriptureBox" style="margin-top:20px;">
@@ -200,6 +213,8 @@ input {
 
 <script>
 const WS_URL = "wss://ontario-maine-attach-msgstr.trycloudflare.com";
+const MAX_QUEUE = 100;
+
 let ws;
 let sendQueue = [];
 
@@ -209,8 +224,10 @@ let lastClipboard = "";
 let lastScriptureTitle = "";
 let lastScriptureBody = "";
 let lastSceneWas3 = false;
+let scriptureHistory = [];
+let clipboardEnabled = false;
 
-// ---------- WebSocket ---------
+// ---------- WebSocket ----------
 function connectWS() {
   setWSStatus("connecting");
 
@@ -226,7 +243,9 @@ function connectWS() {
   ws.onopen = () => {
     console.log("✅ Control connected:", WS_URL);
     setWSStatus("online");
-    while (sendQueue.length) ws.send(sendQueue.shift());
+    while (sendQueue.length) {
+      ws.send(sendQueue.shift());
+    }
   };
 
   ws.onerror = (e) => {
@@ -247,15 +266,14 @@ function connectWS() {
     } catch {
       return;
     }
+
     if (data.type === "request_latest_scripture") {
       if (lastScriptureTitle && lastScriptureBody) {
-        sendJSON({ type:"scripture", title:lastScriptureTitle, text:lastScriptureBody });
+        sendJSON({ type: "scripture", title: lastScriptureTitle, text: lastScriptureBody });
       }
     }
   };
 }
-
- const MAX_QUEUE = 100;
 
 function sendJSON(obj) {
   const msg = JSON.stringify(obj);
@@ -268,43 +286,38 @@ function sendJSON(obj) {
   }
 }
 
-  
-
-function setWSStatus(state){
+function setWSStatus(state) {
   const el = document.getElementById("wsStatus");
   const label = el.querySelector(".label");
-  el.classList.remove("online","offline","connecting");
+  el.classList.remove("online", "offline", "connecting");
   el.classList.add(state);
   label.textContent = state.toUpperCase();
 }
 
-connectWS();
+// ---------- Scene Highlight ----------
+function updateSceneButtons(scene) {
+  document.querySelectorAll(".sceneBtn").forEach(btn => {
+    btn.classList.toggle("activeScene", btn.dataset.scene === scene);
+  });
+}
 
 // ---------- Preview / Program ----------
 function loadPreview(scene) {
   currentPreviewScene = scene;
   document.getElementById("previewFrame").src = scene + ".html";
+
   if (scene !== "scene3") lastSceneWas3 = false;
-document.querySelectorAll("button").forEach(btn => {
-  btn.style.outline = "none";
-});
 
-const buttons = document.querySelectorAll("button");
-buttons.forEach(btn => {
-  if (btn.innerText.toLowerCase().includes(scene.toLowerCase().replace("scene","scene "))) {
-    btn.style.outline = "2px solid gold";
-  }
-});
-
-  
+  updateSceneButtons(scene);
 }
-  
 
 function takeScene() {
   document.getElementById("programFrame").src = currentPreviewScene + ".html";
   sendJSON({ type: "scene", scene: currentPreviewScene });
 
-  if (currentPreviewScene !== "scene3") lastSceneWas3 = false;
+  if (currentPreviewScene !== "scene3") {
+    lastSceneWas3 = false;
+  }
 }
 
 // ---------- Transitions ----------
@@ -349,7 +362,6 @@ function toEmbedUrl(url) {
   try {
     const u = new URL(url);
 
-    // YouTube
     if (u.hostname.includes("youtube.com")) {
       const id = u.searchParams.get("v");
       if (id) return `https://www.youtube.com/embed/${id}?autoplay=1`;
@@ -357,10 +369,9 @@ function toEmbedUrl(url) {
 
     if (u.hostname === "youtu.be") {
       const id = u.pathname.slice(1);
-      return `https://www.youtube.com/embed/${id}?autoplay=1`;
+      if (id) return `https://www.youtube.com/embed/${id}?autoplay=1`;
     }
 
-    // Spotify
     if (u.hostname.includes("spotify.com")) {
       return `https://open.spotify.com/embed${u.pathname}`;
     }
@@ -383,18 +394,45 @@ function playStudioB() {
   takeScene();
 }
 
-// ---------- Scripture History ----------
-let scriptureHistory = [];
+// ---------- Clipboard ----------
+async function enableClipboard() {
+  try {
+    await navigator.clipboard.readText();
+    clipboardEnabled = true;
+    alert("✅ Clipboard access enabled");
+  } catch (e) {
+    alert("❌ Clipboard blocked. Use secure HTTPS and allow clipboard permissions.");
+  }
+}
 
+// ---------- Scripture History ----------
 function escapeHTML(str) {
   return (str ?? "").replace(/[&<>"']/g, (m) => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#39;"
   }[m]));
+}
+
+function saveHistory() {
+  localStorage.setItem("scriptureHistory", JSON.stringify(scriptureHistory));
+}
+
+function loadHistory() {
+  try {
+    scriptureHistory = JSON.parse(localStorage.getItem("scriptureHistory")) || [];
+  } catch {
+    scriptureHistory = [];
+  }
+  renderHistory();
 }
 
 function addToHistory(title, body) {
   scriptureHistory.unshift({ title, body });
   if (scriptureHistory.length > 10) scriptureHistory.pop();
+  saveHistory();
   renderHistory();
 }
 
@@ -412,9 +450,8 @@ function renderHistory() {
       <span style="font-size:14px;color:#ccc;white-space:pre-wrap;">${escapeHTML(item.body)}</span>
       <button onclick="resendHistory(${index})"
         style="margin-top:8px;width:100%;padding:8px;background:black;border:1px solid gold;color:gold;border-radius:6px;">
-        🔁 Re‑Send
+        🔁 Re-Send
       </button>
-      
     </div>
   `).join("");
 }
@@ -422,89 +459,43 @@ function renderHistory() {
 function resendHistory(index) {
   const item = scriptureHistory[index];
   if (!item) return;
+
   sendJSON({ type: "scripture", title: item.title, text: item.body });
   lastScriptureTitle = item.title;
   lastScriptureBody = item.body;
 }
-function saveHistory() {
-  localStorage.setItem("scriptureHistory", JSON.stringify(scriptureHistory));
-}
-
-function loadHistory() {
-  try {
-    scriptureHistory = JSON.parse(localStorage.getItem("scriptureHistory")) || [];
-  } catch {
-    scriptureHistory = [];
-  }
-  renderHistory();
-  }
-  function addToHistory(title, body) {
-  scriptureHistory.unshift({ title, body });
-  if (scriptureHistory.length > 10) scriptureHistory.pop();
-  saveHistory();
-  renderHistory();
-  }
-  loadHistory();
-  
-  
 
 // ---------- Auto Clipboard -> Scripture + Auto Scene 3 ----------
 async function checkClipboard() {
   try {
+    if (!clipboardEnabled) return;
     if (!navigator.clipboard || !navigator.clipboard.readText) return;
 
     const text = await navigator.clipboard.readText();
     if (!text || text.trim() === "") return;
-
-    // ignore code/html noise
-    const lower = text.toLowerCase();
-    const looksLikeCode =
-  /<\/?[a-z][\s\S]*>/i.test(text) ||
-  /(function\s*\(|const\s+|let\s+|=>)/.test(text);
-
-if (looksLikeCode) return;
-if (text.length > 1500) return; // allow longer scriptures
-
-
     if (text === lastClipboard) return;
+
+    const looksLikeCode =
+      /<\/?[a-z][\s\S]*>/i.test(text) ||
+      /(function\s*\(|const\s+|let\s+|=>)/.test(text);
+
+    if (looksLikeCode) return;
+    if (text.length > 1500) return;
+
     lastClipboard = text;
 
-    let lines = text.split("\n").map(l => l.trim()).filter(Boolean);
+    const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
     if (lines.length === 0) return;
-
-      <button onclick="enableClipboard()" style="
-  margin-top:10px;
-  width:100%;
-  padding:10px;
-  background:black;
-  border:1px solid gold;
-  color:gold;
-  border-radius:6px;">
-  ✅ Enable Auto Clipboard
-</button>
-    let clipboardEnabled = false;
-
-async function enableClipboard() {
-  try {
-    await navigator.clipboard.readText(); // triggers permission
-    clipboardEnabled = true;
-    alert("✅ Clipboard access enabled");
-  } catch (e) {
-    alert("❌ Clipboard blocked. Use manual paste instead.");
-  }
-  async function checkClipboard() {
-  if (!clipboardEnabled) return;
-  
-}
-
 
     let title = lines[0];
     let body = lines.slice(1).join("\n").trim();
 
-    // strip leading verse number(s)
     body = body.replace(/^\d+\s*/, "");
 
-    if (!body) { body = title; title = "Scripture"; }
+    if (!body) {
+      body = title;
+      title = "Scripture";
+    }
 
     lastScriptureTitle = title;
     lastScriptureBody = body;
@@ -512,12 +503,12 @@ async function enableClipboard() {
     sendJSON({ type: "scripture", title, text: body });
     addToHistory(title, body);
 
-    // Auto take Scene 3 once
     if (!lastSceneWas3) {
       currentPreviewScene = "scene3";
       document.getElementById("previewFrame").src = "scene3.html";
       document.getElementById("programFrame").src = "scene3.html";
       sendJSON({ type: "scene", scene: "scene3" });
+      updateSceneButtons("scene3");
       lastSceneWas3 = true;
     }
   } catch (err) {
@@ -525,13 +516,9 @@ async function enableClipboard() {
   }
 }
 
-document.addEventListener("visibilitychange", () => {
-  if (!document.hidden) checkClipboard();
-});
-setInterval(checkClipboard, 3000);
-
-  document.addEventListener("keydown", (e) => {
-  if (e.key === " ") { // SPACE = TAKE
+// ---------- Keyboard Shortcuts ----------
+document.addEventListener("keydown", (e) => {
+  if (e.key === " ") {
     e.preventDefault();
     takeScene();
   }
@@ -542,6 +529,16 @@ setInterval(checkClipboard, 3000);
   if (e.key === "4") loadPreview("scene4");
 });
 
+// ---------- Init ----------
+loadHistory();
+updateSceneButtons("scene1");
+connectWS();
+
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) checkClipboard();
+});
+
+setInterval(checkClipboard, 3000);
 </script>
 
 </body>
