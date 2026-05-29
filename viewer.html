@@ -677,39 +677,24 @@ if (data.label === "ALERT") {
   return;
 }
 
-  
-if (data.type === "studioB") {
-  const A = document.getElementById("sceneA");
-  const B = document.getElementById("sceneB");
-
-  console.log("Forwarding StudioB message to scene");
-
-  (showingA ? A : B).contentWindow.postMessage(data, "*");
-  return;
-  }
-  
-  if (data.type === "scripture") {
-    const A = document.getElementById("sceneA");
-    const B = document.getElementById("sceneB");
-
-    (showingA ? A : B).contentWindow.postMessage(data, "*");
-    return;
-  }
-  // ✅ STUDIO B LOAD (DJ loads track)
+  // ✅ DJ LOADS MEDIA
 if (data.type === "studioB") {
 
   const A = document.getElementById("sceneA");
   const B = document.getElementById("sceneB");
 
+  // Send to BOTH scenes (important for preload)
   A.contentWindow.postMessage(data, "*");
   B.contentWindow.postMessage(data, "*");
 
-  // ✅ Auto switch to Studio B
+  // ✅ AUTO SWITCH
   switchScene("sceneStudioB.html", transitionStyle);
 
   return;
-  }
-  // ✅ STUDIO B CONTROLS (play/pause/stop)
+}
+
+
+// ✅ DJ CONTROLS PLAYBACK
 if (data.type === "studioB_control") {
 
   const A = document.getElementById("sceneA");
@@ -718,15 +703,14 @@ if (data.type === "studioB_control") {
   A.contentWindow.postMessage(data, "*");
   B.contentWindow.postMessage(data, "*");
 
-  // ✅ ONLY switch on PLAY (not pause/stop)
+  // ✅ ONLY SWITCH ON PLAY
   if (data.action === "play") {
     switchScene("sceneStudioB.html", transitionStyle);
   }
 
   return;
   }
-                                      
-  
+                              
 }
 </script>
 </body>
