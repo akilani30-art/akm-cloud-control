@@ -64,6 +64,85 @@ wss.on("connection", (ws) => {
       return;
     }
 
+const fs = require("fs");
+
+let schedule = [];
+let lastTriggered = null;
+
+// Load schedule
+function loadSchedule() {
+  try {
+    const raw = fs.readFileSync("./schedule.json");
+    schedule = JSON.parse(raw);
+    console.log("📅 Schedule loaded:", schedule.length, "items");
+  } catch (err) {
+    console.error("❌ Failed to load schedule:", err.message);
+  }
+}
+
+// Convert HH:MM → minutes
+function toMinutes(t) {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+}
+
+// Get current time in minutes
+function nowMinutes() {
+  const now = new Date();
+  return now.getHours() * 60 + now.getMinutes();
+}
+
+// Scheduler loop
+function runScheduler() {
+  const now = nowMinutes();
+
+  for (const item of schedule) {
+    const itemTime = toMinutes(item.time);
+
+    // Match current minute
+    if (now === itemTime) {
+
+      // Prevent duplicate trigger
+      if (lastTriggered === item.time) return;
+
+      console.log("⏰ Trigger:", item.label);
+
+      // Send to all clients
+      broadcast({
+        type: "studioB",
+        action: "play",
+        url: item.url
+      });
+
+      // Optional: auto switch scene
+      broadcast({
+        type: "scene",
+        scene: "sceneStudioB"
+      });
+
+      lastTriggered = item.time;
+    }
+  }
+
+  // Reset trigger after minute passes
+  if (lastTriggered) {
+    const lastTime = toMinutes(lastTriggered);
+    if (now !== lastTime) {
+      lastTriggered = null;
+    }
+  }
+}
+
+// Reload schedule every minute (in case you edit file)
+setInterval(loadSchedule, 60000);
+
+// Run scheduler every 30 seconds
+setInterval(runScheduler, 30000);
+
+// Initial load
+loadSchedule();
+    
+    
     // Broadcast to all other clients (viewers)
     clients.forEach((client) => {
       if (client !== ws && client.readyState === WebSocket.OPEN) {
