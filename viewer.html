@@ -330,6 +330,8 @@ let isTransitioning = false;
 let currentScene = "scene1.html";
 
 const WS_URL = "wss://ontario-maine-attach-msgstr.trycloudflare.com";
+let ws;
+let sendQueue = [];
 
 /* ✅ STATUS */
 function setWSStatus(state){
