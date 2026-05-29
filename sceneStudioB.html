@@ -82,55 +82,21 @@ html, body {
 </iframe>
   
 
-</div>
-
-<script>
-// ✅ Receive commands
-window.addEventListener("message", (event) => {
+</div>window.addEventListener("message", (event) => {
   const data = event.data;
 
-  if (data.type === "studioB") {
+  if (data.type !== "studioB") return;
 
-    const frame = document.getElementById("mediaFrame");
-    const title = document.getElementById("mediaTitle");
+  const frame = document.getElementById("mediaFrame");
+  const title = document.getElementById("mediaTitle");
 
-    // ✅ Set title
-    title.textContent = data.title || "Studio B";
+  title.textContent = data.title || "Studio B";
 
-    if (data.url) {
-      let url = data.url;
+  if (!data.url) return;
 
-      // ✅ Convert normal YouTube links
-      if (url.includes("youtube.com/watch?v=")) {
-        const id = url.split("v=")[1].split("&")[0];
-        url = "https://www.youtube.com/embed/" + id;
-      }
+  let url = data.url;
 
-      // ✅ FORCE autoplay + mute + proper YouTube behavior
-      if (url.includes("youtube.com/embed")) {
-  const origin = window.location.origin;
+  // ✅ Convert YouTube link
+  if (url.includes("youtube.com/watch?v=")) {
+    const
 
-  if (!url.includes("?")) {
-    url += `?autoplay=1&mute=1&controls=1&playsinline=1&rel=0&enablejsapi=1&origin=${origin}`;
-  } else {
-    url += `&autoplay=1&mute=1&controls=1&playsinline=1&rel=0&enablejsapi=1&origin=${origin}`;
-  }
-  }
-  
-}
-
-
-
-      console.log("Loading video:", url);
-
-// ✅ FORCE reload
-frame.src = "";
-
-setTimeout(() => {
-  frame.src = url;
-  frame.focus();
-}, 100);
-
-    }
-  }
-});
