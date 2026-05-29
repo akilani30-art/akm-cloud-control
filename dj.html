@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Remote DJ</title>
+<style>
+  body{background:#000;color:#fff;font-family:Arial;padding:20px}
+  input{padding:10px;width:320px;border-radius:8px;border:none;margin:6px 0}
+  button{padding:10px 14px;border:none;border-radius:8px;background:#1e88e5;color:#fff;margin:6px 6px 0 0;cursor:pointer}
+  button:hover{background:#1565c0}
+  .row{margin-top:10px}
+  .status{display:inline-flex;gap:10px;align-items:center;padding:8px 12px;border:1px solid rgba(255,255,255,.15);border-radius:10px;background:rgba(255,255,255,.06)}
+  .dot{width:10px;height:10px;border-radius:50%}
+  .online .dot{background:#00e676}
+  .offline .dot{background:#ff1744}
+  .connecting .dot{background:#ffea00}
+</style>
+</head>
+<body>
+
+<h1>🎧 Remote DJ</h1>
+
+<div id="wsStatus" class="status offline">
+  <span class="dot"></span>
+  <span class="label">OFFLINE</span>
+</div>
+
+<div class="row">
+  <input id="djToken" placeholder="DJ Access Token (required)" />
+  <button onclick="connect()">Connect</button>
+</div>
+
+<hr style="border:1px solid rgba(255,255,255,.12);margin:18px 0">
+
+<h2>Load Track / Stream</h2>
+<input id="mediaUrl" placeholder="MP4 / Stream URL / YouTube link" />
+<input id="mediaTitle" placeholder="Title (optional)" />
+<div class="row">
+  <button onclick="sendLoad()">📥 Load</button>
+  <button onclick="sendControl('play')">▶ Play</button>
+  <button onclick="sendControl('pause')">⏸ Pause</button>
+  <button onclick="sendControl('stop')">⏹ Stop</button>
+</div>
+
+<script>
+const WS_BASE = "wss://heather-extended-budgets-subsection.trycloudflare.com";
+let ws;
+
+function setStatus(state){
+  const el = document.getElementById("wsStatus");
+  const label = el.querySelector(".label");
+  el.classList.remove("online","offline","connecting");
+  el.classList.add(state);
+  label.textContent = state.toUpperCase();
+}
+
+function connect(){
+  const token = document.getElementById("djToken").value.trim();
+  if(!token) return;
+
+  // IMPORTANT: token passed to server; server must validate it.
+  const url = `${WS_BASE}?role=dj&token=${encodeURIComponent(token)}`;
+
+  setStatus("connecting");
+  ws = new WebSocket(url);
+
+  ws.onopen = () => setStatus("online");
+  ws.onclose = () => setStatus("offline");
+  ws.onerror = () => setStatus("offline");
+}
+
+function sendJSON(obj){
+  if(ws && ws.readyState === WebSocket.OPEN){
+    ws.send(JSON.stringify(obj));
+  }
+}
+
+function sendLoad(){
+  const url = document.getElementById("mediaUrl").value.trim();
+  const title = document.getElementById("mediaTitle").value.trim();
+  if(!url) return;
+
+  // This matches your existing StudioB message pattern.
+  sendJSON({ type:"studioB", url, title: title || "Studio B" });
+}
+
+function sendControl(action){
+  sendJSON({ type:"studioB_control", action });
+}
+</script>
+
+</body>
+</html>
