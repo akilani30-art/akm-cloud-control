@@ -5,9 +5,18 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const WebSocket = require("ws");
+const cors = require("cors");
+const { ChannelEngine } = require("./channel-engine");
+
 
 const PORT = 7345;
-
+app.use(express.json());
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type"]
+}));
+  
 // ---------- HTTP SERVER (STATIC FILES) ----------
 const server = http.createServer((req, res) => {
   let filePath = "." + req.url;
