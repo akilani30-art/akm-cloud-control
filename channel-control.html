@@ -291,6 +291,12 @@ function renderNewSlots() {
     container.appendChild(div);
   });
 }
+  function exportSlots() {
+  const json = JSON.stringify({ loop: true, items: newSlots }, null, 2);
+  console.log(json);
+  alert("Check console → copy JSON");
+  }
+  
 
 
 async function start() {
