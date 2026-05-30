@@ -15,6 +15,106 @@ const server = http.createServer((req, res) => {
     filePath = "./viewer.html"; // default to viewer
   }
 
+{
+  "loop": true,
+  "items": [
+    {
+      "id": "station-open",
+      "label": "Station Open",
+      "durationSec": 20,
+      "commands": [
+        { "type": "transition", "style": "fade" },
+        { "type": "scene", "scene": "scene1" },
+        {
+          "type": "lowerthird",
+          "show": true,
+          "title": "AKM Network",
+          "subtitle": "Now Live"
+        }
+      ]
+    },
+    {
+      "id": "music-hour",
+      "label": "Studio B Music",
+      "durationSec": 1800,
+      "commands": [
+        { "type": "transition", "style": "fade" },
+        {
+          "type": "studioB",
+          "action": "play",
+          "url": "https://www.youtube.com/watch?v=YOUR_VIDEO_ID"
+        },
+        { "type": "scene", "scene": "sceneStudioB" },
+        {
+          "type": "ticker",
+          "show": true,
+          "text": "Welcome to AKM Network | Stay connected | More programming coming up"
+        }
+      ]
+    },
+    {
+      "id": "scripture-slot",
+      "label": "Scripture Moment",
+      "durationSec": 40,
+      "commands": [
+        { "type": "transition", "style": "cut" },
+        {
+          "type": "scripture",
+          "title": "Psalm 23",
+          "text": "The Lord is my shepherd; I shall not want."
+        },
+        { "type": "scene", "scene": "scene3" }
+      ]
+    },
+    {
+      "id": "camera-two-live",
+      "label": "Live Camera 2",
+      "durationSec": 300,
+      "commands": [
+        { "type": "transition", "style": "slide" },
+        { "type": "camera", "view": "cam2" },
+        { "type": "scene", "scene": "scene2" },
+        {
+          "type": "lowerthird",
+          "show": true,
+          "title": "Live Segment",
+          "subtitle": "Camera 2"
+        }
+      ]
+    },
+    {
+      "id": "ai-news-slot",
+      "label": "AI News Slot",
+      "durationSec": 600,
+      "commands": [
+        { "type": "transition", "style": "fade" },
+        {
+          "type": "studioB",
+          "action": "play",
+          "url": "https://your-domain-or-storage.example.com/ai-news-bulletin.mp4"
+        },
+        { "type": "scene", "scene": "sceneStudioB" },
+        {
+          "type": "lowerthird",
+          "show": true,
+          "title": "AKM News",
+          "subtitle": "Top Stories"
+        }
+      ]
+    },
+    {
+      "id": "clear-overlays",
+      "label": "Clear Overlays",
+      "durationSec": 5,
+      "commands": [
+        { "type": "lowerthird", "show": false },
+        { "type": "ticker", "show": false }
+      ]
+    }
+  ]
+}
+
+  
   const ext = String(path.extname(filePath)).toLowerCase();
   const mimeTypes = {
     ".html": "text/html",
