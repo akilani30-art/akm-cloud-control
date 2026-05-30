@@ -262,6 +262,11 @@ function loadSchedule() {
     console.error("❌ Failed to load schedule:", err.message);
   }
 }
+    if (data.type === "scene" || data.type === "studioB" || data.type === "camera") {
+  // Optional: pause channel automation when operator takes over
+  // channelEngine.stop();
+}
+
 
 // Convert HH:MM → minutes
 function toMinutes(t) {
