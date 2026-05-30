@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Viewer</title>
+
 <style>
   @keyframes logoAlert {
     0%   { transform: rotate(0deg) scale(1); }
@@ -16,6 +18,80 @@
     0%   { transform: rotateY(0deg) scale(1); }
     50%  { transform: rotateY(180deg) scale(1.02); }
     100% { transform: rotateY(360deg) scale(1); }
+  }
+
+  @keyframes dotBlink {
+    0%, 100% { opacity: 1; }
+    40% { opacity: 0.2; }
+  }
+
+  @keyframes livePulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.75; }
+  }
+
+  @keyframes shimmerMove {
+    0% { left: -150%; }
+    100% { left: 150%; }
+  }
+
+  @keyframes tickerMove {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
+  }
+
+  @keyframes flash {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: black;
+  }
+
+  #slideContainer {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    background: black;
+  }
+
+  .sceneFrame {
+    position: absolute;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    border: none;
+    background: black;
+    opacity: 0;
+    pointer-events: none;
+    left: 0;
+    transition: left 0.6s ease, opacity 0.6s ease;
+  }
+
+  .sceneFrame.noTrans {
+    transition: none !important;
+  }
+
+  .sceneFrame.activeScene {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  #preloadContainer {
+    position: fixed;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+    overflow: hidden;
+    left: -99999px;
+    top: -99999px;
   }
 
   #logoMark {
@@ -41,7 +117,7 @@
     align-items: center;
     gap: 6px;
     z-index: 9999;
-    pointer-events:none;
+    pointer-events: none;
   }
 
   .liveDot {
@@ -50,11 +126,6 @@
     background: #ff2a2a;
     border-radius: 50%;
     animation: dotBlink 1s infinite;
-  }
-
-  @keyframes dotBlink {
-    0%, 100% { opacity: 1; }
-    40% { opacity: 0.2; }
   }
 
   #liveBadge {
@@ -74,21 +145,6 @@
     animation: livePulse 1.5s infinite;
   }
 
-  @keyframes livePulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.75; }
-  }
-
-  #slideContainer {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-    background: black;
-  }
-
   #lowerThird {
     position: absolute;
     bottom: 50px;
@@ -102,6 +158,7 @@
     opacity: 0;
     transition: all 0.6s ease;
     overflow: hidden;
+    z-index: 9998;
   }
 
   #lowerThird::before {
@@ -122,15 +179,30 @@
     transform: skewX(-25deg);
   }
 
-  #lowerThird.show::before { animation: shimmerMove 2.5s infinite; }
-
-  @keyframes shimmerMove {
-    0% { left: -150%; }
-    100% { left: 150%; }
+  #lowerThird.show::before {
+    animation: shimmerMove 2.5s infinite;
   }
 
-  #lowerThird.show { opacity: 1; transform: translateX(0); }
-  #lowerThird.hide { opacity: 0; transform: translateX(-150%); }
+  #lowerThird.show {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  #lowerThird.hide {
+    opacity: 0;
+    transform: translateX(-150%);
+  }
+
+  #ltTitle {
+    font-size: 26px;
+    font-weight: bold;
+  }
+
+  #ltSub {
+    margin-top: 4px;
+    font-size: 18px;
+    color: #ddd;
+  }
 
   #tickerBar {
     position: fixed;
@@ -144,6 +216,19 @@
     z-index: 9999;
     overflow: hidden;
     font-family: Arial, sans-serif;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+  }
+
+  #tickerClock {
+    background: #111;
+    color: #00e676;
+    padding: 0 15px;
+    font-weight: bold;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    border-right: 2px solid gold;
   }
 
   #tickerLabel {
@@ -181,28 +266,9 @@
     color: gold;
   }
 
-  #tickerClock {
-    background: #111;
-    color: #00e676;
-    padding: 0 15px;
-    font-weight: bold;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    border-right: 2px solid gold;
+  #tickerWrapper:hover #tickerTrack {
+    animation-play-state: paused;
   }
-
-  @keyframes tickerMove {
-    0% { transform: translateX(0%); }
-    100% { transform: translateX(-50%); }
-  }
-
-  @keyframes flash {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
-  }
-
-  #tickerWrapper:hover #tickerTrack { animation-play-state: paused; }
 
   #tickerWrapper::before,
   #tickerWrapper::after {
@@ -225,29 +291,7 @@
     background: linear-gradient(to left, black, transparent);
   }
 
-  .sceneFrame {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    border: none;
-    background: black;
-    opacity: 0;
-    pointer-events: none;
-    transition: left 0.6s ease, opacity 0.2s linear;
-  }
-
-  .sceneFrame.noTrans { transition: none !important; }
-
-  .sceneFrame.activeScene {
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .slideOut { left: -100%; }
-
-  .wsStatus{
+  .wsStatus {
     position: absolute;
     top: 18px;
     left: 18px;
@@ -265,28 +309,19 @@
     backdrop-filter: blur(6px);
   }
 
-  .wsStatus .dot{
+  .wsStatus .dot {
     width: 12px;
     height: 12px;
     border-radius: 50%;
   }
 
-  .wsStatus.online .dot{ background:#00e676; }
-  .wsStatus.offline .dot{ background:#ff1744; }
-  .wsStatus.connecting .dot{ background:#ffea00; }
+  .wsStatus.online .dot { background:#00e676; }
+  .wsStatus.offline .dot { background:#ff1744; }
+  .wsStatus.connecting .dot { background:#ffea00; }
 
-  .wsStatus.online .label{ color:#00e676; }
-  .wsStatus.offline .label{ color:#ff1744; }
-  .wsStatus.connecting .label{ color:#ffea00; }
-
-  html, body {
-    margin: 0;
-    padding: 0;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-    background: black;
-  }
+  .wsStatus.online .label { color:#00e676; }
+  .wsStatus.offline .label { color:#ff1744; }
+  .wsStatus.connecting .label { color:#ffea00; }
 </style>
 </head>
 
@@ -309,15 +344,17 @@
     <iframe id="sceneB" class="sceneFrame" src="about:blank"></iframe>
   </div>
 
+  <div id="preloadContainer"></div>
+
   <div id="logoWrapper">
-    <img id="logoMark" src="logo.png">
+    <img id="logoMark" src="logo.png" alt="Logo">
     <div id="liveBadge">
       <span class="liveDot"></span>
       LIVE
     </div>
   </div>
 
-  <div id="lowerThird">
+  <div id="lowerThird" class="hide">
     <div id="ltTitle"></div>
     <div id="ltSub"></div>
   </div>
@@ -326,216 +363,351 @@
 let socket;
 let showingA = true;
 let transitionStyle = "slide";
-let isTransitioning = false;
 let currentScene = "scene1.html";
+let reconnectDelay = 1000;
 
 const WS_URL = "wss://sean-experts-questionnaire-sells.trycloudflare.com";
 
-/* ✅ QUEUE SYSTEM */
+// Queue
 let transitionQueue = [];
 let processingQueue = false;
 
-function enqueueScene(scene, style = "cut") {
-  if (!scene) return;
+// Preload cache
+const preloadPromises = new Map();
+const preloadContainer = document.getElementById("preloadContainer");
 
-  if (!scene.endsWith(".html")) {
-    scene += ".html";
-  }
-
-  const last = transitionQueue[transitionQueue.length - 1];
-  if (last && last.scene === scene) return;
-
-  transitionQueue.push({ scene, style });
-  processQueue();
+// ---------- Helpers ----------
+function normalizeScene(scene) {
+  if (!scene) return "";
+  return scene.endsWith(".html") ? scene : scene + ".html";
 }
 
-function processQueue() {
-  if (processingQueue) return;
-  if (transitionQueue.length === 0) return;
-
-  processingQueue = true;
-
-  const { scene, style } = transitionQueue.shift();
-
-  switchScene(scene, style);
-
-  const waitTime = getTransitionDuration(style);
-
-  setTimeout(() => {
-    processingQueue = false;
-    processQueue();
-  }, waitTime);
+function getFrames() {
+  return {
+    A: document.getElementById("sceneA"),
+    B: document.getElementById("sceneB")
+  };
 }
 
-function getTransitionDuration(style) {
-  switch (style) {
-    case "wipe": return 400;
-    case "slide": return 650;
-    case "fade": return 600;
-    case "cut":
-    default: return 100;
-  }
-}
-
-/* ✅ STATUS */
-function setWSStatus(state){
+function setWSStatus(state) {
   const el = document.getElementById("wsStatus");
   const label = el.querySelector(".label");
-  el.classList.remove("online","offline","connecting");
+  el.classList.remove("online", "offline", "connecting");
   el.classList.add(state);
   label.textContent = state.toUpperCase();
 }
 
-/* ✅ WEBSOCKET */
-function connectWS() {
-  setWSStatus("connecting");
-  socket = new WebSocket(WS_URL);
-
-  socket.onopen = () => {
-    console.log("✅ Connected");
-    setWSStatus("online");
-  };
-
-  socket.onmessage = (event) => {
-    let data;
-    try { data = JSON.parse(event.data); }
-    catch { return; }
-    handleMessage(data);
-  };
-
-  socket.onerror = () => setWSStatus("offline");
-
-  socket.onclose = () => {
-    setWSStatus("offline");
-    setTimeout(connectWS, 1000);
-  };
+function transitionDuration(style) {
+  switch (style) {
+    case "wipe": return 380;
+    case "fade": return 520;
+    case "slide": return 620;
+    case "cut":
+    default: return 90;
+  }
 }
-connectWS();
 
-/* ✅ SCENE SWITCHER */
-function switchScene(newScene, style = "cut") {
-  if (!newScene) return;
+function resetFrame(frame) {
+  frame.classList.add("noTrans");
+  frame.classList.remove("activeScene");
+  frame.style.left = "0";
+  frame.style.opacity = "0";
+  frame.style.pointerEvents = "none";
+  void frame.offsetHeight;
+  frame.classList.remove("noTrans");
+}
 
-  if (!newScene.endsWith(".html")) {
-    newScene += ".html";
+function activateFrame(frame) {
+  frame.classList.add("activeScene");
+  frame.style.opacity = "1";
+  frame.style.pointerEvents = "auto";
+}
+
+function deactivateFrame(frame) {
+  frame.classList.remove("activeScene");
+  frame.style.opacity = "0";
+  frame.style.pointerEvents = "none";
+}
+
+// ---------- Preloading ----------
+function preloadScene(scene) {
+  scene = normalizeScene(scene);
+  if (!scene) return Promise.resolve();
+
+  if (preloadPromises.has(scene)) {
+    return preloadPromises.get(scene);
   }
 
-  if (currentScene === newScene) return;
+  const promise = new Promise((resolve) => {
+    const iframe = document.createElement("iframe");
+    iframe.src = scene;
+    iframe.setAttribute("aria-hidden", "true");
+    iframe.style.width = "1px";
+    iframe.style.height = "1px";
+    iframe.style.opacity = "0";
+    iframe.style.pointerEvents = "none";
+    iframe.style.border = "0";
+    iframe.style.position = "absolute";
+    iframe.style.left = "-99999px";
+    iframe.style.top = "-99999px";
 
-  const A = document.getElementById("sceneA");
-  const B = document.getElementById("sceneB");
+    iframe.onload = () => resolve();
+    iframe.onerror = () => resolve(); // fail soft, don't block switching
 
+    preloadContainer.appendChild(iframe);
+  });
+
+  preloadPromises.set(scene, promise);
+  return promise;
+}
+
+function preloadCommonScenes() {
+  ["scene1.html", "scene2.html", "scene3.html", "scene4.html", "sceneStudioB.html"]
+    .forEach(preloadScene);
+}
+
+// ---------- Transition Queue ----------
+function enqueueScene(scene, style = "cut", options = {}) {
+  scene = normalizeScene(scene);
+  if (!scene) return;
+
+  preloadScene(scene);
+
+  const lastQueued = transitionQueue[transitionQueue.length - 1];
+  const isSameAsCurrent = currentScene === scene;
+  const isSameAsLast = lastQueued && lastQueued.scene === scene;
+
+  if (!options.force && (isSameAsCurrent || isSameAsLast)) {
+    return;
+  }
+
+  transitionQueue.push({ scene, style, force: !!options.force });
+  processQueue();
+}
+
+async function processQueue() {
+  if (processingQueue) return;
+  processingQueue = true;
+
+  while (transitionQueue.length > 0) {
+    const next = transitionQueue.shift();
+    await switchScene(next.scene, next.style, next.force);
+  }
+
+  processingQueue = false;
+}
+
+// ---------- Scene Switching ----------
+async function switchScene(newScene, style = "cut", force = false) {
+  newScene = normalizeScene(newScene);
+  if (!newScene) return;
+  if (!force && currentScene === newScene) return;
+
+  const { A, B } = getFrames();
   const incoming = showingA ? B : A;
   const outgoing = showingA ? A : B;
 
-  const target = newScene;
+  await preloadScene(newScene);
 
-  const doSwap = () => {
-    isTransitioning = true;
+  const incomingSrc = (incoming.getAttribute("src") || "").split("?")[0];
+  if (incomingSrc !== newScene) {
+    await new Promise((resolve) => {
+      incoming.onload = () => {
+        incoming.onload = null;
+        resolve();
+      };
+      incoming.onerror = () => {
+        incoming.onerror = null;
+        resolve();
+      };
+      incoming.setAttribute("src", newScene);
+    });
+  }
 
-    A.classList.add("noTrans");
-    B.classList.add("noTrans");
+  resetFrame(incoming);
+  resetFrame(outgoing);
 
-    A.classList.remove("activeScene", "slideOut");
-    B.classList.remove("activeScene", "slideOut");
+  if (style === "cut") {
+    activateFrame(incoming);
+    deactivateFrame(outgoing);
+    currentScene = newScene;
+    showingA = !showingA;
+    await new Promise(r => setTimeout(r, transitionDuration(style)));
+    return;
+  }
 
-    A.style.left = "100%";
-    B.style.left = "100%";
-
-    incoming.style.left = "0";
+  if (style === "fade") {
     incoming.classList.add("activeScene");
+    incoming.style.left = "0";
+    incoming.style.opacity = "0";
+    incoming.style.pointerEvents = "auto";
 
-    if (style === "cut") {
-      outgoing.classList.remove("activeScene", "slideOut");
-      outgoing.style.left = "100%";
-
-      void A.offsetHeight;
-      A.classList.remove("noTrans");
-      B.classList.remove("noTrans");
-
-      showingA = !showingA;
-      currentScene = target;
-      isTransitioning = false;
-      return;
-    }
-
-    outgoing.style.left = "0";
     outgoing.classList.add("activeScene");
+    outgoing.style.left = "0";
+    outgoing.style.opacity = "1";
+    outgoing.style.pointerEvents = "none";
 
-    void A.offsetHeight;
-    A.classList.remove("noTrans");
-    B.classList.remove("noTrans");
+    await new Promise((resolve) => {
+      requestAnimationFrame(() => {
+        incoming.style.opacity = "1";
+        outgoing.style.opacity = "0";
+        setTimeout(resolve, transitionDuration(style));
+      });
+    });
 
-    requestAnimationFrame(() => outgoing.classList.add("slideOut"));
+    deactivateFrame(outgoing);
+    activateFrame(incoming);
+    currentScene = newScene;
+    showingA = !showingA;
+    return;
+  }
 
-    const duration = (style === "wipe") ? 350 : 600;
+  if (style === "wipe") {
+    incoming.classList.add("activeScene");
+    incoming.style.left = "100%";
+    incoming.style.opacity = "1";
+    incoming.style.pointerEvents = "auto";
 
-    setTimeout(() => {
-      outgoing.classList.remove("activeScene", "slideOut");
-      outgoing.style.left = "100%";
+    outgoing.classList.add("activeScene");
+    outgoing.style.left = "0";
+    outgoing.style.opacity = "1";
+    outgoing.style.pointerEvents = "none";
 
-      showingA = !showingA;
-      currentScene = target;
-      isTransitioning = false;
-    }, duration);
-  };
+    await new Promise((resolve) => {
+      requestAnimationFrame(() => {
+        incoming.style.left = "0";
+        setTimeout(resolve, transitionDuration(style));
+      });
+    });
 
-  incoming.onload = () => {
-    incoming.onload = null;
-    doSwap();
-  };
+    deactivateFrame(outgoing);
+    activateFrame(incoming);
+    currentScene = newScene;
+    showingA = !showingA;
+    return;
+  }
 
-  incoming.setAttribute("src", target + "?t=" + Date.now());
+  // slide (default)
+  incoming.classList.add("activeScene");
+  incoming.style.left = "100%";
+  incoming.style.opacity = "1";
+  incoming.style.pointerEvents = "auto";
+
+  outgoing.classList.add("activeScene");
+  outgoing.style.left = "0";
+  outgoing.style.opacity = "1";
+  outgoing.style.pointerEvents = "none";
+
+  await new Promise((resolve) => {
+    requestAnimationFrame(() => {
+      incoming.style.left = "0";
+      outgoing.style.left = "-100%";
+      setTimeout(resolve, transitionDuration(style));
+    });
+  });
+
+  outgoing.classList.add("noTrans");
+  outgoing.style.left = "0";
+  outgoing.style.opacity = "0";
+  outgoing.classList.remove("activeScene");
+  void outgoing.offsetHeight;
+  outgoing.classList.remove("noTrans");
+
+  activateFrame(incoming);
+  currentScene = newScene;
+  showingA = !showingA;
 }
 
-/* ✅ CLOCK */
+// ---------- Clock ----------
 function updateClock() {
   const el = document.getElementById("tickerClock");
   const now = new Date();
-  el.textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  el.textContent = now.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 }
 setInterval(updateClock, 1000);
 updateClock();
 
-/* ✅ MESSAGE HANDLER */
+// ---------- WebSocket ----------
+function connectWS() {
+  setWSStatus("connecting");
+
+  try {
+    socket = new WebSocket(WS_URL);
+  } catch (e) {
+    setWSStatus("offline");
+    setTimeout(connectWS, reconnectDelay);
+    reconnectDelay = Math.min(reconnectDelay * 1.5, 10000);
+    return;
+  }
+
+  socket.onopen = () => {
+    console.log("✅ Viewer connected");
+    setWSStatus("online");
+    reconnectDelay = 1000;
+  };
+
+  socket.onmessage = (event) => {
+    let data;
+    try {
+      data = JSON.parse(event.data);
+    } catch {
+      return;
+    }
+    handleMessage(data);
+  };
+
+  socket.onerror = () => {
+    setWSStatus("offline");
+  };
+
+  socket.onclose = () => {
+    setWSStatus("offline");
+    setTimeout(connectWS, reconnectDelay);
+    reconnectDelay = Math.min(reconnectDelay * 1.5, 10000);
+  };
+}
+
+// ---------- Message Forwarding ----------
+function postToSceneFrames(data) {
+  const { A, B } = getFrames();
+  try { A.contentWindow && A.contentWindow.postMessage(data, "*"); } catch {}
+  try { B.contentWindow && B.contentWindow.postMessage(data, "*"); } catch {}
+}
+
+// ---------- Message Handler ----------
 function handleMessage(data) {
+  if (!data || typeof data !== "object") return;
 
   if (data.type === "transition") {
-    transitionStyle = data.style;
+    transitionStyle = data.style || "cut";
     return;
   }
 
   if (data.type === "scene") {
-    let scene = data.scene;
-    if (!scene) return;
-
     const style = data.transition || transitionStyle || "cut";
-
-    enqueueScene(scene, style);
+    enqueueScene(data.scene, style);
     return;
   }
 
   if (data.type === "studioB") {
-    const A = document.getElementById("sceneA");
-    const B = document.getElementById("sceneB");
-
-    A.contentWindow.postMessage(data, "*");
-    B.contentWindow.postMessage(data, "*");
-
-    enqueueScene("sceneStudioB.html", transitionStyle);
+    postToSceneFrames(data);
+    enqueueScene("sceneStudioB.html", transitionStyle || "cut");
     return;
   }
 
   if (data.type === "studioB_control") {
-    const A = document.getElementById("sceneA");
-    const B = document.getElementById("sceneB");
-
-    A.contentWindow.postMessage(data, "*");
-    B.contentWindow.postMessage(data, "*");
-
+    postToSceneFrames(data);
     if (data.action === "play") {
-      enqueueScene("sceneStudioB.html", transitionStyle);
+      enqueueScene("sceneStudioB.html", transitionStyle || "cut");
     }
+    return;
+  }
+
+  if (data.type === "scripture") {
+    postToSceneFrames(data);
     return;
   }
 
@@ -553,42 +725,72 @@ function handleMessage(data) {
     const track = document.getElementById("tickerTrack");
     const label = document.getElementById("tickerLabel");
     const text = data.text || "";
+    const logo = document.getElementById("logoMark");
+    const badge = document.getElementById("liveBadge");
 
     label.textContent = data.label || "BREAKING NEWS";
 
-    if (!text) {
+    if (data.label === "ALERT") {
+      label.style.background = "#ff1744";
+      label.style.animation = "flash 1s infinite";
+      logo.style.animation = "logoAlert 2s linear infinite";
+      logo.style.opacity = "1";
+      logo.style.filter = "drop-shadow(0 0 10px red)";
+      badge.style.display = "flex";
+      badge.style.background = "#ff1744";
+    } else if (data.label === "STOP") {
+      label.style.background = "#c62828";
+      label.style.animation = "none";
+      logo.style.animation = "none";
+      logo.style.transform = "rotate(0deg)";
+      logo.style.opacity = "0.85";
+      logo.style.filter = "none";
+      badge.style.display = "none";
+    } else {
+      label.style.background = "#c62828";
+      label.style.animation = "none";
+      logo.style.animation = "logoIdle 20s linear infinite";
+      logo.style.opacity = "0.85";
+      logo.style.filter = "none";
+      badge.style.display = "flex";
+      badge.style.background = "#e00000";
+    }
+
+    if (!text || !data.show) {
       track.innerHTML = "";
+      track.style.animation = "none";
       bar.style.opacity = "0";
       return;
     }
 
     const items = text.split("|").map(t => t.trim()).filter(Boolean);
-    const build = items.map(item => `<span class="tickerItem">${item}</span>`).join("");
+    const build = items.map(item => `<span class="tickerItem">${escapeHTML(item)}</span>`).join("");
 
     track.style.animation = "none";
-    track.offsetHeight;
+    void track.offsetHeight;
     track.innerHTML = build + build;
 
     const duration = Math.max(10, items.join("").length / 5);
     track.style.animation = `tickerMove ${duration}s linear infinite`;
-
-    bar.style.opacity = data.show ? "1" : "0";
-    return;
-  }
-
-  if (data.type === "scripture") {
-    const A = document.getElementById("sceneA");
-    const B = document.getElementById("sceneB");
-
-    A.contentWindow.postMessage(data, "*");
-    B.contentWindow.postMessage(data, "*");
+    bar.style.opacity = "1";
     return;
   }
 }
+
+// ---------- Small safety helper ----------
+function escapeHTML(str) {
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+// ---------- Startup ----------
+connectWS();
+preloadCommonScenes();
 </script>
-  
-
-
 
 </body>
 </html>
