@@ -68,18 +68,7 @@ app.post("/api/channel/add", (req, res) => {
     res.status(500).json({ ok: false, error: err.message });
   }
 });
-                
-               
-app.get("/api/channel", (_req, res) => {
-  try {
-    res.json({
-      ok: true,
-      playlist: channelEngine.playlist,
-      state: channelEngine.getState()
-    });
-  } catch (err) {
-    res.status(500).json({ ok: false, error: err.message });
-  }
+
 });
 
 app.post("/api/channel/start", (req, res) => {
