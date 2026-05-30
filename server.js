@@ -39,6 +39,37 @@ try {
   console.error("❌ Failed to load channel playlist:", err.message);
   }
 
+app.post("/api/channel/add", (req, res) => {
+  try {
+    const newSlot = req.body;
+
+    if (!newSlot || !newSlot.label) {
+      return res.status(400).json({ ok: false, error: "Invalid slot" });
+    }
+
+    // Read existing playlist
+    let data = JSON.parse(fs.readFileSync(PLAYLIST_FILE, "utf8"));
+
+    // Add new slot
+    data.items.push(newSlot);
+
+    // Save back to file
+    fs.writeFileSync(PLAYLIST_FILE, JSON.stringify(data, null, 2));
+
+    // Reload channel engine
+    if (channelEngine) {
+      channelEngine.reload();
+    }
+
+    res.json({ ok: true, message: "Slot added", playlist: data });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+                
+               
 app.get("/api/channel", (_req, res) => {
   try {
     res.json({
