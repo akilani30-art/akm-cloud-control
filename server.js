@@ -16,6 +16,24 @@ app.use(cors({
   methods: ["GET", "POST"],
   allowedHeaders: ["Content-Type"]
 }));
+
+const channelEngine = new ChannelEngine({
+  playlistFile: "./channel.json",
+  broadcast,
+  onStateChange: (state) => {
+    // Optional: push state to clients if you want a live dashboard
+    broadcast({ type: "channel_state", state });
+  }
+});
+
+// Load playlist on startup
+try {
+  channelEngine.loadPlaylist();
+  console.log("✅ Channel playlist loaded");
+} catch (err) {
+  console.error("❌ Failed to load channel playlist:", err.message);
+  }
+
   
 // ---------- HTTP SERVER (STATIC FILES) ----------
 const server = http.createServer((req, res) => {
