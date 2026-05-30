@@ -2,8 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AKM Cloud Control</title>
+<title>AKM Broadcast Control</title>
 
 <style>
 body {
@@ -23,25 +22,43 @@ button {
   cursor: pointer;
 }
 
-.timelineTrack {
+.timeline {
   position: relative;
-  height: 120px;
-  background: #111;
+  height: 140px;
   border: 2px solid gold;
+  background: #111;
+  overflow-x: auto;
 }
 
-.timelineItem {
+.timelineGrid {
   position: absolute;
-  top: 20px;
+  height: 100%;
+  width: 2000px;
+  background-image: linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px);
+  background-size: 20px 100%;
+}
+
+.timelineNow {
+  position: absolute;
+  width: 2px;
+  background: red;
+  height: 100%;
+  z-index: 5;
+}
+
+.item {
+  position: absolute;
+  top: 30px;
   height: 60px;
-  background: #1e88e5;
   border-radius: 8px;
   padding: 6px;
   cursor: grab;
-  user-select: none;
+  background: #1e88e5;
 }
 
-.timelineResize {
+.item.sceneStudioB { background:#e53935; }
+
+.resize {
   position: absolute;
   right: 0;
   width: 10px;
@@ -54,60 +71,88 @@ button {
 
 <body>
 
-<h1>Control Room</h1>
+<h1>Broadcast Control</h1>
 
-<h2>Scenes</h2>
-<button onclick="setScene('scene1')">Scene 1</button>
-<button onclick="setScene('scene2')">Scene 2</button>
-<button onclick="setScene('scene3')">Scene 3</button>
-<button onclick="setScene('scene4')">Scene 4</button>
-<button onclick="setScene('sceneStudioB')">Studio B</button>
+<button onclick="setScene('scene1')">Scene1</button>
+<button onclick="setScene('scene2')">Scene2</button>
+<button onclick="setScene('scene3')">Scene3</button>
+<button onclick="setScene('scene4')">Scene4</button>
+<button onclick="setScene('sceneStudioB')">StudioB</button>
+
+<hr>
 
 <h2>Timeline</h2>
 
-<input id="label" placeholder="Label">
+<input id="label" placeholder="Scene (scene1 / sceneStudioB)">
 <input id="time" type="time">
 <input id="duration" type="number" value="30">
-<button onclick="addItem()">Add</button>
+<select id="transition">
+  <option value="">None</option>
+  <option value="cut">Cut</option>
+  <option value="fade">Fade</option>
+  <option value="slide">Slide</option>
+</select>
 
-<div id="timelineTrack" class="timelineTrack"></div>
+<button onclick="addItem()">Add</button>
+<button onclick="toggleOverride()">Manual Override OFF</button>
+
+<div class="timeline" id="timeline">
+  <div class="timelineGrid"></div>
+  <div class="timelineNow" id="nowLine"></div>
+</div>
 
 <script>
 const WS_URL = "wss://sean-experts-questionnaire-sells.trycloudflare.com";
-let ws = new WebSocket(WS_URL);
+const ws = new WebSocket(WS_URL);
 
-function send(obj){
-  ws.send(JSON.stringify(obj));
-}
+function send(o){ ws.send(JSON.stringify(o)); }
 
 function setScene(scene){
   send({ type:"scene", scene });
 }
 
 let items = [];
+let manualOverride = false;
+
+const PX_PER_MIN = 2; // scale
+
+function timeToX(t){
+  const [h,m] = t.split(":").map(Number);
+  return ((h*60+m) * PX_PER_MIN);
+}
+
+function xToTime(x){
+  let mins = Math.round(x / PX_PER_MIN);
+  let h = Math.floor(mins/60);
+  let m = mins % 60;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+}
 
 function addItem(){
   const item = {
     id: Date.now(),
-    label: document.getElementById("label").value,
-    time: document.getElementById("time").value,
-    duration: parseInt(document.getElementById("duration").value)
+    scene: label.value,
+    time: time.value,
+    duration: parseInt(duration.value),
+    transition: transition.value
   };
   items.push(item);
   render();
 }
 
 function render(){
-  const track = document.getElementById("timelineTrack");
-  track.innerHTML = "";
+  const timeline = document.getElementById("timeline");
+
+  document.querySelectorAll(".item").forEach(e=>e.remove());
 
   items.forEach(item=>{
     const el = document.createElement("div");
-    el.className = "timelineItem";
-    el.innerText = item.label;
+    el.className = "item " + item.scene;
 
-    el.style.left = (parseInt(item.time.split(":")[0]) * 50) + "px";
-    el.style.width = (item.duration * 3) + "px";
+    el.style.left = timeToX(item.time)+"px";
+    el.style.width = item.duration * PX_PER_MIN + "px";
+
+    el.innerHTML = item.scene;
 
     // drag
     let startX;
@@ -115,53 +160,85 @@ function render(){
       startX = e.clientX;
       document.onmousemove = e2=>{
         let dx = e2.clientX - startX;
-        el.style.left = (parseInt(el.style.left) + dx) + "px";
+        let newLeft = parseInt(el.style.left) + dx;
+
+        el.style.left = newLeft + "px";
+        item.time = xToTime(newLeft);
+
         startX = e2.clientX;
       };
-      document.onmouseup = ()=> document.onmousemove = null;
+      document.onmouseup = ()=> document.onmousemove=null;
     };
 
     // resize
-    const resize = document.createElement("div");
-    resize.className = "timelineResize";
+    const r = document.createElement("div");
+    r.className = "resize";
 
-    resize.onmousedown = e=>{
+    r.onmousedown = e=>{
       e.stopPropagation();
       let startX = e.clientX;
       document.onmousemove = e2=>{
         let dx = e2.clientX - startX;
-        el.style.width = (parseInt(el.style.width) + dx) + "px";
+        let newWidth = parseInt(el.style.width) + dx;
+
+        el.style.width = newWidth + "px";
+        item.duration = Math.round(newWidth / PX_PER_MIN);
+
         startX = e2.clientX;
       };
-      document.onmouseup = ()=> document.onmousemove = null;
+      document.onmouseup = ()=> document.onmousemove=null;
     };
 
-    el.appendChild(resize);
+    el.appendChild(r);
 
-    // click run
+    // run
     el.onclick = ()=>{
-      send({ type:"scene", scene:item.label });
+      if(item.transition){
+        send({ type:"transition", style:item.transition });
+      }
+
+      if(item.scene === "sceneStudioB"){
+        send({ type:"studioB", action:"play", url:"" });
+      }
+
+      send({ type:"scene", scene:item.scene });
     };
 
-    track.appendChild(el);
+    timeline.appendChild(el);
   });
 }
 
-// AUTO SCHEDULER
-setInterval(()=>{
+// playhead
+function updateNow(){
   const now = new Date();
-  const current = now.toTimeString().slice(0,5);
+  const mins = now.getHours()*60 + now.getMinutes();
+  document.getElementById("nowLine").style.left = mins * PX_PER_MIN + "px";
+}
+setInterval(updateNow,1000);
 
-  items.forEach(item=>{
-    if(item.time === current && !item.fired){
-      send({ type:"scene", scene:item.label });
-      item.fired = true;
+// scheduler
+setInterval(()=>{
+  if(manualOverride) return;
+
+  const now = new Date().toTimeString().slice(0,5);
+
+  items.forEach(i=>{
+    if(i.time===now && !i.fired){
+      if(i.transition){
+        send({ type:"transition", style:i.transition });
+      }
+      send({ type:"scene", scene:i.scene });
+      i.fired=true;
     }
-    if(item.time !== current){
-      item.fired = false;
-    }
+    if(i.time!==now) i.fired=false;
   });
-}, 5000);
+
+},5000);
+
+function toggleOverride(){
+  manualOverride=!manualOverride;
+  event.target.innerText = manualOverride ? "Manual Override ON" : "Manual Override OFF";
+}
 </script>
 
 </body>
