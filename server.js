@@ -34,6 +34,62 @@ try {
   console.error("❌ Failed to load channel playlist:", err.message);
   }
 
+app.get("/api/channel", (_req, res) => {
+  try {
+    res.json({
+      ok: true,
+      playlist: channelEngine.playlist,
+      state: channelEngine.getState()
+    });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.post("/api/channel/start", (req, res) => {
+  try {
+    const index = req.body?.index ?? 0;
+    channelEngine.start(index);
+    res.json({ ok: true, state: channelEngine.getState() });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.post("/api/channel/stop", (_req, res) => {
+  channelEngine.stop();
+  res.json({ ok: true, state: channelEngine.getState() });
+});
+
+app.post("/api/channel/next", (_req, res) => {
+  channelEngine.next();
+  res.json({ ok: true, state: channelEngine.getState() });
+});
+
+app.post("/api/channel/prev", (_req, res) => {
+  channelEngine.prev();
+  res.json({ ok: true, state: channelEngine.getState() });
+});
+
+app.post("/api/channel/jump", (req, res) => {
+  try {
+    channelEngine.jump(req.body?.index ?? 0);
+    res.json({ ok: true, state: channelEngine.getState() });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.post("/api/channel/reload", (_req, res) => {
+  try {
+    channelEngine.reload();
+    res.json({ ok: true, playlist: channelEngine.playlist, state: channelEngine.getState() });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+
   
 // ---------- HTTP SERVER (STATIC FILES) ----------
 const server = http.createServer((req, res) => {
