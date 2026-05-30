@@ -466,18 +466,13 @@ updateClock();
 
 /* ✅ MESSAGE HANDLER */
 function handleMessage(data) {
-
-  if (data.type === "transition") {
-    transitionStyle = data.style;
-    return;
-  }
-
-  if (data.type === "scene") {
+ if (data.type === "scene") {
     let scene = data.scene;
     if (!scene.endsWith(".html")) scene += ".html";
     switchScene(scene, transitionStyle);
     return;
   }
+  
 
   // DJ loads media -> auto switch to StudioB + forward message
   if (data.type === "studioB") {
