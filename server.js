@@ -38,38 +38,79 @@ try {
 } catch (err) {
   console.error("❌ Failed to load channel playlist:", err.message);
   }
+async function addSlot() {
+  const type = document.getElementById("slotType").value;
 
-app.post("/api/channel/add", (req, res) => {
-  try {
-    const newSlot = req.body;
+  let slot = null;
 
-    if (!newSlot || !newSlot.label) {
-      return res.status(400).json({ ok: false, error: "Invalid slot" });
-    }
-
-    // Read existing playlist
-    let data = JSON.parse(fs.readFileSync(PLAYLIST_FILE, "utf8"));
-
-    // Add new slot
-    data.items.push(newSlot);
-
-    // Save back to file
-    fs.writeFileSync(PLAYLIST_FILE, JSON.stringify(data, null, 2));
-
-    // Reload channel engine
-    if (channelEngine) {
-      channelEngine.reload();
-    }
-
-    res.json({ ok: true, message: "Slot added", playlist: data });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ ok: false, error: err.message });
+  if (type === "youtube") {
+    slot = {
+      label: document.getElementById("ytLabel").value,
+      durationSec: Number(document.getElementById("ytDuration").value),
+      commands: [
+        { type: "transition", style: "fade" },
+        {
+          type: "studioB",
+          action: "play",
+          url: document.getElementById("ytUrl").value
+        },
+        { type: "scene", scene: "sceneStudioB" }
+      ]
+    };
   }
-});
 
-});
+  if (type === "scripture") {
+    slot = {
+      label: document.getElementById("scLabel").value,
+      durationSec: Number(document.getElementById("scDuration").value),
+      commands: [
+        { type: "transition", style: "cut" },
+        {
+          type: "scripture",
+          title: document.getElementById("scTitle").value,
+          text: document.getElementById("scText").value
+        },
+        { type: "scene", scene: "scene3" }
+      ]
+    };
+  }
+
+  if (type === "ainews") {
+    slot = {
+      label: document.getElementById("aiLabel").value,
+      durationSec: Number(document.getElementById("aiDuration").value),
+      commands: [
+        { type: "transition", style: "fade" },
+        {
+          type: "studioB",
+          action: "play",
+          url: document.getElementById("aiUrl").value
+        },
+        { type: "scene", scene: "sceneStudioB" }
+      ]
+    };
+  }
+
+  // ✅ SEND TO SERVER
+  const res = await fetch(API + "/add", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(slot)
+  });
+
+  const data = await res.json();
+
+  if (data.ok) {
+    alert("✅ Slot added & channel updated!");
+    fetchState(); // refresh UI
+  } else {
+    alert("❌ Error: " + data.error);
+  }
+      }
+    });
+
 
 app.post("/api/channel/start", (req, res) => {
   try {
