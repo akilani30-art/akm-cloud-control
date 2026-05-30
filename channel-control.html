@@ -108,6 +108,26 @@
   </div>
 
   <div class="playlist" id="playlist"></div>
+  <div style="margin-top:20px;background:#1a1d24;padding:10px;border-radius:5px;">
+  <h3>➕ Create New Slot</h3>
+
+  <select id="slotType">
+    <option value="youtube">YouTube</option>
+    <option value="scripture">Scripture</option>
+    <option value="ainews">AI News</option>
+  </select>
+
+  <div id="dynamicFields" style="margin-top:10px;"></div>
+
+  <button onclick="addSlot()">Add Slot</button>
+</div>
+
+<div style="margin-top:20px;background:#1a1d24;padding:10px;border-radius:5px;">
+  <h3>📦 New Slots</h3>
+  <div id="newSlots"></div>
+  <button onclick="exportSlots()">Export JSON</button>
+</div>
+
 
 </div>
 
