@@ -145,6 +145,41 @@ async function fetchState() {
   state = data.state;
   render(data);
 }
+  const dynamicFields = document.getElementById("dynamicFields");
+const newSlots = [];
+
+function renderFields() {
+  const type = document.getElementById("slotType").value;
+
+  if (type === "youtube") {
+    dynamicFields.innerHTML = `
+      <input id="ytLabel" placeholder="Label (e.g Music Hour)" />
+      <input id="ytUrl" placeholder="YouTube URL" />
+      <input id="ytDuration" type="number" placeholder="Duration (seconds)" />
+    `;
+  }
+
+  if (type === "scripture") {
+    dynamicFields.innerHTML = `
+      <input id="scLabel" placeholder="Label" />
+      <input id="scTitle" placeholder="Title (e.g Psalm 23)" />
+      <textarea id="scText" placeholder="Scripture text"></textarea>
+      <input id="scDuration" type="number" placeholder="Duration (seconds)" />
+    `;
+  }
+
+  if (type === "ainews") {
+    dynamicFields.innerHTML = `
+      <input id="aiLabel" placeholder="Label (AI News)" />
+      <input id="aiUrl" placeholder="Video URL (AI news file)" />
+      <input id="aiDuration" type="number" placeholder="Duration (seconds)" />
+    `;
+  }
+}
+
+document.getElementById("slotType").addEventListener("change", renderFields);
+renderFields();
+
 
 function render(data) {
   const { state, playlist } = data;
