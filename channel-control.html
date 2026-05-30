@@ -215,6 +215,63 @@ function render(data) {
     list.appendChild(div);
   });
 }
+  function addSlot() {
+  const type = document.getElementById("slotType").value;
+
+  let slot = null;
+
+  if (type === "youtube") {
+    slot = {
+      label: document.getElementById("ytLabel").value,
+      durationSec: Number(document.getElementById("ytDuration").value),
+      commands: [
+        { type: "transition", style: "fade" },
+        {
+          type: "studioB",
+          action: "play",
+          url: document.getElementById("ytUrl").value
+        },
+        { type: "scene", scene: "sceneStudioB" }
+      ]
+    };
+  }
+
+  if (type === "scripture") {
+    slot = {
+      label: document.getElementById("scLabel").value,
+      durationSec: Number(document.getElementById("scDuration").value),
+      commands: [
+        { type: "transition", style: "cut" },
+        {
+          type: "scripture",
+          title: document.getElementById("scTitle").value,
+          text: document.getElementById("scText").value
+        },
+        { type: "scene", scene: "scene3" }
+      ]
+    };
+  }
+
+  if (type === "ainews") {
+    slot = {
+      label: document.getElementById("aiLabel").value,
+      durationSec: Number(document.getElementById("aiDuration").value),
+      commands: [
+        { type: "transition", style: "fade" },
+        {
+          type: "studioB",
+          action: "play",
+          url: document.getElementById("aiUrl").value
+        },
+        { type: "scene", scene: "sceneStudioB" }
+      ]
+    };
+  }
+
+  newSlots.push(slot);
+  renderNewSlots();
+  }
+  
 
 // --- CONTROLS ---
 
