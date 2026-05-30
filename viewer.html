@@ -330,7 +330,52 @@ let isTransitioning = false;
 let currentScene = "scene1.html";
 
 const WS_URL = "wss://sean-experts-questionnaire-sells.trycloudflare.com";
-let sendQueue = [];
+
+/* ✅ QUEUE SYSTEM */
+let transitionQueue = [];
+let processingQueue = false;
+
+function enqueueScene(scene, style = "cut") {
+  if (!scene) return;
+
+  if (!scene.endsWith(".html")) {
+    scene += ".html";
+  }
+
+  const last = transitionQueue[transitionQueue.length - 1];
+  if (last && last.scene === scene) return;
+
+  transitionQueue.push({ scene, style });
+  processQueue();
+}
+
+function processQueue() {
+  if (processingQueue) return;
+  if (transitionQueue.length === 0) return;
+
+  processingQueue = true;
+
+  const { scene, style } = transitionQueue.shift();
+
+  switchScene(scene, style);
+
+  const waitTime = getTransitionDuration(style);
+
+  setTimeout(() => {
+    processingQueue = false;
+    processQueue();
+  }, waitTime);
+}
+
+function getTransitionDuration(style) {
+  switch (style) {
+    case "wipe": return 400;
+    case "slide": return 650;
+    case "fade": return 600;
+    case "cut":
+    default: return 100;
+  }
+}
 
 /* ✅ STATUS */
 function setWSStatus(state){
@@ -354,7 +399,7 @@ function connectWS() {
   socket.onmessage = (event) => {
     let data;
     try { data = JSON.parse(event.data); }
-    catch { return; } // ignore non-JSON safely
+    catch { return; }
     handleMessage(data);
   };
 
@@ -370,13 +415,12 @@ connectWS();
 /* ✅ SCENE SWITCHER */
 function switchScene(newScene, style = "cut") {
   if (!newScene) return;
-  if (!newScene.endsWith(".html")) newScene += ".html";
 
-  // prevent duplicate switching
+  if (!newScene.endsWith(".html")) {
+    newScene += ".html";
+  }
+
   if (currentScene === newScene) return;
-
-  // ignore while transitioning
-  if (isTransitioning) return;
 
   const A = document.getElementById("sceneA");
   const B = document.getElementById("sceneB");
@@ -385,13 +429,6 @@ function switchScene(newScene, style = "cut") {
   const outgoing = showingA ? A : B;
 
   const target = newScene;
-  const outgoingUrl = (outgoing.src || "").split("?")[0].split("/").pop();
-  const incomingUrl = (incoming.src || "").split("?")[0].split("/").pop();
-
-  if (outgoingUrl === target) {
-    currentScene = target;
-    return;
-  }
 
   const doSwap = () => {
     isTransitioning = true;
@@ -430,6 +467,7 @@ function switchScene(newScene, style = "cut") {
     B.classList.remove("noTrans");
 
     requestAnimationFrame(() => outgoing.classList.add("slideOut"));
+
     const duration = (style === "wipe") ? 350 : 600;
 
     setTimeout(() => {
@@ -441,11 +479,6 @@ function switchScene(newScene, style = "cut") {
       isTransitioning = false;
     }, duration);
   };
-
-  if (incomingUrl === target) {
-    doSwap();
-    return;
-  }
 
   incoming.onload = () => {
     incoming.onload = null;
@@ -466,39 +499,43 @@ updateClock();
 
 /* ✅ MESSAGE HANDLER */
 function handleMessage(data) {
-if (data.type === "scene") {
-  let scene = data.scene;
-  if (!scene) return;
 
-  if (!scene.endsWith(".html")) {
-    scene += ".html";
-  }
-
-  const style = data.transition || transitionStyle || "cut";
-
-  switchScene(scene, style);
-  return;
-}
-
-  
-
-  // DJ loads media -> auto switch to StudioB + forward message
-  if (data.type === "studioB") {
-    const A = document.getElementById("sceneA");
-    const B = document.getElementById("sceneB");
-    A.contentWindow.postMessage(data, "*");
-    B.contentWindow.postMessage(data, "*");
-    switchScene("sceneStudioB.html", transitionStyle);
+  if (data.type === "transition") {
+    transitionStyle = data.style;
     return;
   }
 
-  // DJ controls -> forward; only switch on play
+  if (data.type === "scene") {
+    let scene = data.scene;
+    if (!scene) return;
+
+    const style = data.transition || transitionStyle || "cut";
+
+    enqueueScene(scene, style);
+    return;
+  }
+
+  if (data.type === "studioB") {
+    const A = document.getElementById("sceneA");
+    const B = document.getElementById("sceneB");
+
+    A.contentWindow.postMessage(data, "*");
+    B.contentWindow.postMessage(data, "*");
+
+    enqueueScene("sceneStudioB.html", transitionStyle);
+    return;
+  }
+
   if (data.type === "studioB_control") {
     const A = document.getElementById("sceneA");
     const B = document.getElementById("sceneB");
+
     A.contentWindow.postMessage(data, "*");
     B.contentWindow.postMessage(data, "*");
-    if (data.action === "play") switchScene("sceneStudioB.html", transitionStyle);
+
+    if (data.action === "play") {
+      enqueueScene("sceneStudioB.html", transitionStyle);
+    }
     return;
   }
 
@@ -519,46 +556,18 @@ if (data.type === "scene") {
 
     label.textContent = data.label || "BREAKING NEWS";
 
-    if (data.label === "ALERT") {
-      label.style.background = "#ff1744";
-      label.style.animation = "flash 1s infinite";
-    } else {
-      label.style.background = "#c62828";
-      label.style.animation = "none";
-    }
-
     if (!text) {
       track.innerHTML = "";
       bar.style.opacity = "0";
       return;
     }
 
-    const logo = document.getElementById("logoMark");
-    if (data.label === "ALERT") {
-      logo.style.animation = "logoAlert 2s linear infinite";
-      logo.style.opacity = "1";
-      logo.style.filter = "drop-shadow(0 0 10px red)";
-    } else if (data.label === "STOP") {
-      logo.style.animation = "none";
-      logo.style.transform = "rotate(0deg)";
-      logo.style.opacity = "0.85";
-      logo.style.filter = "none";
-    } else {
-      logo.style.animation = "logoIdle 20s linear infinite";
-      logo.style.opacity = "0.85";
-      logo.style.filter = "none";
-    }
-
     const items = text.split("|").map(t => t.trim()).filter(Boolean);
     const build = items.map(item => `<span class="tickerItem">${item}</span>`).join("");
 
     track.style.animation = "none";
-    track.offsetHeight; // reflow
+    track.offsetHeight;
     track.innerHTML = build + build;
-
-    const badge = document.getElementById("liveBadge");
-    badge.style.display = (data.label === "STOP") ? "none" : "flex";
-    badge.style.background = (data.label === "ALERT") ? "#ff1744" : "#e00000";
 
     const duration = Math.max(10, items.join("").length / 5);
     track.style.animation = `tickerMove ${duration}s linear infinite`;
@@ -570,12 +579,16 @@ if (data.type === "scene") {
   if (data.type === "scripture") {
     const A = document.getElementById("sceneA");
     const B = document.getElementById("sceneB");
+
     A.contentWindow.postMessage(data, "*");
     B.contentWindow.postMessage(data, "*");
     return;
   }
 }
 </script>
+  
+
+
 
 </body>
 </html>
