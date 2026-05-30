@@ -7,6 +7,11 @@ const path = require("path");
 const WebSocket = require("ws");
 const cors = require("cors");
 const { ChannelEngine } = require("./channel-engine");
+const fs = require("fs");
+const path = require("path");
+
+const PLAYLIST_FILE = path.join(__dirname, "channel.json");
+
 
 
 const PORT = 7345;
