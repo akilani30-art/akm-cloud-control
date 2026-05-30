@@ -466,12 +466,20 @@ updateClock();
 
 /* ✅ MESSAGE HANDLER */
 function handleMessage(data) {
- if (data.type === "scene") {
-    let scene = data.scene;
-    if (!scene.endsWith(".html")) scene += ".html";
-    switchScene(scene, transitionStyle);
-    return;
+if (data.type === "scene") {
+  let scene = data.scene;
+  if (!scene) return;
+
+  if (!scene.endsWith(".html")) {
+    scene += ".html";
   }
+
+  const style = data.transition || transitionStyle || "cut";
+
+  switchScene(scene, style);
+  return;
+}
+
   
 
   // DJ loads media -> auto switch to StudioB + forward message
