@@ -9,69 +9,25 @@
 body {
   background: #000;
   color: #fff;
-  font-family: Arial, sans-serif;
+  font-family: Arial;
   padding: 20px;
 }
 
-h1, h2 { margin: 10px 0; }
-
-.wsStatus {
-  display:inline-flex;
-  align-items:center;
-  gap:10px;
-  padding:8px 12px;
-  border-radius:10px;
-  margin: 6px 0 16px 0;
-  font-size: 14px;
-  font-weight: bold;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.12);
-}
-
-.wsStatus .dot { width:12px;height:12px;border-radius:50%; }
-
-.wsStatus.online .dot{ background:#00e676; }
-.wsStatus.offline .dot{ background:#ff1744; }
-.wsStatus.connecting .dot{ background:#ffea00; }
-
-.wsStatus.online .label{ color:#00e676; }
-.wsStatus.offline .label{ color:#ff1744; }
-.wsStatus.connecting .label{ color:#ffea00; }
-
 button {
-  padding: 10px 16px;
+  padding: 10px;
   margin: 4px;
-  font-size: 16px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
   background: #1e88e5;
   color: white;
-}
-
-.monitorRow {
-  display: flex;
-  gap: 20px;
-  height: 260px;
-}
-
-.monitorBox {
-  flex: 1;
-  border: 3px solid gold;
-}
-
-.monitorBox iframe {
-  width: 100%;
-  height: 100%;
   border: none;
+  border-radius: 6px;
+  cursor: pointer;
 }
 
-/* --- Timeline --- */
 .timelineTrack {
   position: relative;
   height: 120px;
   background: #111;
-  border: 1px solid gold;
+  border: 2px solid gold;
 }
 
 .timelineItem {
@@ -82,115 +38,130 @@ button {
   border-radius: 8px;
   padding: 6px;
   cursor: grab;
+  user-select: none;
+}
+
+.timelineResize {
+  position: absolute;
+  right: 0;
+  width: 10px;
+  height: 100%;
+  background: rgba(255,255,255,0.3);
+  cursor: ew-resize;
 }
 </style>
 </head>
 
 <body>
 
-<h1>AKM Cloud Control</h1>
-
-<div id="wsStatus" class="wsStatus offline">
-  <span class="dot"></span>
-  <span class="label">OFFLINE</span>
-</div>
+<h1>Control Room</h1>
 
 <h2>Scenes</h2>
-<button onclick="loadPreview('scene1')">Scene 1</button>
-<button onclick="loadPreview('scene2')">Scene 2</button>
-<button onclick="loadPreview('scene3')">Scene 3</button>
-<button onclick="loadPreview('scene4')">Scene 4</button>
-<button onclick="takeScene()">TAKE</button>
-
-<div class="monitorRow">
-  <div class="monitorBox">
-    <iframe id="previewFrame" src="scene1.html"></iframe>
-  </div>
-  <div class="monitorBox">
-    <iframe id="programFrame" src="viewer.html"></iframe>
-  </div>
-</div>
+<button onclick="setScene('scene1')">Scene 1</button>
+<button onclick="setScene('scene2')">Scene 2</button>
+<button onclick="setScene('scene3')">Scene 3</button>
+<button onclick="setScene('scene4')">Scene 4</button>
+<button onclick="setScene('sceneStudioB')">Studio B</button>
 
 <h2>Timeline</h2>
 
-<input id="timelineLabel" placeholder="Label">
-<input id="timelineStart" type="time" value="08:00">
-<input id="timelineDuration" type="number" value="30">
-<button onclick="addTimelineItem()">Add</button>
+<input id="label" placeholder="Label">
+<input id="time" type="time">
+<input id="duration" type="number" value="30">
+<button onclick="addItem()">Add</button>
 
 <div id="timelineTrack" class="timelineTrack"></div>
 
 <script>
 const WS_URL = "wss://sean-experts-questionnaire-sells.trycloudflare.com";
+let ws = new WebSocket(WS_URL);
 
-let ws;
-let currentPreviewScene = "scene1";
-
-function connectWS() {
-  ws = new WebSocket(WS_URL);
-
-  ws.onopen = () => setStatus("online");
-  ws.onclose = () => setStatus("offline");
-}
-
-function setStatus(state) {
-  const el = document.getElementById("wsStatus");
-  el.className = "wsStatus " + state;
-  el.querySelector(".label").textContent = state.toUpperCase();
-}
-
-connectWS();
-
-function sendJSON(obj) {
+function send(obj){
   ws.send(JSON.stringify(obj));
 }
 
-function loadPreview(scene) {
-  currentPreviewScene = scene;
-  document.getElementById("previewFrame").src = scene + ".html";
+function setScene(scene){
+  send({ type:"scene", scene });
 }
 
-function takeScene() {
-  sendJSON({ type: "scene", scene: currentPreviewScene });
-}
+let items = [];
 
-let timelineItems = [];
-
-function addTimelineItem() {
-  const label = document.getElementById("timelineLabel").value;
-  const start = document.getElementById("timelineStart").value;
-  const duration = parseInt(document.getElementById("timelineDuration").value);
-
+function addItem(){
   const item = {
     id: Date.now(),
-    label,
-    start,
-    duration
+    label: document.getElementById("label").value,
+    time: document.getElementById("time").value,
+    duration: parseInt(document.getElementById("duration").value)
   };
-
-  timelineItems.push(item);
-  renderTimeline();
+  items.push(item);
+  render();
 }
 
-function renderTimeline() {
+function render(){
   const track = document.getElementById("timelineTrack");
   track.innerHTML = "";
 
-  timelineItems.forEach(item => {
+  items.forEach(item=>{
     const el = document.createElement("div");
     el.className = "timelineItem";
     el.innerText = item.label;
 
-    el.style.left = (parseInt(item.start.split(":")[0]) * 50) + "px";
+    el.style.left = (parseInt(item.time.split(":")[0]) * 50) + "px";
     el.style.width = (item.duration * 3) + "px";
 
-    el.onclick = () => {
-      sendJSON({ type: "scene", scene: item.label });
+    // drag
+    let startX;
+    el.onmousedown = e=>{
+      startX = e.clientX;
+      document.onmousemove = e2=>{
+        let dx = e2.clientX - startX;
+        el.style.left = (parseInt(el.style.left) + dx) + "px";
+        startX = e2.clientX;
+      };
+      document.onmouseup = ()=> document.onmousemove = null;
+    };
+
+    // resize
+    const resize = document.createElement("div");
+    resize.className = "timelineResize";
+
+    resize.onmousedown = e=>{
+      e.stopPropagation();
+      let startX = e.clientX;
+      document.onmousemove = e2=>{
+        let dx = e2.clientX - startX;
+        el.style.width = (parseInt(el.style.width) + dx) + "px";
+        startX = e2.clientX;
+      };
+      document.onmouseup = ()=> document.onmousemove = null;
+    };
+
+    el.appendChild(resize);
+
+    // click run
+    el.onclick = ()=>{
+      send({ type:"scene", scene:item.label });
     };
 
     track.appendChild(el);
   });
 }
+
+// AUTO SCHEDULER
+setInterval(()=>{
+  const now = new Date();
+  const current = now.toTimeString().slice(0,5);
+
+  items.forEach(item=>{
+    if(item.time === current && !item.fired){
+      send({ type:"scene", scene:item.label });
+      item.fired = true;
+    }
+    if(item.time !== current){
+      item.fired = false;
+    }
+  });
+}, 5000);
 </script>
 
 </body>
