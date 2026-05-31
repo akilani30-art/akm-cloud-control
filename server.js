@@ -5,16 +5,13 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const WebSocket = require("ws");
+const express = require("express");
 const cors = require("cors");
 const { ChannelEngine } = require("./channel-engine");
-const fs = require("fs");
-const path = require("path");
 
-const PLAYLIST_FILE = path.join(__dirname, "channel.json");
+const PORT = process.env.PORT || 7345;
+const app = express();
 
-
-
-const PORT = 7345;
 app.use(express.json());
 app.use(cors({
   origin: "*",
@@ -22,11 +19,23 @@ app.use(cors({
   allowedHeaders: ["Content-Type"]
 }));
 
+const PLAYLIST_FILE = path.join(__dirname, "channel.json");
+
+// Broadcast function
+function broadcast(data) {
+  if (wss && wss.clients) {
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify(data));
+      }
+    });
+  }
+}
+
 const channelEngine = new ChannelEngine({
   playlistFile: "./channel.json",
   broadcast,
   onStateChange: (state) => {
-    // Optional: push state to clients if you want a live dashboard
     broadcast({ type: "channel_state", state });
   }
 });
@@ -37,81 +46,9 @@ try {
   console.log("✅ Channel playlist loaded");
 } catch (err) {
   console.error("❌ Failed to load channel playlist:", err.message);
-  }
-async function addSlot() {
-  const type = document.getElementById("slotType").value;
+}
 
-  let slot = null;
-
-  if (type === "youtube") {
-    slot = {
-      label: document.getElementById("ytLabel").value,
-      durationSec: Number(document.getElementById("ytDuration").value),
-      commands: [
-        { type: "transition", style: "fade" },
-        {
-          type: "studioB",
-          action: "play",
-          url: document.getElementById("ytUrl").value
-        },
-        { type: "scene", scene: "sceneStudioB" }
-      ]
-    };
-  }
-
-  if (type === "scripture") {
-    slot = {
-      label: document.getElementById("scLabel").value,
-      durationSec: Number(document.getElementById("scDuration").value),
-      commands: [
-        { type: "transition", style: "cut" },
-        {
-          type: "scripture",
-          title: document.getElementById("scTitle").value,
-          text: document.getElementById("scText").value
-        },
-        { type: "scene", scene: "scene3" }
-      ]
-    };
-  }
-
-  if (type === "ainews") {
-    slot = {
-      label: document.getElementById("aiLabel").value,
-      durationSec: Number(document.getElementById("aiDuration").value),
-      commands: [
-        { type: "transition", style: "fade" },
-        {
-          type: "studioB",
-          action: "play",
-          url: document.getElementById("aiUrl").value
-        },
-        { type: "scene", scene: "sceneStudioB" }
-      ]
-    };
-  }
-
-  // ✅ SEND TO SERVER
-  const res = await fetch(API + "/add", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(slot)
-  });
-
-  const data = await res.json();
-
-  if (data.ok) {
-    alert("✅ Slot added & channel updated!");
-    fetchState(); // refresh UI
-  } else {
-    alert("❌ Error: " + data.error);
-  }
-      }
-    });
-
-
+// API Routes
 app.post("/api/channel/start", (req, res) => {
   try {
     const index = req.body?.index ?? 0;
@@ -155,115 +92,68 @@ app.post("/api/channel/reload", (_req, res) => {
   }
 });
 
+// Schedule management
+let schedule = [];
+let lastTriggered = null;
 
-  
-// ---------- HTTP SERVER (STATIC FILES) ----------
+function loadSchedule() {
+  try {
+    const raw = fs.readFileSync("./schedule.json");
+    schedule = JSON.parse(raw);
+    console.log("📅 Schedule loaded:", schedule.length, "items");
+  } catch (err) {
+    console.error("❌ Failed to load schedule:", err.message);
+  }
+}
+
+function toMinutes(t) {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function nowMinutes() {
+  const now = new Date();
+  return now.getHours() * 60 + now.getMinutes();
+}
+
+function runScheduler() {
+  const now = nowMinutes();
+  for (const item of schedule) {
+    const itemTime = toMinutes(item.time);
+    if (now === itemTime) {
+      if (lastTriggered === item.time) return;
+      console.log("⏰ Trigger:", item.label);
+      broadcast({
+        type: "studioB",
+        action: "play",
+        url: item.url
+      });
+      broadcast({
+        type: "scene",
+        scene: "sceneStudioB"
+      });
+      lastTriggered = item.time;
+    }
+  }
+  if (lastTriggered) {
+    const lastTime = toMinutes(lastTriggered);
+    if (now !== lastTime) {
+      lastTriggered = null;
+    }
+  }
+}
+
+setInterval(loadSchedule, 60000);
+setInterval(runScheduler, 30000);
+loadSchedule();
+
+// HTTP Server for static files
 const server = http.createServer((req, res) => {
   let filePath = "." + req.url;
   if (filePath === "./" || filePath === "./index.html") {
-    filePath = "./viewer.html"; // default to viewer
+    filePath = "./viewer.html";
   }
 
-{
-  "loop": true,
-  "items": [
-    {
-      "id": "station-open",
-      "label": "Station Open",
-      "durationSec": 20,
-      "commands": [
-        { "type": "transition", "style": "fade" },
-        { "type": "scene", "scene": "scene1" },
-        {
-          "type": "lowerthird",
-          "show": true,
-          "title": "AKM Network",
-          "subtitle": "Now Live"
-        }
-      ]
-    },
-    {
-      "id": "music-hour",
-      "label": "Studio B Music",
-      "durationSec": 1800,
-      "commands": [
-        { "type": "transition", "style": "fade" },
-        {
-          "type": "studioB",
-          "action": "play",
-          "url": "https://www.youtube.com/watch?v=YOUR_VIDEO_ID"
-        },
-        { "type": "scene", "scene": "sceneStudioB" },
-        {
-          "type": "ticker",
-          "show": true,
-          "text": "Welcome to AKM Network | Stay connected | More programming coming up"
-        }
-      ]
-    },
-    {
-      "id": "scripture-slot",
-      "label": "Scripture Moment",
-      "durationSec": 40,
-      "commands": [
-        { "type": "transition", "style": "cut" },
-        {
-          "type": "scripture",
-          "title": "Psalm 23",
-          "text": "The Lord is my shepherd; I shall not want."
-        },
-        { "type": "scene", "scene": "scene3" }
-      ]
-    },
-    {
-      "id": "camera-two-live",
-      "label": "Live Camera 2",
-      "durationSec": 300,
-      "commands": [
-        { "type": "transition", "style": "slide" },
-        { "type": "camera", "view": "cam2" },
-        { "type": "scene", "scene": "scene2" },
-        {
-          "type": "lowerthird",
-          "show": true,
-          "title": "Live Segment",
-          "subtitle": "Camera 2"
-        }
-      ]
-    },
-    {
-      "id": "ai-news-slot",
-      "label": "AI News Slot",
-      "durationSec": 600,
-      "commands": [
-        { "type": "transition", "style": "fade" },
-        {
-          "type": "studioB",
-          "action": "play",
-          "url": "https://your-domain-or-storage.example.com/ai-news-bulletin.mp4"
-        },
-        { "type": "scene", "scene": "sceneStudioB" },
-        {
-          "type": "lowerthird",
-          "show": true,
-          "title": "AKM News",
-          "subtitle": "Top Stories"
-        }
-      ]
-    },
-    {
-      "id": "clear-overlays",
-      "label": "Clear Overlays",
-      "durationSec": 5,
-      "commands": [
-        { "type": "lowerthird", "show": false },
-        { "type": "ticker", "show": false }
-      ]
-    }
-  ]
-}
-
-  
   const ext = String(path.extname(filePath)).toLowerCase();
   const mimeTypes = {
     ".html": "text/html",
@@ -295,110 +185,28 @@ const server = http.createServer((req, res) => {
   });
 });
 
-// ---------- WEBSOCKET SERVER ----------
+// WebSocket Server
 const wss = new WebSocket.Server({ server });
 
-let clients = [];
-
 wss.on("connection", (ws) => {
-  clients.push(ws);
+  console.log("✅ WebSocket client connected");
 
   ws.on("message", (message) => {
-    // Expect JSON from control-room
     let data;
     try {
       data = JSON.parse(message);
     } catch (e) {
-      console.log("Invalid JSON:", message.toString());
+      console.log("❌ Invalid JSON:", message.toString());
       return;
     }
 
-const fs = require("fs");
-
-let schedule = [];
-let lastTriggered = null;
-
-// Load schedule
-function loadSchedule() {
-  try {
-    const raw = fs.readFileSync("./schedule.json");
-    schedule = JSON.parse(raw);
-    console.log("📅 Schedule loaded:", schedule.length, "items");
-  } catch (err) {
-    console.error("❌ Failed to load schedule:", err.message);
-  }
-}
     if (data.type === "scene" || data.type === "studioB" || data.type === "camera") {
-  // Optional: pause channel automation when operator takes over
-  // channelEngine.stop();
-}
-
-
-// Convert HH:MM → minutes
-function toMinutes(t) {
-  const [h, m] = t.split(":").map(Number);
-  return h * 60 + m;
-}
-
-// Get current time in minutes
-function nowMinutes() {
-  const now = new Date();
-  return now.getHours() * 60 + now.getMinutes();
-}
-
-// Scheduler loop
-function runScheduler() {
-  const now = nowMinutes();
-
-  for (const item of schedule) {
-    const itemTime = toMinutes(item.time);
-
-    // Match current minute
-    if (now === itemTime) {
-
-      // Prevent duplicate trigger
-      if (lastTriggered === item.time) return;
-
-      console.log("⏰ Trigger:", item.label);
-
-      // Send to all clients
-      broadcast({
-        type: "studioB",
-        action: "play",
-        url: item.url
-      });
-
-      // Optional: auto switch scene
-      broadcast({
-        type: "scene",
-        scene: "sceneStudioB"
-      });
-
-      lastTriggered = item.time;
+      // Optional: pause channel automation when operator takes over
+      // channelEngine.stop();
     }
-  }
 
-  // Reset trigger after minute passes
-  if (lastTriggered) {
-    const lastTime = toMinutes(lastTriggered);
-    if (now !== lastTime) {
-      lastTriggered = null;
-    }
-  }
-}
-
-// Reload schedule every minute (in case you edit file)
-setInterval(loadSchedule, 60000);
-
-// Run scheduler every 30 seconds
-setInterval(runScheduler, 30000);
-
-// Initial load
-loadSchedule();
-    
-    
-    // Broadcast to all other clients (viewers)
-    clients.forEach((client) => {
+    // Broadcast to all other clients
+    wss.clients.forEach((client) => {
       if (client !== ws && client.readyState === WebSocket.OPEN) {
         client.send(JSON.stringify(data));
       }
@@ -406,14 +214,12 @@ loadSchedule();
   });
 
   ws.on("close", () => {
-    clients = clients.filter((c) => c !== ws);
+    console.log("❌ WebSocket client disconnected");
   });
 });
 
-// ---------- START SERVER ----------
+// Start server
 server.listen(PORT, () => {
-  console.log("STATION BROADCAST SYSTEM ONLINE");
+  console.log("🚀 STATION BROADCAST SYSTEM ONLINE");
   console.log(`🌍 Listening on http://localhost:${PORT}`);
 });
-
-
