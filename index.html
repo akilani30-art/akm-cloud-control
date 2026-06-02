@@ -325,13 +325,15 @@ function playStudioB() {
   const url = document.getElementById("studioBUrl").value.trim();
   if (!url) return;
 
-  // Tell receiver to load this URL
+  // ✅ VERY IMPORTANT: stop clipboard watcher from reprocessing this
+  lastClipboard = url;
+
   sendJSON({ type: "studioB", url });
 
-  // Optional: switch preview to Studio B and TAKE immediately
   loadPreview("sceneStudioB");
   takeScene();
 }
+
 
 // ---------- Scripture History ----------
 let scriptureHistory = [];
