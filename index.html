@@ -379,6 +379,22 @@ function resendHistory(index) {
 }
 
 // ---------- Auto Clipboard -> Scripture + Auto Scene 3 ----------
+function looksLikeUrl(text) {
+  return /^(https?:\/\/|www\.|youtu\.be\/|youtube\.com\/|m\.youtube\.com\/|open\.spotify\.com\/)/i
+    .test((text || "").trim());
+}
+
+function looksLikeScripture(text) {
+  const lines = (text || "").split("\n").map(l => l.trim()).filter(Boolean);
+
+  // Multi-line = very likely scripture
+  if (lines.length >= 2) return true;
+
+  // Single-line scripture like "John 3:16"
+  return /^[1-3]?\s?[A-Za-z]+(?:\s+[A-Za-z]+)*\s+\d+:\d+([-\u2013]\d+)?$/i
+    .test(lines[0] || "");
+}
+
 async function checkClipboard() {
   try {
     if (!navigator.clipboard || !navigator.clipboard.readText) return;
@@ -386,30 +402,42 @@ async function checkClipboard() {
     const text = await navigator.clipboard.readText();
     if (!text || text.trim() === "") return;
 
-    // ignore code/html noise
-    const lower = text.toLowerCase();
+    const trimmed = text.trim();
+    const lower = trimmed.toLowerCase();
+
+    // ✅ 1. BLOCK URLs (MAIN FIX)
+    if (looksLikeUrl(trimmed)) return;
+
+    // ✅ 2. BLOCK code/html noise
     if (
-      text.includes("<") || text.includes(">") ||
+      trimmed.includes("<") || trimmed.includes(">") ||
       lower.includes("html") ||
       lower.includes("button") ||
       lower.includes("script") ||
       lower.includes("iframe") ||
-      text.length > 300
+      trimmed.length > 300
     ) return;
 
-    if (text === lastClipboard) return;
-    lastClipboard = text;
+    // ✅ 3. ONLY allow scripture-like content
+    if (!looksLikeScripture(trimmed)) return;
 
-    let lines = text.split("\n").map(l => l.trim()).filter(Boolean);
+    // ✅ 4. Prevent duplicates
+    if (trimmed === lastClipboard) return;
+    lastClipboard = trimmed;
+
+    let lines = trimmed.split("\n").map(l => l.trim()).filter(Boolean);
     if (lines.length === 0) return;
 
     let title = lines[0];
     let body = lines.slice(1).join("\n").trim();
 
-    // strip leading verse number(s)
+    // Remove verse numbers like "16 "
     body = body.replace(/^\d+\s*/, "");
 
-    if (!body) { body = title; title = "Scripture"; }
+    if (!body) {
+      body = title;
+      title = "Scripture";
+    }
 
     lastScriptureTitle = title;
     lastScriptureBody = body;
@@ -417,7 +445,7 @@ async function checkClipboard() {
     sendJSON({ type: "scripture", title, text: body });
     addToHistory(title, body);
 
-    // Auto take Scene 3 once
+    // ✅ Auto switch Scene 3 (once)
     if (!lastSceneWas3) {
       currentPreviewScene = "scene3";
       document.getElementById("previewFrame").src = "scene3.html";
@@ -425,6 +453,7 @@ async function checkClipboard() {
       sendJSON({ type: "scene", scene: "scene3" });
       lastSceneWas3 = true;
     }
+
   } catch (err) {
     console.log("Clipboard read blocked:", err);
   }
