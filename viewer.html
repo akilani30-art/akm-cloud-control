@@ -365,6 +365,7 @@ let showingA = true;
 let transitionStyle = "slide";
 let currentScene = "scene1.html";
 let reconnectDelay = 1000;
+let lastScripture = null;
 
 const WS_URL = "wss://akm-cloud-control-production.up.railway.app";
 let transitionQueue = [];
@@ -425,6 +426,25 @@ function deactivateFrame(frame) {
   frame.classList.remove("activeScene");
   frame.style.opacity = "0";
   frame.style.pointerEvents = "none";
+}
+
+function getTargetOrigin() {
+  // If served normally over http/https, use a specific origin.
+  // If loaded via file:// or another opaque origin, fall back to "*".
+  return (location.origin && location.origin !== "null") ? location.origin : "*";
+}
+
+function requestLatestScripture() {
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    socket.send(JSON.stringify({ type: "request_latest_scripture" }));
+  }
+}
+
+function replayScriptureToFrame(frame) {
+  if (!frame || !lastScripture) return;
+  try {
+    frame.contentWindow && frame.contentWindow.postMessage(lastScripture, getTargetOrigin());
+  } catch {}
 }
 
 // ---------- Preloading ----------
@@ -507,11 +527,24 @@ async function switchScene(newScene, style = "cut", force = false) {
 
   await preloadScene(newScene);
 
+  // If Scene 3 is about to show, ask the server to resend the latest scripture
+  if (newScene === "scene3.html") {
+    requestLatestScripture();
+  }
+
   const incomingSrc = (incoming.getAttribute("src") || "").split("?")[0];
   if (incomingSrc !== newScene) {
     await new Promise((resolve) => {
       incoming.onload = () => {
         incoming.onload = null;
+
+        // Replay locally cached scripture after Scene 3 finishes loading
+        if (newScene === "scene3.html") {
+          setTimeout(() => {
+            replayScriptureToFrame(incoming);
+          }, 80);
+        }
+
         resolve();
       };
       incoming.onerror = () => {
@@ -520,6 +553,12 @@ async function switchScene(newScene, style = "cut", force = false) {
       };
       incoming.setAttribute("src", newScene);
     });
+  } else {
+    if (newScene === "scene3.html") {
+      setTimeout(() => {
+        replayScriptureToFrame(incoming);
+      }, 50);
+    }
   }
 
   resetFrame(incoming);
@@ -645,6 +684,9 @@ function connectWS() {
     console.log("✅ Viewer connected");
     setWSStatus("online");
     reconnectDelay = 1000;
+
+    // Recover latest scripture after reconnect/reload
+    requestLatestScripture();
   };
 
   socket.onmessage = (event) => {
@@ -671,8 +713,10 @@ function connectWS() {
 // ---------- Message Forwarding ----------
 function postToSceneFrames(data) {
   const { A, B } = getFrames();
-  try { A.contentWindow && A.contentWindow.postMessage(data, "*"); } catch {}
-  try { B.contentWindow && B.contentWindow.postMessage(data, "*"); } catch {}
+  const targetOrigin = getTargetOrigin();
+
+  try { A.contentWindow && A.contentWindow.postMessage(data, targetOrigin); } catch {}
+  try { B.contentWindow && B.contentWindow.postMessage(data, targetOrigin); } catch {}
 }
 
 // ---------- Message Handler ----------
@@ -705,7 +749,13 @@ function handleMessage(data) {
   }
 
   if (data.type === "scripture") {
-    postToSceneFrames(data);
+    lastScripture = {
+      type: "scripture",
+      title: data.title || "",
+      text: data.text || ""
+    };
+
+    postToSceneFrames(lastScripture);
     return;
   }
 
