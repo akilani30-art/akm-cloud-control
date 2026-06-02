@@ -1,70 +1,3 @@
-// server.js
-// STATION BROADCAST SYSTEM
-
-const http = require("http");
-const fs = require("fs");
-const path = require("path");
-const WebSocket = require("ws");
-const express = require("express");
-const cors = require("cors");
-const { ChannelEngine } = require("./channel-engine");
-
-const PORT = process.env.PORT || 7345;
-const app = express();
-
-app.use(express.json());
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type"]
-}));
-
-const PLAYLIST_FILE = path.join(__dirname, "channel.json");
-
-// Broadcast function
-function broadcast(data) {
-  if (wss && wss.clients) {
-    wss.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify(data));
-      }
-    });
-  }
-}
-
-let lastTriggered = null;
-
-function runScheduler() {
-  const now = new Date();
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
-  for (const item of schedule) {
-
-    const [h, m] = item.time.split(":").map(Number);
-    const itemMinutes = h * 60 + m;
-
-    if (currentMinutes >= itemMinutes && lastTriggered !== item.time) {
-
-      console.log("⏰ Trigger:", item.label);
-
-      // ✅ play content
-      broadcast({
-        type: "studioB",
-        action: "play",
-        url: item.url
-      });
-
-      // ✅ switch scene (IMPORTANT)
-      broadcast({
-        type: "scene",
-        scene: "sceneStudioB"
-      });
-
-      lastTriggered = item.time;
-    }
-  }
-}
-
 
 const channelEngine = new ChannelEngine({
   playlistFile: "./channel.json",
@@ -152,29 +85,36 @@ function nowMinutes() {
 
 function runScheduler() {
   const now = nowMinutes();
+
   for (const item of schedule) {
     const itemTime = toMinutes(item.time);
-    if (now === itemTime) {
-      if (lastTriggered === item.time) return;
+
+    if (now >= itemTime && lastTriggered !== item.time) {
       console.log("⏰ Trigger:", item.label);
+
       broadcast({
         type: "studioB",
         action: "play",
         url: item.url
       });
+
       broadcast({
         type: "scene",
         scene: "sceneStudioB"
       });
+
       lastTriggered = item.time;
     }
   }
+
   if (lastTriggered) {
     const lastTime = toMinutes(lastTriggered);
     if (now !== lastTime) {
       lastTriggered = null;
     }
   }
+}
+
 }
 
 setInterval(loadSchedule, 60000);
