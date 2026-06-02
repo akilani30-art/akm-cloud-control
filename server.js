@@ -115,7 +115,7 @@ function runScheduler() {
   }
 }
 
-}
+
 
 setInterval(loadSchedule, 60000);
 setInterval(runScheduler, 30000);
