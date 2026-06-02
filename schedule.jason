@@ -1,13 +1,12 @@
 [
   {
     "time": "08:00",
-    "url": "url": "https://www.youtube.com/embed/VIDEO_ID?autoplay=1&mute=1&loop=1&playlist=VIDEO_ID"
-
+    "url": "https://www.youtube.com/embed/VIDEO_ID?autoplay=1&mute=1&loop=1&playlist=VIDEO_ID",
     "label": "Morning Worship"
   },
   {
     "time": "10:30",
-    "url": "https://youtube.com/watch?v=VIDEO_ID",
+    "url": "https://www.youtube.com/embed/VIDEO_ID?autoplay=1&mute=1",
     "label": "Sermon"
   },
   {
