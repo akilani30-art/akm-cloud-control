@@ -87,29 +87,56 @@ body {
 </div>
 
 <script>
-function connectWS() {
-  let ws;
+const WS_URL = "wss://akm-cloud-control-production.up.railway.app";
+let ws = null;
 
+// ---------- Apply Scripture ----------
+function applyScripture(data) {
+  if (!data) return;
+
+  document.getElementById("scriptureTitle").innerText =
+    data.title || "Scripture";
+
+  document.getElementById("scriptureText").innerText =
+    data.text || "";
+}
+
+// ---------- 1) Receive from Viewer (MOST IMPORTANT) ----------
+window.addEventListener("message", (event) => {
+  const data = event.data;
+  if (!data || data.type !== "scripture") return;
+
+  applyScripture(data);
+});
+
+// ---------- 2) WebSocket fallback (same server as control) ----------
+function connectWS() {
   try {
-    ws = new WebSocket("ws:// akm-cloud-control-production.up.railway.app)";
+    ws = new WebSocket(WS_URL);
   } catch (e) {
-    ws = new WebSocket("ws://localhost:7345");
+    setTimeout(connectWS, 1000);
+    return;
   }
 
   ws.onopen = () => {
-    console.log("Scene 3 WebSocket connected");
+    console.log("✅ Scene 3 WS connected");
 
+    // Ask for latest scripture (works with your control page)
     ws.send(JSON.stringify({
       type: "request_latest_scripture"
     }));
   };
 
   ws.onmessage = (event) => {
-    const data = JSON.parse(event.data);
+    let data;
+    try {
+      data = JSON.parse(event.data);
+    } catch {
+      return;
+    }
 
     if (data.type === "scripture") {
-      document.getElementById("scriptureTitle").innerText = data.title;
-      document.getElementById("scriptureText").innerText = data.text;
+      applyScripture(data);
     }
   };
 
