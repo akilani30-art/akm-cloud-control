@@ -32,6 +32,40 @@ function broadcast(data) {
   }
 }
 
+let lastTriggered = null;
+
+function runScheduler() {
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  for (const item of schedule) {
+
+    const [h, m] = item.time.split(":").map(Number);
+    const itemMinutes = h * 60 + m;
+
+    if (currentMinutes >= itemMinutes && lastTriggered !== item.time) {
+
+      console.log("⏰ Trigger:", item.label);
+
+      // ✅ play content
+      broadcast({
+        type: "studioB",
+        action: "play",
+        url: item.url
+      });
+
+      // ✅ switch scene (IMPORTANT)
+      broadcast({
+        type: "scene",
+        scene: "sceneStudioB"
+      });
+
+      lastTriggered = item.time;
+    }
+  }
+}
+
+
 const channelEngine = new ChannelEngine({
   playlistFile: "./channel.json",
   broadcast,
