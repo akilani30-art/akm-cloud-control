@@ -1,10 +1,59 @@
+// server.js
+// STATION BROADCAST SYSTEM
 
+const http = require("http");
+const fs = require("fs");
+const path = require("path");
+const WebSocket = require("ws");
+const express = require("express");
+const cors = require("cors");
+const { ChannelEngine } = require("./channel-engine");
+
+const PORT = process.env.PORT || 3000;
+const app = express();
+
+app.use(express.json());
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type"],
+  })
+);
+
+// ---------- Static files ----------
+app.use(express.static(__dirname));
+
+app.get("/", (_req, res) => {
+  res.sendFile(path.join(__dirname, "viewer.html"));
+});
+
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok" });
+});
+
+// ---------- HTTP server + WebSocket ----------
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
+
+// ---------- Broadcast helper ----------
+function broadcast(data) {
+  if (!wss || !wss.clients) return;
+
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify(data));
+    }
+  });
+}
+
+// ---------- Channel Engine ----------
 const channelEngine = new ChannelEngine({
   playlistFile: "./channel.json",
   broadcast,
   onStateChange: (state) => {
     broadcast({ type: "channel_state", state });
-  }
+  },
 });
 
 // Load playlist on startup
@@ -15,7 +64,7 @@ try {
   console.error("❌ Failed to load channel playlist:", err.message);
 }
 
-// API Routes
+// ---------- API Routes ----------
 app.post("/api/channel/start", (req, res) => {
   try {
     const index = req.body?.index ?? 0;
@@ -53,19 +102,23 @@ app.post("/api/channel/jump", (req, res) => {
 app.post("/api/channel/reload", (_req, res) => {
   try {
     channelEngine.reload();
-    res.json({ ok: true, playlist: channelEngine.playlist, state: channelEngine.getState() });
+    res.json({
+      ok: true,
+      playlist: channelEngine.playlist,
+      state: channelEngine.getState(),
+    });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }
 });
 
-// Schedule management
+// ---------- Schedule management ----------
 let schedule = [];
 let lastTriggered = null;
 
 function loadSchedule() {
   try {
-    const raw = fs.readFileSync("./schedule.json");
+    const raw = fs.readFileSync(path.join(__dirname, "schedule.json"), "utf-8");
     schedule = JSON.parse(raw);
     console.log("📅 Schedule loaded:", schedule.length, "items");
   } catch (err) {
@@ -89,24 +142,26 @@ function runScheduler() {
   for (const item of schedule) {
     const itemTime = toMinutes(item.time);
 
-    if (now >= itemTime && lastTriggered !== item.time) {
+    // Trigger only at the exact scheduled minute, once
+    if (now === itemTime && lastTriggered !== item.time) {
       console.log("⏰ Trigger:", item.label);
 
       broadcast({
         type: "studioB",
         action: "play",
-        url: item.url
+        url: item.url,
       });
 
       broadcast({
         type: "scene",
-        scene: "sceneStudioB"
+        scene: "sceneStudioB",
       });
 
       lastTriggered = item.time;
     }
   }
 
+  // Reset trigger after the minute has passed
   if (lastTriggered) {
     const lastTime = toMinutes(lastTriggered);
     if (now !== lastTime) {
@@ -115,53 +170,11 @@ function runScheduler() {
   }
 }
 
-
-
 setInterval(loadSchedule, 60000);
 setInterval(runScheduler, 30000);
 loadSchedule();
 
-// HTTP Server for static files
-const server = http.createServer((req, res) => {
-  let filePath = "." + req.url;
-  if (filePath === "./" || filePath === "./index.html") {
-    filePath = "./viewer.html";
-  }
-
-  const ext = String(path.extname(filePath)).toLowerCase();
-  const mimeTypes = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".png": "image/png",
-    ".jpg": "image/jpg",
-    ".jpeg": "image/jpeg",
-    ".gif": "image/gif",
-    ".svg": "image/svg+xml",
-    ".json": "application/json"
-  };
-
-  const contentType = mimeTypes[ext] || "application/octet-stream";
-
-  fs.readFile(filePath, (error, content) => {
-    if (error) {
-      if (error.code === "ENOENT") {
-        res.writeHead(404, { "Content-Type": "text/plain" });
-        res.end("404 Not Found", "utf-8");
-      } else {
-        res.writeHead(500);
-        res.end("Server Error: " + error.code);
-      }
-    } else {
-      res.writeHead(200, { "Content-Type": contentType });
-      res.end(content, "utf-8");
-    }
-  });
-});
-
-// WebSocket Server
-const wss = new WebSocket.Server({ server });
-
+// ---------- WebSocket handling ----------
 wss.on("connection", (ws) => {
   console.log("✅ WebSocket client connected");
 
@@ -174,8 +187,12 @@ wss.on("connection", (ws) => {
       return;
     }
 
-    if (data.type === "scene" || data.type === "studioB" || data.type === "camera") {
-      // Optional: pause channel automation when operator takes over
+    if (
+      data.type === "scene" ||
+      data.type === "studioB" ||
+      data.type === "camera"
+    ) {
+      // Optional: pause automation if operator takes over
       // channelEngine.stop();
     }
 
@@ -192,8 +209,8 @@ wss.on("connection", (ws) => {
   });
 });
 
-// Start server
-server.listen(PORT, () => {
+// ---------- Start server ----------
+server.listen(PORT, "0.0.0.0", () => {
   console.log("🚀 STATION BROADCAST SYSTEM ONLINE");
-  console.log(`🌍 Listening on http://localhost:${PORT}`);
+  console.log(`🌍 Listening on port ${PORT}`);
 });
