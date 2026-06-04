@@ -925,8 +925,10 @@ async function switchScene(scene, style = "cut", force = false) {
 
   // Clean up old frame after transition
   setTimeout(() => {
-    resetFrame(currentFrame);
-  }, transitionDuration(style));
+  resetFrame(currentFrame);
+  currentFrame.style.left = "0";   // ✅ ADD THIS
+  nextFrame.style.left = "0";      // ✅ ADD THIS
+}, transitionDuration(style));
 
   // Swap buffers
   showingA = !showingA;
