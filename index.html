@@ -320,17 +320,16 @@ connectWS();
 function loadPreview(e, scene) {
   currentPreviewScene = scene;
 
-  // reset ALL scene buttons
   document.querySelectorAll(".sceneBtn")
-    .forEach(btn => btn.style.background = "#1e88e5");
+    .forEach(btn => btn.classList.remove("active"));
 
-  // highlight selected
-  e.target.style.background = "gold";
+  e.target.classList.add("active");
 
   document.getElementById("previewFrame").src = scene + ".html";
 
   if (scene !== "scene3") lastSceneWas3 = false;
 }
+
 
 
 
