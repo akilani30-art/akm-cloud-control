@@ -335,14 +335,13 @@ function takeScene() {
 }
 
 // ---------- Transitions ----------
-function sendTransition(style) {
+function sendTransition(e, style) {
   currentTransitionStyle = style;
 
-  // highlight active button
   document.querySelectorAll(".transitionPanel button")
     .forEach(btn => btn.style.background = "black");
 
-  event.target.style.background = "gold";
+  e.target.style.background = "gold";
 
   sendJSON({ type: "transition", style });
 }
