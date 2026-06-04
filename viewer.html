@@ -842,6 +842,97 @@ function handleMessage(data) {
   }
 }
 
+async function switchScene(scene, style = "cut", force = false) {
+  scene = normalizeScene(scene);
+  if (!scene) return;
+
+  const { A, B } = getFrames();
+
+  const currentFrame = showingA ? A : B;
+  const nextFrame = showingA ? B : A;
+
+  // Prevent unnecessary reloads
+  if (!force && currentScene === scene) return;
+
+  // Load new scene into hidden frame
+  nextFrame.src = scene;
+
+  // Wait for iframe to load (with safety timeout)
+  await new Promise((resolve) => {
+    let done = false;
+
+    nextFrame.onload = () => {
+      if (!done) {
+        done = true;
+        resolve();
+      }
+    };
+
+    setTimeout(() => {
+      if (!done) {
+        done = true;
+        resolve();
+      }
+    }, 3000); // fallback safety
+  });
+
+  // Restore any persistent state (scripture, etc.)
+  replayScriptureToFrame(nextFrame);
+
+  // Pause Studio B if leaving it
+  sendStudioBControl(currentFrame, "pause");
+
+  // --- TRANSITIONS ---
+  switch (style) {
+    case "slide":
+      nextFrame.style.left = "100%";
+      nextFrame.style.opacity = "1";
+      nextFrame.classList.add("activeScene");
+
+      requestAnimationFrame(() => {
+        nextFrame.style.left = "0";
+        currentFrame.style.left = "-100%";
+      });
+      break;
+
+    case "fade":
+      resetFrame(nextFrame);
+      nextFrame.style.opacity = "0";
+      nextFrame.classList.add("activeScene");
+
+      requestAnimationFrame(() => {
+        nextFrame.style.opacity = "1";
+        currentFrame.style.opacity = "0";
+      });
+      break;
+
+    case "wipe":
+      resetFrame(nextFrame);
+      activateFrame(nextFrame);
+      deactivateFrame(currentFrame);
+      break;
+
+    case "cut":
+    default:
+      resetFrame(nextFrame);
+      activateFrame(nextFrame);
+      deactivateFrame(currentFrame);
+      break;
+  }
+
+  // Resume Studio B if entering it
+  sendStudioBControl(nextFrame, "resume");
+
+  // Clean up old frame after transition
+  setTimeout(() => {
+    resetFrame(currentFrame);
+  }, transitionDuration(style));
+
+  // Swap buffers
+  showingA = !showingA;
+  currentScene = scene;
+}
+
 // ---------- Safety helper ----------
 function escapeHTML(str) {
   return String(str ?? "")
