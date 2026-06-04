@@ -142,6 +142,12 @@ input {
   <button onclick="sendTransition(event, 'slide')">SLIDE</button>
 </div>
 
+<button class="sceneBtn" onclick="loadPreview(event, 'scene1')">Scene 1</button>
+<button class="sceneBtn" onclick="loadPreview(event, 'scene2')">Scene 2</button>
+<button class="sceneBtn" onclick="loadPreview(event, 'scene3')">Scene 3</button>
+<button class="sceneBtn" onclick="loadPreview(event, 'scene4')">Scene 4</button>
+<button class="sceneBtn" onclick="loadPreview(event, 'sceneStudioB')">Studio B</button>
+
 
 <h2>Studio B Player</h2>
 <input id="studioBUrl" placeholder="Paste YouTube / Spotify / Stream URL">
@@ -317,8 +323,8 @@ connectWS();
 function loadPreview(e, scene) {
   currentPreviewScene = scene;
 
-  // reset buttons
-  document.querySelectorAll("h2 + button, h2 + button + button")
+  // reset ALL scene buttons
+  document.querySelectorAll(".sceneBtn")
     .forEach(btn => btn.style.background = "#1e88e5");
 
   // highlight selected
@@ -328,6 +334,7 @@ function loadPreview(e, scene) {
 
   if (scene !== "scene3") lastSceneWas3 = false;
 }
+
 
 
 function takeScene() {
