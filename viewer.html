@@ -358,7 +358,6 @@
     <div id="ltTitle"></div>
     <div id="ltSub"></div>
   </div>
-
 <script>
 let socket;
 let showingA = true;
@@ -376,8 +375,6 @@ let reconnectAttempt = 0;
 let reconnectTimer = null;
 let heartbeatTimer = null;
 let heartbeatTimeoutTimer = null;
-let lastServerMessageAt = 0;
-let manuallyClosed = false;
 
 // Heartbeat settings
 const HEARTBEAT_INTERVAL_MS = 30000;   // periodic re-sync / keepalive
@@ -447,11 +444,6 @@ function getTargetOrigin() {
   return (location.origin && location.origin !== "null") ? location.origin : "*";
 }
 
-function markServerAlive() {
-  lastServerMessageAt = Date.now();
-  clearHeartbeatTimeout();
-}
-
 function clearHeartbeatTimeout() {
   if (heartbeatTimeoutTimer) {
     clearTimeout(heartbeatTimeoutTimer);
@@ -494,7 +486,6 @@ function nextReconnectDelay() {
 }
 
 function scheduleReconnect() {
-  if (manuallyClosed) return;
   if (reconnectTimer) return;
 
   const delay = nextReconnectDelay();
@@ -763,7 +754,6 @@ function connectWS() {
   socket.onopen = () => {
     reconnectAttempt = 0;
     setWSStatus("online");
-    markServerAlive();
 
     // Strong initial sync
     requestFullState();
@@ -773,7 +763,7 @@ function connectWS() {
   };
 
   socket.onmessage = (event) => {
-    markServerAlive();
+    clearHeartbeatTimeout();
 
     let data;
     try {
@@ -786,14 +776,18 @@ function connectWS() {
   };
 
   socket.onerror = () => {
-    // let onclose drive reconnect
+    // Let onclose drive reconnect
     try { socket.close(); } catch {}
   };
 
-  socket.onclose = () => {
+  socket.onclose = (event) => {
     setWSStatus("offline");
     stopHeartbeat();
-    scheduleReconnect();
+
+    // Do not auto-reconnect intentional clean closes
+    if (event.code !== 1000) {
+      scheduleReconnect();
+    }
   };
 }
 
@@ -995,9 +989,10 @@ document.addEventListener("visibilitychange", () => {
 });
 
 window.addEventListener("online", () => {
-  if (!socket || socket.readyState !== WebSocket.OPEN) {
+  // Avoid duplicate connects while already CONNECTING
+  if (!socket || socket.readyState === WebSocket.CLOSED) {
     connectWS();
-  } else {
+  } else if (socket.readyState === WebSocket.OPEN) {
     requestFullState();
   }
 });
@@ -1006,6 +1001,8 @@ window.addEventListener("online", () => {
 connectWS();
 preloadCommonScenes();
 </script>
+
+
 
 </body>
 </html>
