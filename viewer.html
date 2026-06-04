@@ -599,179 +599,18 @@ function sendStudioBControl(frame, action) {
 }
 
 // ---------- Scene Switching ----------
-async function switchScene(newScene, style = "cut", force = false) {
-  newScene = normalizeScene(newScene);
-  if (!newScene) return;
-  if (!force && currentScene === newScene) return;
-
-  const { A, B } = getFrames();
-  const incoming = showingA ? B : A;
-  const outgoing = showingA ? A : B;
-
-  await preloadScene(newScene);
-
-  // Load new scene into incoming iframe
-  const incomingSrc = (incoming.getAttribute("src") || "").split("?")[0];
-
-  if (incomingSrc !== newScene) {
-    await new Promise((resolve) => {
-      incoming.onload = () => {
-        incoming.onload = null;
-        resolve();
-      };
-
-      incoming.onerror = () => {
-        incoming.onerror = null;
-        resolve();
-      };
-
-      incoming.setAttribute("src", newScene);
-    });
-  }
-
-  // Reset both frames before transition
-  resetFrame(incoming);
-  resetFrame(outgoing);
-
-  // ---------- CUT ----------
-  if (style === "cut") {
-    activateFrame(incoming);
-    deactivateFrame(outgoing);
-
-    currentScene = newScene;
-    showingA = !showingA;
-
-    // ✅ RESET outgoing iframe
-    setTimeout(() => {
-      try {
-        const src = outgoing.getAttribute("src");
-if (src === "sceneStudioB.html") {
-  outgoing.setAttribute("src", "about:blank");
+function sendStudioBControl(frame, action) {
+  try {
+    const src = (frame.getAttribute("src") || "").split("?")[0];
+    if (src === "sceneStudioB.html" && frame.contentWindow) {
+      frame.contentWindow.postMessage(
+        { type: "studioB_control", action },
+        getTargetOrigin()
+      );
+    }
+  } catch {}
 }
 
-      } catch {}
-    }, 50);
-
-    return;
-  }
-
-  // ---------- FADE ----------
-  if (style === "fade") {
-    incoming.classList.add("activeScene");
-    incoming.style.left = "0";
-    incoming.style.opacity = "0";
-    incoming.style.pointerEvents = "auto";
-
-    outgoing.classList.add("activeScene");
-    outgoing.style.left = "0";
-    outgoing.style.opacity = "1";
-    outgoing.style.pointerEvents = "none";
-
-    await new Promise((resolve) => {
-      requestAnimationFrame(() => {
-        incoming.style.opacity = "1";
-        outgoing.style.opacity = "0";
-        setTimeout(resolve, transitionDuration(style));
-      });
-    });
-
-    deactivateFrame(outgoing);
-    activateFrame(incoming);
-
-    currentScene = newScene;
-    showingA = !showingA;
-
-    // ✅ RESET outgoing iframe
-    setTimeout(() => {
-  try {
-    const src = outgoing.getAttribute("src");
-    if (src === "sceneStudioB.html") {
-      outgoing.setAttribute("src", "about:blank");
-    }
-  } catch {}
-}, 50);
-
-
-    return;
-  }
-
-  // ---------- WIPE ----------
-  if (style === "wipe") {
-    incoming.classList.add("activeScene");
-    incoming.style.left = "100%";
-    incoming.style.opacity = "1";
-
-    outgoing.classList.add("activeScene");
-    outgoing.style.left = "0";
-    outgoing.style.opacity = "1";
-
-    await new Promise((resolve) => {
-      requestAnimationFrame(() => {
-        incoming.style.left = "0";
-        setTimeout(resolve, transitionDuration(style));
-      });
-    });
-
-    deactivateFrame(outgoing);
-    activateFrame(incoming);
-
-    currentScene = newScene;
-    showingA = !showingA;
-
-    // ✅ RESET outgoing iframe
-    setTimeout(() => {
-  try {
-    const src = outgoing.getAttribute("src");
-    if (src === "sceneStudioB.html") {
-      outgoing.setAttribute("src", "about:blank");
-    }
-  } catch {}
-}, 50);
-
-
-    return;
-  }
-
-  // ---------- SLIDE (default) ----------
-  incoming.classList.add("activeScene");
-  incoming.style.left = "100%";
-  incoming.style.opacity = "1";
-
-  outgoing.classList.add("activeScene");
-  outgoing.style.left = "0";
-  outgoing.style.opacity = "1";
-
-  await new Promise((resolve) => {
-    requestAnimationFrame(() => {
-      incoming.style.left = "0";
-      outgoing.style.left = "-100%";
-      setTimeout(resolve, transitionDuration(style));
-    });
-  });
-
-  outgoing.classList.add("noTrans");
-  outgoing.style.left = "0";
-  outgoing.style.opacity = "0";
-  outgoing.classList.remove("activeScene");
-  void outgoing.offsetHeight;
-  outgoing.classList.remove("noTrans");
-
-  activateFrame(incoming);
-
-  currentScene = newScene;
-  showingA = !showingA;
-
-  // ✅ RESET outgoing iframe
-  setTimeout(() => {
-  try {
-    const src = outgoing.getAttribute("src");
-    if (src === "sceneStudioB.html") {
-      outgoing.setAttribute("src", "about:blank");
-    }
-  } catch {}
-}, 50);
-
-}
 
 // ---------- Clock ----------
 function updateClock() {
