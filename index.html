@@ -330,7 +330,6 @@ function sendTransition(e, style) {
 // ---------- STUDIO B ----------
 function playStudioB() {
   const url = document.getElementById("studioBUrl").value.trim();
-
   if (!url) return;
 
   sendJSON({
@@ -338,8 +337,23 @@ function playStudioB() {
     url
   });
 
-  console.log("🎵 Studio B:", url);
+  currentPreviewScene = "sceneStudioB";
+  document.getElementById("previewFrame").src = "sceneStudioB.html";
+  setActiveSceneButton("sceneStudioB");
+
+  // optional: take it live immediately like your earlier version
+  currentProgramScene = "sceneStudioB";
+  currentSceneLive = "sceneStudioB";
+  document.getElementById("programFrame").src = "sceneStudioB.html";
+
+  sendJSON({
+    type: "scene",
+    scene: "sceneStudioB"
+  });
+
+  console.log("🎵 Studio B loaded and taken live:", url);
 }
+
 
 
 // ---------- LOWER THIRD ----------
