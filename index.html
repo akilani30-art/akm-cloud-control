@@ -395,18 +395,21 @@ async function checkClipboard() {
     addToHistory(title, body);
 
     // ✅ SWITCH SCENE (ALWAYS WORKS NOW)
-    currentPreviewScene = "scene3";
-    currentProgramScene = "scene3";
-    currentSceneLive = "scene3";
+    if (currentSceneLive !== "scene3") {
+  currentPreviewScene = "scene3";
+  currentProgramScene = "scene3";
+  currentSceneLive = "scene3";
 
-    document.getElementById("previewFrame").src = "scene3.html";
-    document.getElementById("programFrame").src = "scene3.html";
+  document.getElementById("previewFrame").src = "scene3.html";
+  document.getElementById("programFrame").src = "scene3.html";
 
-    setActiveSceneButton("scene3");
+  setActiveSceneButton("scene3");
 
-    sendJSON({ type: "scene", scene: "scene3" });
+  sendJSON({ type: "scene", scene: "scene3" });
 
-    console.log("🎬 Scene switched to 3");
+  console.log("🎬 Scene switched to 3");
+}
+
 
   } catch (err) {
     console.log("Clipboard error:", err);
