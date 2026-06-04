@@ -508,6 +508,7 @@ function connectWS() {
     while (sendQueue.length) {
       ws.send(sendQueue.shift());
     }
+
   };
 
   ws.onerror = () => ws.close();
@@ -516,7 +517,59 @@ function connectWS() {
     setWSStatus("offline");
     scheduleReconnect();
   };
+ws.onmessage = (event) => {
+  let data;
+
+  try {
+    data = JSON.parse(event.data);
+  } catch {
+    return;
+  }
+
+  if (data.type === "request_latest_scripture") {
+    if (lastScriptureTitle || lastScriptureBody) {
+      sendJSON({
+        type: "scripture",
+        title: lastScriptureTitle || "Scripture",
+        text: lastScriptureBody || ""
+      });
+    }
+  }
+
+  if (data.type === "request_current_scene") {
+    sendJSON({
+      type: "scene",
+      scene: currentSceneLive
+    });
+  }
+
+  if (data.type === "request_full_state") {
+    sendJSON({
+      type: "full_state",
+      scene: currentSceneLive,
+      transitionStyle: currentTransitionStyle,
+      camera: currentCamera,
+      lowerThird: {
+        show: lowerThirdVisible,
+        title: document.getElementById("ltTitle").value,
+        subtitle: document.getElementById("ltSub").value
+      },
+      ticker: {
+        show: tickerVisible,
+        text: document.getElementById("tickerInput").value
+      },
+      scripture: {
+        title: lastScriptureTitle,
+        text: lastScriptureBody
+      }
+    });
+  }
+};
+
+
 }
+
+
 
 function scheduleReconnect() {
   if (reconnectTimer) return;
