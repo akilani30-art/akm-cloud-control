@@ -1,550 +1,492 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Control Room</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control Room</title>
 
-<style>
-body {
-  background: #000;
-  color: #fff;
-  font-family: Arial, sans-serif;
-  padding: 20px;
-}
+  <style>
+    body {
+      background: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
 
-h1, h2 {
-  margin: 10px 0;
-}
+    h1, h2 {
+      margin: 10px 0;
+    }
 
-.wsStatus{
-  display:inline-flex;
-  align-items:center;
-  gap:10px;
-  padding:8px 12px;
-  border-radius:10px;
-  margin: 6px 0 16px 0;
-  font-family: Arial, sans-serif;
-  font-size: 14px;
-  font-weight: bold;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.12);
-}
+    .wsStatus {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      margin: 6px 0 16px 0;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      font-weight: bold;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+    }
 
-.wsStatus .dot{ width:12px;height:12px;border-radius:50%; }
+    .wsStatus .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
 
-.wsStatus.online .dot{ background:#00e676; box-shadow:0 0 18px rgba(0,230,118,0.8); }
-.wsStatus.online .label{ color:#00e676; }
+    .wsStatus.online .dot {
+      background: #00e676;
+      box-shadow: 0 0 18px rgba(0,230,118,0.8);
+    }
+    .wsStatus.online .label { color: #00e676; }
 
-.wsStatus.offline .dot{ background:#ff1744; box-shadow:0 0 18px rgba(255,23,68,0.8); }
-.wsStatus.offline .label{ color:#ff1744; }
+    .wsStatus.offline .dot {
+      background: #ff1744;
+      box-shadow: 0 0 18px rgba(255,23,68,0.8);
+    }
+    .wsStatus.offline .label { color: #ff1744; }
 
-.wsStatus.connecting .dot{ background:#ffea00; box-shadow:0 0 18px rgba(255,234,0,0.8); }
-.wsStatus.connecting .label{ color:#ffea00; }
+    .wsStatus.connecting .dot {
+      background: #ffea00;
+      box-shadow: 0 0 18px rgba(255,234,0,0.8);
+    }
+    .wsStatus.connecting .label { color: #ffea00; }
 
-button {
-  padding: 10px 16px;
-  margin: 4px;
-  font-size: 16px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  background: #1e88e5;
-  color: white;
-}
+    button {
+      padding: 10px 16px;
+      margin: 4px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      background: #1e88e5;
+      color: white;
+    }
 
-button:hover {
-  background: #1565c0;
-}
+    button:hover {
+      background: #1565c0;
+    }
 
-input {
-  padding: 8px;
-  margin: 4px 0;
-  width: 240px;
-  border-radius: 4px;
-  border: none;
-}
+    input {
+      padding: 8px;
+      margin: 4px 0;
+      width: 240px;
+      border-radius: 4px;
+      border: none;
+    }
 
-.monitorRow {
-  display: flex;
-  gap: 20px;
-  height: 260px;
-  margin-bottom: 20px;
-}
+    .monitorRow {
+      display: flex;
+      gap: 20px;
+      height: 260px;
+      margin-bottom: 20px;
+    }
 
-.monitorBox {
-  flex: 1;
-  background: #000;
-  overflow: hidden;
-  border-radius: 16px;
-  border: 3px solid gold;
-  box-shadow: 0 0 18px rgba(255,215,0,0.4);
-}
+    .monitorBox {
+      flex: 1;
+      background: #000;
+      overflow: hidden;
+      border-radius: 16px;
+      border: 3px solid gold;
+      box-shadow: 0 0 18px rgba(255,215,0,0.4);
+    }
 
-.monitorBox iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-  background: #000;
-}
+    .monitorBox iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #000;
+    }
 
-.transitionPanel {
-  margin: 10px 0 20px 0;
-  display: flex;
-  gap: 10px;
-}
+    .transitionPanel {
+      margin: 10px 0 20px 0;
+      display: flex;
+      gap: 10px;
+    }
 
-.transitionPanel button {
-  background: black;
-  border: 2px solid gold;
-  color: gold;
-  padding: 10px 18px;
-  border-radius: 10px;
-  font-size: 16px;
-  font-weight: bold;
-  box-shadow: 0 0 12px rgba(255,215,0,0.4);
-}
+    .transitionPanel button {
+      background: black;
+      border: 2px solid gold;
+      color: gold;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      box-shadow: 0 0 12px rgba(255,215,0,0.4);
+    }
 
-.transitionPanel button:hover {
-  background: #222;
-}
+    .transitionPanel button:hover {
+      background: #222;
+    }
 
-.scriptureBox {
-  margin-top: 25px;
-  padding: 15px;
-  border: 2px solid gold;
-  border-radius: 10px;
-  background: #111;
-  color: white;
-}
-</style>
+    .transitionPanel button.active {
+      background: gold;
+      color: black;
+    }
+
+    .sceneBtn.active {
+      background: gold;
+      color: black;
+    }
+
+    .scriptureBox {
+      margin-top: 25px;
+      padding: 15px;
+      border: 2px solid gold;
+      border-radius: 10px;
+      background: #111;
+      color: white;
+    }
+  </style>
 </head>
 
 <body>
+  <h1>Control Room</h1>
 
-<h1>Control Room</h1>
-
-<!-- ✅ STATUS INDICATOR -->
-<div id="wsStatus" class="wsStatus offline">
-  <span class="dot"></span>
-  <span class="label">OFFLINE</span>
-</div>
-
-<h2>Scenes</h2>
-<button class="sceneBtn active" onclick="loadPreview(event, 'scene1')">Scene 1</button>
-<button class="sceneBtn" onclick="loadPreview(event, 'scene2')">Scene 2</button>
-<button class="sceneBtn" onclick="loadPreview(event, 'scene3')">Scene 3</button>
-<button class="sceneBtn" onclick="loadPreview(event, 'scene4')">Scene 4</button>
-<button class="sceneBtn" onclick="loadPreview(event, 'sceneStudioB')">Studio B</button>
-
-<div class="transitionPanel">
-  <button onclick="sendTransition(event, 'cut')">CUT</button>
-  <button onclick="sendTransition(event, 'fade')">FADE</button>
-  <button onclick="sendTransition(event, 'wipe')">WIPE</button>
-  <button onclick="sendTransition(event, 'slide')">SLIDE</button>
-</div>
-<button onclick="takeScene()">✔ TAKE</button>
-
-
-<h2>Studio B Player</h2>
-<input id="studioBUrl" placeholder="Paste YouTube / Spotify / Stream URL">
-<br>
-<button onclick="playStudioB()">▶ Play in Studio B</button>
-
-<div class="monitorRow">
-  <div class="monitorBox">
-    <iframe id="previewFrame" src="scene1.html"></iframe>
+  <div id="wsStatus" class="wsStatus offline">
+    <span class="dot"></span>
+    <span class="label">OFFLINE</span>
   </div>
-  <div class="monitorBox">
-    <iframe id="programFrame" src="scene1.html"></iframe>
+
+  <h2>Scenes</h2>
+  <button type="button" class="sceneBtn active" data-scene="scene1" onclick="loadPreview(event, 'scene1')">Scene 1</button>
+  <button type="button" class="sceneBtn" data-scene="scene2" onclick="loadPreview(event, 'scene2')">Scene 2</button>
+  <button type="button" class="sceneBtn" data-scene="scene3" onclick="loadPreview(event, 'scene3')">Scene 3</button>
+  <button type="button" class="sceneBtn" data-scene="scene4" onclick="loadPreview(event, 'scene4')">Scene 4</button>
+  <button type="button" class="sceneBtn" data-scene="sceneStudioB" onclick="loadPreview(event, 'sceneStudioB')">Studio B</button>
+  <button type="button" onclick="takeScene()">✔ TAKE</button>
+
+  <h2>Transitions</h2>
+  <div class="transitionPanel">
+    <button type="button" data-transition="cut" onclick="sendTransition(event, 'cut')">CUT</button>
+    <button type="button" data-transition="fade" onclick="sendTransition(event, 'fade')">FADE</button>
+    <button type="button" data-transition="wipe" onclick="sendTransition(event, 'wipe')">WIPE</button>
+    <button type="button" class="active" data-transition="slide" onclick="sendTransition(event, 'slide')">SLIDE</button>
   </div>
-</div>
 
-<h2>Lower Third</h2>
-<input id="ltTitle" placeholder="Title"><br>
-<input id="ltSub" placeholder="Subtitle"><br>
-<button onclick="sendLower()">Show Lower Third</button>
-<button onclick="hideLower()">Hide Lower Third</button>
+  <h2>Studio B Player</h2>
+  <input id="studioBUrl" placeholder="Paste YouTube / Spotify / Stream URL">
+  <br>
+  <button type="button" onclick="playStudioB()">▶ Play in Studio B</button>
 
-<h2>Ticker</h2>
-<input id="tickerInput" placeholder="Ticker text"><br>
-<button onclick="showTicker()">Show Ticker</button>
-<button onclick="hideTicker()">Hide Ticker</button>
+  <div class="monitorRow">
+    <div class="monitorBox">
+      <iframe id="previewFrame" src="scene1.html"></iframe>
+    </div>
+    <div class="monitorBox">
+      <iframe id="programFrame" src="scene1.html"></iframe>
+    </div>
+  </div>
 
-<h2>Cameras</h2>
-<button onclick="switchCam('cam1')">CAM 1</button>
-<button onclick="switchCam('cam2')">CAM 2</button>
+  <h2>Lower Third</h2>
+  <input id="ltTitle" placeholder="Title"><br>
+  <input id="ltSub" placeholder="Subtitle"><br>
+  <button type="button" onclick="sendLower()">Show Lower Third</button>
+  <button type="button" onclick="hideLower()">Hide Lower Third</button>
 
-<div class="scriptureBox">
-  <h2 style="color:gold;text-align:center;margin-top:0;">📖 Scripture Sender</h2>
-  <p style="font-size:14px;color:#ccc;margin-top:10px;text-align:center;">
-    Copy any verse → Auto‑paste → Auto‑send → Auto‑switch to Scene 3.
-  </p>
-</div>
+  <h2>Ticker</h2>
+  <input id="tickerInput" placeholder="Ticker text"><br>
+  <button type="button" onclick="showTicker()">Show Ticker</button>
+  <button type="button" onclick="hideTicker()">Hide Ticker</button>
 
-<div class="scriptureBox" style="margin-top:20px;">
-  <h2 style="color:gold;text-align:center;margin-top:0;">📚 Scripture History</h2>
+  <h2>Cameras</h2>
+  <button type="button" onclick="switchCam('cam1')">CAM 1</button>
+  <button type="button" onclick="switchCam('cam2')">CAM 2</button>
 
-  <div id="historyList" style="
+  <div class="scriptureBox">
+    <h2 style="color:gold;text-align:center;margin-top:0;">📖 Scripture Sender</h2>
+    <p style="font-size:14px;color:#ccc;margin-top:10px;text-align:center;">
+      Copy any verse → Auto‑paste → Auto‑send → Auto‑switch to Scene 3.
+    </p>
+  </div>
+
+  <div class="scriptureBox" style="margin-top:20px;">
+    <h2 style="color:gold;text-align:center;margin-top:0;">📚 Scripture History</h2>
+
+    <div id="historyList" style="
       max-height:200px;
       overflow-y:auto;
       padding:10px;
       background:#000;
       border-radius:8px;
-      border:1px solid gold;">
-    <p style="color:#888;text-align:center;">No scriptures yet.</p>
-  </div>
-</div>
-
-<script>
-const WS_URL = "wss://akm-cloud-control-production.up.railway.app";
-let ws;
-let sendQueue = [];
-
-// State
-let currentPreviewScene = "scene1";
-let currentProgramScene = "scene1";
-let currentSceneLive = "scene1";
-let currentTransitionStyle = "slide";
-let currentCamera = "cam1";
-let lowerThirdVisible = false;
-let tickerVisible = false;
-
-let lastClipboard = "";
-let lastScriptureTitle = "";
-let lastScriptureBody = "";
-let lastSceneWas3 = false;
-
-// ---------- WebSocket ---------
-function connectWS() {
-  setWSStatus("connecting");
-
-  try {
-    ws = new WebSocket(WS_URL);
-  } catch (e) {
-    console.log("❌ WebSocket init failed:", e);
-    setWSStatus("offline");
-    setTimeout(connectWS, 1500);
-    return;
-  }
-
-  ws.onopen = () => {
-    console.log("✅ Control connected:", WS_URL);
-    setWSStatus("online");
-    while (sendQueue.length) ws.send(sendQueue.shift());
-  };
-
-  ws.onerror = (e) => {
-    console.log("❌ Control WS error", e);
-    setWSStatus("offline");
-  };
-
-  ws.onclose = (e) => {
-    console.log("⚠️ Control WS closed, retrying...", e.code);
-    setWSStatus("offline");
-    setTimeout(connectWS, 1000);
-  };
-
-  ws.onmessage = (event) => {
-    let data;
-    try {
-      data = JSON.parse(event.data);
-    } catch {
-      return;
-    }
-
-    if (data.type === "request_latest_scripture") {
-      if (lastScriptureTitle || lastScriptureBody) {
-        sendJSON({
-          type: "scripture",
-          title: lastScriptureTitle || "Scripture",
-          text: lastScriptureBody || ""
-        });
-      }
-      return;
-    }
-
-    if (data.type === "request_current_scene") {
-      if (currentSceneLive) {
-        sendJSON({
-          type: "scene",
-          scene: currentSceneLive
-        });
-      }
-      return;
-    }
-
-    if (data.type === "request_full_state") {
-      sendJSON({
-        type: "full_state",
-        scene: currentSceneLive,
-        transitionStyle: currentTransitionStyle,
-        studioBUrl: document.getElementById("studioBUrl").value.trim(),
-        lowerThird: {
-          show: lowerThirdVisible,
-          title: document.getElementById("ltTitle").value || "",
-          subtitle: document.getElementById("ltSub").value || ""
-        },
-        ticker: {
-          show: tickerVisible,
-          text: document.getElementById("tickerInput").value || ""
-        },
-        camera: currentCamera,
-        scripture: {
-          title: lastScriptureTitle || "",
-          text: lastScriptureBody || ""
-        }
-      });
-      return;
-    }
-  };
-}
-
-function sendJSON(obj) {
-  const msg = JSON.stringify(obj);
-  if (ws && ws.readyState === WebSocket.OPEN) ws.send(msg);
-  else sendQueue.push(msg);
-}
-
-function setWSStatus(state){
-  const el = document.getElementById("wsStatus");
-  const label = el.querySelector(".label");
-  el.classList.remove("online","offline","connecting");
-  el.classList.add(state);
-  label.textContent = state.toUpperCase();
-}
-
-connectWS();
-
-// ---------- Preview / Program ----------
-function loadPreview(e, scene) {
-  currentPreviewScene = scene;
-
-  document.querySelectorAll(".sceneBtn")
-    .forEach(btn => btn.classList.remove("active"));
-
-  e.target.classList.add("active");
-
-  document.getElementById("previewFrame").src = scene + ".html";
-
-  if (scene !== "scene3") lastSceneWas3 = false;
-}
-
-
-
-
-function takeScene() {
-  document.getElementById("programFrame").src = currentPreviewScene + ".html";
-  currentProgramScene = currentPreviewScene;
-  currentSceneLive = currentPreviewScene;
-
-  sendJSON({ type: "scene", scene: currentPreviewScene });
-
-  if (currentPreviewScene !== "scene3") lastSceneWas3 = false;
-}
-
-// ---------- Transitions ----------
-function sendTransition(e, style) {
-  currentTransitionStyle = style;
-
-  document.querySelectorAll(".transitionPanel button")
-    .forEach(btn => {
-      btn.style.background = "black";
-      btn.style.color = "gold";
-    });
-
-  e.target.style.background = "gold";
-  e.target.style.color = "black";
-
-  sendJSON({ type: "transition", style });
-}
-
-
-// ---------- Lower Third ----------
-function sendLower() {
-  lowerThirdVisible = true;
-  sendJSON({
-    type: "lowerthird",
-    show: true,
-    title: document.getElementById("ltTitle").value,
-    subtitle: document.getElementById("ltSub").value
-  });
-}
-
-function hideLower() {
-  lowerThirdVisible = false;
-  sendJSON({ type: "lowerthird", show: false });
-}
-
-// ---------- Ticker ----------
-function showTicker() {
-  tickerVisible = true;
-  sendJSON({
-    type: "ticker",
-    show: true,
-    text: document.getElementById("tickerInput").value
-  });
-}
-
-function hideTicker() {
-  tickerVisible = false;
-  sendJSON({ type: "ticker", show: false });
-}
-
-// ---------- Camera ----------
-function switchCam(cam) {
-  currentCamera = cam;
-  sendJSON({ type: "camera", view: cam });
-}
-
-// ---------- Studio B ----------
-function playStudioB() {
-  const url = document.getElementById("studioBUrl").value.trim();
-  if (!url) return;
-
-  // prevent clipboard watcher from reprocessing this pasted URL
-  lastClipboard = url;
-
-  sendJSON({ type: "studioB", url });
-
-  loadPreview("sceneStudioB");
-  takeScene();
-}
-
-// ---------- Scripture History ----------
-let scriptureHistory = [];
-
-function escapeHTML(str) {
-  return (str ?? "").replace(/[&<>"']/g, (m) => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  }[m]));
-}
-
-function addToHistory(title, body) {
-  scriptureHistory.unshift({ title, body });
-  if (scriptureHistory.length > 10) scriptureHistory.pop();
-  renderHistory();
-}
-
-function renderHistory() {
-  const box = document.getElementById("historyList");
-
-  if (scriptureHistory.length === 0) {
-    box.innerHTML = `<p style="color:#888;text-align:center;">No scriptures yet.</p>`;
-    return;
-  }
-
-  box.innerHTML = scriptureHistory.map((item, index) => `
-    <div style="padding:10px;margin-bottom:10px;border:1px solid gold;border-radius:6px;background:#111;">
-      <strong style="color:gold;">${escapeHTML(item.title)}</strong><br>
-      <span style="font-size:14px;color:#ccc;white-space:pre-wrap;">${escapeHTML(item.body)}</span>
-      <button onclick="resendHistory(${index})"
-        style="margin-top:8px;width:100%;padding:8px;background:black;border:1px solid gold;color:gold;border-radius:6px;">
-        🔁 Re‑Send
-      </button>
+      border:1px solid gold;
+    ">
+      <p style="color:#888;text-align:center;">No scriptures yet.</p>
     </div>
-  `).join("");
-}
+  </div>
 
-function resendHistory(index) {
-  const item = scriptureHistory[index];
-  if (!item) return;
+  <script>
+    const WS_URL = "wss://akm-cloud-control-production.up.railway.app";
+    let ws;
+    let sendQueue = [];
 
-  sendJSON({ type: "scripture", title: item.title, text: item.body });
-  lastScriptureTitle = item.title;
-  lastScriptureBody = item.body;
-}
+    // State
+    let currentPreviewScene = "scene1";
+    let currentProgramScene = "scene1";
+    let currentSceneLive = "scene1";
+    let currentTransitionStyle = "slide";
+    let currentCamera = "cam1";
+    let lowerThirdVisible = false;
+    let tickerVisible = false;
 
-// ---------- Clipboard helpers ----------
-function looksLikeUrl(text) {
-  return /^(https?:\/\/|www\.|youtu\.be\/|youtube\.com\/|m\.youtube\.com\/|open\.spotify\.com\/)/i
-    .test((text || "").trim());
-}
+    let lastClipboard = "";
+    let lastScriptureTitle = "";
+    let lastScriptureBody = "";
+    let lastSceneWas3 = false;
 
-function looksLikeScripture(text) {
-  const lines = (text || "").split("\n").map(l => l.trim()).filter(Boolean);
+    // ---------- UI helpers ----------
+    function setActiveSceneButton(scene) {
+      document.querySelectorAll(".sceneBtn")
+        .forEach(btn => btn.classList.remove("active"));
 
-  if (lines.length >= 2 && lines[0].match(/\d+:\d+/)) return true;
-
-
-  return /^[1-3]?\s?[A-Za-z]+(?:\s+[A-Za-z]+)*\s+\d+:\d+([-\u2013]\d+)?$/i
-    .test(lines[0] || "");
-}
-
-// ---------- Auto Clipboard -> Scripture + Auto Scene 3 ----------
-async function checkClipboard() {
-  try {
-    if (!navigator.clipboard || !navigator.clipboard.readText) return;
-
-    const text = await navigator.clipboard.readText();
-    if (!text || text.trim() === "") return;
-
-    const trimmed = text.trim();
-    const lower = trimmed.toLowerCase();
-
-    // block URLs
-    if (looksLikeUrl(trimmed)) return;
-
-    // block code/html noise
-    if (
-      trimmed.includes("<") || trimmed.includes(">") ||
-      lower.includes("html") ||
-      lower.includes("button") ||
-      lower.includes("script") ||
-      lower.includes("iframe") ||
-      trimmed.length > 300
-    ) return;
-
-    // only allow scripture-like content
-    if (!looksLikeScripture(trimmed)) return;
-
-    // prevent duplicates
-    if (trimmed === lastClipboard) return;
-    lastClipboard = trimmed;
-
-    let lines = trimmed.split("\n").map(l => l.trim()).filter(Boolean);
-    if (lines.length === 0) return;
-
-    let title = lines[0];
-    let body = lines.slice(1).join("\n").trim();
-
-    body = body.replace(/^\d+\s*/, "");
-
-    if (!body) {
-      body = title;
-      title = "Scripture";
+      const activeBtn = document.querySelector(`.sceneBtn[data-scene="${scene}"]`);
+      if (activeBtn) activeBtn.classList.add("active");
     }
 
-    lastScriptureTitle = title;
-    lastScriptureBody = body;
+    function setActiveTransitionButton(style) {
+      document.querySelectorAll(".transitionPanel button")
+        .forEach(btn => btn.classList.remove("active"));
 
-    sendJSON({ type: "scripture", title, text: body });
-    addToHistory(title, body);
-
-    // Auto take Scene 3 once
-    if (!lastSceneWas3) {
-      currentPreviewScene = "scene3";
-      currentProgramScene = "scene3";
-      currentSceneLive = "scene3";
-
-      document.getElementById("previewFrame").src = "scene3.html";
-      document.getElementById("programFrame").src = "scene3.html";
-
-      sendJSON({ type: "scene", scene: "scene3" });
-      lastSceneWas3 = true;
+      const activeBtn = document.querySelector(`.transitionPanel button[data-transition="${style}"]`);
+      if (activeBtn) activeBtn.classList.add("active");
     }
-  } catch (err) {
-    console.log("Clipboard read blocked:", err);
-  }
-}
 
-document.addEventListener("visibilitychange", () => {
-  if (!document.hidden) checkClipboard();
-});
-setInterval(checkClipboard, 3000);
-</script>
+    // ---------- WebSocket ----------
+    function connectWS() {
+      setWSStatus("connecting");
 
-  
+      try {
+        ws = new WebSocket(WS_URL);
+      } catch (e) {
+        console.log("❌ WebSocket init failed:", e);
+        setWSStatus("offline");
+        setTimeout(connectWS, 1500);
+      
+        return;
+      }
 
+      ws.onopen = () => {
+        console.log("✅ Control connected:", WS_URL);
+        setWSStatus("online");
+        while (sendQueue.length) ws.send(sendQueue.shift());
+      };
+
+      ws.onerror = (e) => {
+        console.log("❌ Control WS error", e);
+        setWSStatus("offline");
+      };
+
+      ws.onclose = (e) => {
+        console.log("⚠️ Control WS closed, retrying...", e.code);
+        setWSStatus("offline");
+        setTimeout(connectWS, 1000);
+      };
+
+      ws.onmessage = (event) => {
+        let data;
+        try {
+          data = JSON.parse(event.data);
+        } catch {
+          return;
+        }
+
+        if (data.type === "request_latest_scripture") {
+          if (lastScriptureTitle || lastScriptureBody) {
+            sendJSON({
+              type: "scripture",
+              title: lastScriptureTitle || "Scripture",
+              text: lastScriptureBody || ""
+            });
+          }
+          return;
+        }
+
+        if (data.type === "request_current_scene") {
+          if (currentSceneLive) {
+            sendJSON({
+              type: "scene",
+              scene: currentSceneLive
+            });
+          }
+          return;
+        }
+
+        if (data.type === "request_full_state") {
+          sendJSON({
+            type: "full_state",
+            scene: currentSceneLive,
+            transitionStyle: currentTransitionStyle,
+            studioBUrl: document.getElementById("studioBUrl").value.trim(),
+            lowerThird: {
+              show: lowerThirdVisible,
+              title: document.getElementById("ltTitle").value || "",
+              subtitle: document.getElementById("ltSub").value || ""
+            },
+            ticker: {
+              show: tickerVisible,
+              text: document.getElementById("tickerInput").value || ""
+            },
+            camera: currentCamera,
+            scripture: {
+              title: lastScriptureTitle || "",
+              text: lastScriptureBody || ""
+            }
+          });
+        }
+      };
+    }
+
+    function sendJSON(obj) {
+      const msg = JSON.stringify(obj);
+      if (ws && ws.readyState === WebSocket.OPEN) ws.send(msg);
+      else sendQueue.push(msg);
+    }
+
+    function setWSStatus(state) {
+      const el = document.getElementById("wsStatus");
+      const label = el.querySelector(".label");
+      el.classList.remove("online","offline","connecting");
+      el.classList.add(state);
+      label.textContent = state.toUpperCase();
+    }
+
+    connectWS();
+
+    // ---------- Preview / Program ----------
+    function loadPreview(e, scene) {
+      currentPreviewScene = scene;
+      setActiveSceneButton(scene);
+
+      document.getElementById("previewFrame").src = scene + ".html";
+
+      if (scene !== "scene3") lastSceneWas3 = false;
+    }
+
+    function takeScene() {
+      document.getElementById("programFrame").src = currentPreviewScene + ".html";
+
+      currentProgramScene = currentPreviewScene;
+      currentSceneLive = currentPreviewScene;
+
+      sendJSON({ type: "scene", scene: currentPreviewScene });
+
+      if (currentPreviewScene !== "scene3") lastSceneWas3 = false;
+    }
+
+    // ---------- Transitions ----------
+    function sendTransition(e, style) {
+      currentTransitionStyle = style;
+      setActiveTransitionButton(style);
+      sendJSON({ type: "transition", style });
+    }
+
+    // ---------- Lower Third ----------
+    function sendLower() {
+      lowerThirdVisible = true;
+      sendJSON({
+        type: "lowerthird",
+        show: true,
+        title: document.getElementById("ltTitle").value,
+        subtitle: document.getElementById("ltSub").value
+      });
+    }
+
+    function hideLower() {
+      lowerThirdVisible = false;
+      sendJSON({ type: "lowerthird", show: false });
+    }
+
+    // ---------- Ticker ----------
+    function showTicker() {
+      tickerVisible = true;
+      sendJSON({
+        type: "ticker",
+        show: true,
+        text: document.getElementById("tickerInput").value
+      });
+    }
+
+    function hideTicker() {
+      tickerVisible = false;
+      sendJSON({ type: "ticker", show: false });
+    }
+
+    // ---------- Camera ----------
+    function switchCam(cam) {
+      currentCamera = cam;
+      sendJSON({ type: "camera", view: cam });
+    }
+
+    // ---------- Studio B ----------
+    function playStudioB() {
+      const url = document.getElementById("studioBUrl").value.trim();
+      if (!url) return;
+
+      lastClipboard = url;
+
+      sendJSON({ type: "studioB", url });
+
+      currentPreviewScene = "sceneStudioB";
+      document.getElementById("previewFrame").src = "sceneStudioB.html";
+      setActiveSceneButton("sceneStudioB");
+
+      takeScene();
+    }
+
+    // ---------- Clipboard ----------
+    async function checkClipboard() {
+      try {
+        if (!navigator.clipboard || !navigator.clipboard.readText) return;
+
+        const text = await navigator.clipboard.readText();
+        if (!text || text.trim() === "") return;
+
+        const trimmed = text.trim();
+        if (trimmed === lastClipboard) return;
+
+        if (!looksLikeScripture(trimmed)) return;
+
+        lastClipboard = trimmed;
+
+        let lines = trimmed.split("\n").map(l => l.trim()).filter(Boolean);
+        if (lines.length === 0) return;
+
+        let title = lines[0];
+        let body = lines.slice(1).join("\n").trim();
+
+        if (!body) {
+          body = title;
+          title = "Scripture";
+        }
+
+        lastScriptureTitle = title;
+        lastScriptureBody = body;
+
+        sendJSON({ type: "scripture", title, text: body });
+
+        // Auto switch to Scene 3
+        if (!lastSceneWas3) {
+          currentPreviewScene = "scene3";
+          currentSceneLive = "scene3";
+
+          document.getElementById("previewFrame").src = "scene3.html";
+          document.getElementById("programFrame").src = "scene3.html";
+
+          setActiveSceneButton("scene3");
+
+          sendJSON({ type: "scene", scene: "scene3" });
+
+          lastSceneWas3 = true;
+        }
+      } catch (err) {
+        console.log("Clipboard blocked:", err);
+      }
+    }
+
+    setInterval(checkClipboard, 3000);
+  </script>
 </body>
-  </html>
+</html>
