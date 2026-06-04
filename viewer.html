@@ -502,11 +502,7 @@ function requestLatestScripture() {
   }
 }
 
-function requestCurrentScene() {
-  if (socket && socket.readyState === WebSocket.OPEN) {
-    socket.send(JSON.stringify({ type: "request_current_scene" }));
-  }
-}
+
 
 function requestFullState() {
   if (socket && socket.readyState === WebSocket.OPEN) {
