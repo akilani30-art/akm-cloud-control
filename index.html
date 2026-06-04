@@ -375,14 +375,15 @@ function sendLower() {
 
 
 function hideLower() {
+  lowerThirdVisible = false;
+
   sendJSON({
-    type: "lowerThird",
+    type: "lowerthird",
     show: false
   });
 
   console.log("📺 Lower Third OFF");
 }
-
 
 // ---------- TICKER ----------
 function showTicker() {
