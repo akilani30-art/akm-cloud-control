@@ -426,7 +426,64 @@ function looksLikeScripture(text) {
 
 async function checkClipboard() {
   try {
-    if (!navigator.clipboard || !window.isSecure
+    if (!navigator.clipboard || !window.isSecureContext) return;
+
+    const text = await navigator.clipboard.readText();
+    if (!text || text.trim() === "") return;
+
+    const trimmed = text.trim();
+
+    const now = Date.now();
+    if (now - lastClipboardTime < 2000) return;
+    lastClipboardTime = now;
+
+    if (trimmed === lastClipboard) return;
+    if (!looksLikeScripture(trimmed)) return;
+
+    lastClipboard = trimmed;
+
+    const lines = trimmed.split("\n").map(l => l.trim()).filter(Boolean);
+
+    let title = lines[0];
+    let body = lines.slice(1).join("\n");
+
+    if (!body) {
+      body = title;
+      title = "Scripture";
+    }
+
+    lastScriptureTitle = title;
+    lastScriptureBody = body;
+
+    sendJSON({
+      type: "scripture",
+      title,
+      text: body
+    });
+
+    addToHistory(title, body);
+
+    if (!lastSceneWas3) {
+      currentPreviewScene = "scene3";
+      currentProgramScene = "scene3";
+      currentSceneLive = "scene3";
+
+      document.getElementById("previewFrame").src = "scene3.html";
+      document.getElementById("programFrame").src = "scene3.html";
+
+      setActiveSceneButton("scene3");
+
+      sendJSON({ type: "scene", scene: "scene3" });
+
+      lastSceneWas3 = true;
+
+      console.log("📖 → Scene 3");
+    }
+
+  } catch (err) {
+    console.log("Clipboard error:", err);
+  }
+}
 
 </script>
 </body>
