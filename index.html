@@ -254,6 +254,17 @@
       if (activeBtn) activeBtn.classList.add("active");
     }
 
+function setWSStatus(state) {
+  const el = document.getElementById("wsStatus");
+  const label = el.querySelector(".label");
+
+  el.classList.remove("online", "offline", "connecting");
+  el.classList.add(state);
+
+  label.textContent = state.toUpperCase();
+}
+
+
     // ---------- WebSocket ----------
     // ---------- WebSocket (FIXED + ROBUST) ----------
 // ---------- WebSocket + Scripture FULL REPLACE ----------
