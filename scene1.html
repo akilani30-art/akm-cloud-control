@@ -53,14 +53,17 @@ html, body {
 
 <script>
 function switchScene(scene) {
-  const iframe = document.getElementById("cameraFeed");
+  const oldIframe = document.getElementById("cameraFeed");
 
-  // Clear first (forces reload properly)
-  iframe.src = "";
-  
-  setTimeout(() => {
-    iframe.src = scene + "?t=" + Date.now();
-  }, 50);
+  const newIframe = document.createElement("iframe");
+  newIframe.id = "cameraFeed";
+  newIframe.src = scene + "?t=" + Date.now();
+  newIframe.style.width = "100%";
+  newIframe.style.height = "100%";
+  newIframe.style.border = "none";
+  newIframe.style.background = "black";
+
+  oldIframe.parentNode.replaceChild(newIframe, oldIframe);
 }
 </script>
 
