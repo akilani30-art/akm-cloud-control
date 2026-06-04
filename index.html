@@ -129,24 +129,21 @@ input {
   <span class="dot"></span>
   <span class="label">OFFLINE</span>
 </div>
-
 <h2>Scenes</h2>
 <button onclick="loadPreview('scene1')">Scene 1</button>
 <button onclick="loadPreview('scene2')">Scene 2</button>
 <button onclick="loadPreview('scene3')">Scene 3</button>
 <button onclick="loadPreview('scene4')">Scene 4</button>
-<button
-onclick="loadPreview('sceneStudioB')">StudioB<button>
+<button onclick="loadPreview('sceneStudioB')">Studio B</button>
 <button onclick="takeScene()">✔ TAKE</button>
-
 <h2>Transitions</h2>
 <div class="transitionPanel">
   <button onclick="sendTransition(event, 'cut')">CUT</button>
-<button onclick="sendTransition(event, 'fade')">FADE</button>
-<button onclick="sendTransition(event, 'wipe')">WIPE</button>
-<button onclick="sendTransition(event, 'slide')">SLIDE</button>
-button>
+  <button onclick="sendTransition(event, 'fade')">FADE</button>
+  <button onclick="sendTransition(event, 'wipe')">WIPE</button>
+  <button onclick="sendTransition(event, 'slide')">SLIDE</button>
 </div>
+
 
 <h2>Studio B Player</h2>
 <input id="studioBUrl" placeholder="Paste YouTube / Spotify / Stream URL">
