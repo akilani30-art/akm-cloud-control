@@ -931,8 +931,11 @@ isTransitioning = true;
   // Clean up old frame after transition
   setTimeout(() => {
   resetFrame(currentFrame);
-  currentFrame.style.left = "0";   // ✅ ADD THIS
-  nextFrame.style.left = "0";      // ✅ ADD THIS
+
+  currentFrame.style.left = "0";
+  nextFrame.style.left = "0";
+
+  isTransitioning = false; // ✅ THIS IS MISSING
 }, transitionDuration(style));
 
   // Swap buffers
