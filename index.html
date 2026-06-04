@@ -361,7 +361,8 @@ async function checkClipboard() {
     if (!navigator.clipboard || !window.isSecureContext) return;
 
     const text = await navigator.clipboard.readText();
-    if (!text) return;
+    if (!text || text.trim() === "") return;
+
 
     const trimmed = text.trim();
 
