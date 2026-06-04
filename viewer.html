@@ -364,12 +364,26 @@ let socket;
 let showingA = true;
 let transitionStyle = "slide";
 let currentScene = "scene1.html";
-let reconnectDelay = 1000;
 let lastScripture = null;
 
 const WS_URL = "wss://akm-cloud-control-production.up.railway.app";
+
 let transitionQueue = [];
 let processingQueue = false;
+
+// Reconnect / reliability state
+let reconnectAttempt = 0;
+let reconnectTimer = null;
+let heartbeatTimer = null;
+let heartbeatTimeoutTimer = null;
+let lastServerMessageAt = 0;
+let manuallyClosed = false;
+
+// Heartbeat settings
+const HEARTBEAT_INTERVAL_MS = 30000;   // periodic re-sync / keepalive
+const HEARTBEAT_TIMEOUT_MS  = 12000;   // if no response after heartbeat, reconnect
+const RECONNECT_BASE_MS     = 1000;
+const RECONNECT_CAP_MS      = 30000;
 
 // Preload cache
 const preloadPromises = new Map();
@@ -429,14 +443,83 @@ function deactivateFrame(frame) {
 }
 
 function getTargetOrigin() {
-  // If served normally over http/https, use a specific origin.
-  // If loaded via file:// or another opaque origin, fall back to "*".
+  // Use a specific origin when available; fall back to "*" only for opaque origins (e.g. file:)
   return (location.origin && location.origin !== "null") ? location.origin : "*";
 }
 
+function markServerAlive() {
+  lastServerMessageAt = Date.now();
+  clearHeartbeatTimeout();
+}
+
+function clearHeartbeatTimeout() {
+  if (heartbeatTimeoutTimer) {
+    clearTimeout(heartbeatTimeoutTimer);
+    heartbeatTimeoutTimer = null;
+  }
+}
+
+function stopHeartbeat() {
+  if (heartbeatTimer) {
+    clearInterval(heartbeatTimer);
+    heartbeatTimer = null;
+  }
+  clearHeartbeatTimeout();
+}
+
+function startHeartbeat() {
+  stopHeartbeat();
+
+  heartbeatTimer = setInterval(() => {
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+
+    // Request a fresh snapshot periodically — acts as both heartbeat and re-sync
+    requestFullState();
+
+    clearHeartbeatTimeout();
+    heartbeatTimeoutTimer = setTimeout(() => {
+      // If the server did not respond in time, force reconnect
+      try {
+        socket.close();
+      } catch {}
+    }, HEARTBEAT_TIMEOUT_MS);
+  }, HEARTBEAT_INTERVAL_MS);
+}
+
+function nextReconnectDelay() {
+  const base = Math.min(RECONNECT_BASE_MS * (2 ** reconnectAttempt), RECONNECT_CAP_MS);
+  const jitter = base * 0.25 * (Math.random() * 2 - 1); // ±25%
+  reconnectAttempt += 1;
+  return Math.max(0, Math.floor(base + jitter));
+}
+
+function scheduleReconnect() {
+  if (manuallyClosed) return;
+  if (reconnectTimer) return;
+
+  const delay = nextReconnectDelay();
+  reconnectTimer = setTimeout(() => {
+    reconnectTimer = null;
+    connectWS();
+  }, delay);
+}
+
+// ---------- Requests ----------
 function requestLatestScripture() {
   if (socket && socket.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify({ type: "request_latest_scripture" }));
+  }
+}
+
+function requestCurrentScene() {
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    socket.send(JSON.stringify({ type: "request_current_scene" }));
+  }
+}
+
+function requestFullState() {
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    socket.send(JSON.stringify({ type: "request_full_state" }));
   }
 }
 
@@ -470,7 +553,7 @@ function preloadScene(scene) {
     iframe.style.top = "-99999px";
 
     iframe.onload = () => resolve();
-    iframe.onerror = () => resolve(); // fail soft, don't block switching
+    iframe.onerror = () => resolve(); // fail soft
 
     preloadContainer.appendChild(iframe);
   });
@@ -527,7 +610,7 @@ async function switchScene(newScene, style = "cut", force = false) {
 
   await preloadScene(newScene);
 
-  // If Scene 3 is about to show, ask the server to resend the latest scripture
+  // If Scene 3 is about to show, ask the server for latest scripture
   if (newScene === "scene3.html") {
     requestLatestScripture();
   }
@@ -538,26 +621,23 @@ async function switchScene(newScene, style = "cut", force = false) {
       incoming.onload = () => {
         incoming.onload = null;
 
-        // Replay locally cached scripture after Scene 3 finishes loading
         if (newScene === "scene3.html") {
-          setTimeout(() => {
-            replayScriptureToFrame(incoming);
-          }, 80);
+          setTimeout(() => replayScriptureToFrame(incoming), 80);
         }
 
         resolve();
       };
+
       incoming.onerror = () => {
         incoming.onerror = null;
         resolve();
       };
+
       incoming.setAttribute("src", newScene);
     });
   } else {
     if (newScene === "scene3.html") {
-      setTimeout(() => {
-        replayScriptureToFrame(incoming);
-      }, 50);
+      setTimeout(() => replayScriptureToFrame(incoming), 50);
     }
   }
 
@@ -669,44 +749,51 @@ updateClock();
 
 // ---------- WebSocket ----------
 function connectWS() {
+  stopHeartbeat();
   setWSStatus("connecting");
 
   try {
     socket = new WebSocket(WS_URL);
   } catch (e) {
     setWSStatus("offline");
-    setTimeout(connectWS, reconnectDelay);
-    reconnectDelay = Math.min(reconnectDelay * 1.5, 10000);
+    scheduleReconnect();
     return;
   }
 
   socket.onopen = () => {
-    console.log("✅ Viewer connected");
+    reconnectAttempt = 0;
     setWSStatus("online");
-    reconnectDelay = 1000;
+    markServerAlive();
 
-    // Recover latest scripture after reconnect/reload
-    requestLatestScripture();
+    // Strong initial sync
+    requestFullState();
+
+    // Keepalive + auto-resync
+    startHeartbeat();
   };
 
   socket.onmessage = (event) => {
+    markServerAlive();
+
     let data;
     try {
       data = JSON.parse(event.data);
     } catch {
       return;
     }
+
     handleMessage(data);
   };
 
   socket.onerror = () => {
-    setWSStatus("offline");
+    // let onclose drive reconnect
+    try { socket.close(); } catch {}
   };
 
   socket.onclose = () => {
     setWSStatus("offline");
-    setTimeout(connectWS, reconnectDelay);
-    reconnectDelay = Math.min(reconnectDelay * 1.5, 10000);
+    stopHeartbeat();
+    scheduleReconnect();
   };
 }
 
@@ -723,6 +810,11 @@ function postToSceneFrames(data) {
 function handleMessage(data) {
   if (!data || typeof data !== "object") return;
 
+  // If your server ever adds pong, this will keep working
+  if (data.type === "pong") {
+    return;
+  }
+
   if (data.type === "transition") {
     transitionStyle = data.style || "cut";
     return;
@@ -730,21 +822,26 @@ function handleMessage(data) {
 
   if (data.type === "scene") {
     const style = data.transition || transitionStyle || "cut";
-    enqueueScene(data.scene, style);
+    enqueueScene(data.scene, style, { force: true });
     return;
   }
 
   if (data.type === "studioB") {
     postToSceneFrames(data);
-    enqueueScene("sceneStudioB.html", transitionStyle || "cut");
+    enqueueScene("sceneStudioB.html", transitionStyle || "cut", { force: true });
     return;
   }
 
   if (data.type === "studioB_control") {
     postToSceneFrames(data);
     if (data.action === "play") {
-      enqueueScene("sceneStudioB.html", transitionStyle || "cut");
+      enqueueScene("sceneStudioB.html", transitionStyle || "cut", { force: true });
     }
+    return;
+  }
+
+  if (data.type === "camera") {
+    postToSceneFrames(data);
     return;
   }
 
@@ -754,7 +851,6 @@ function handleMessage(data) {
       title: data.title || "",
       text: data.text || ""
     };
-
     postToSceneFrames(lastScripture);
     return;
   }
@@ -823,9 +919,61 @@ function handleMessage(data) {
     bar.style.opacity = "1";
     return;
   }
+
+  if (data.type === "full_state") {
+    if (data.transitionStyle) {
+      transitionStyle = data.transitionStyle;
+    }
+
+    if (data.scripture && (data.scripture.title || data.scripture.text)) {
+      lastScripture = {
+        type: "scripture",
+        title: data.scripture.title || "",
+        text: data.scripture.text || ""
+      };
+      postToSceneFrames(lastScripture);
+    }
+
+    if (data.studioBUrl) {
+      postToSceneFrames({
+        type: "studioB",
+        url: data.studioBUrl
+      });
+    }
+
+    if (data.camera) {
+      postToSceneFrames({
+        type: "camera",
+        view: data.camera
+      });
+    }
+
+    if (data.lowerThird) {
+      handleMessage({
+        type: "lowerthird",
+        show: !!data.lowerThird.show,
+        title: data.lowerThird.title || "",
+        subtitle: data.lowerThird.subtitle || ""
+      });
+    }
+
+    if (data.ticker) {
+      handleMessage({
+        type: "ticker",
+        show: !!data.ticker.show,
+        text: data.ticker.text || ""
+      });
+    }
+
+    if (data.scene) {
+      enqueueScene(data.scene, transitionStyle || "cut", { force: true });
+    }
+
+    return;
+  }
 }
 
-// ---------- Small safety helper ----------
+// ---------- Safety helper ----------
 function escapeHTML(str) {
   return String(str ?? "")
     .replace(/&/g, "&amp;")
@@ -834,6 +982,25 @@ function escapeHTML(str) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 }
+
+// ---------- Visibility / network recovery ----------
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) {
+    if (!socket || socket.readyState === WebSocket.CLOSED) {
+      connectWS();
+    } else if (socket.readyState === WebSocket.OPEN) {
+      requestFullState();
+    }
+  }
+});
+
+window.addEventListener("online", () => {
+  if (!socket || socket.readyState !== WebSocket.OPEN) {
+    connectWS();
+  } else {
+    requestFullState();
+  }
+});
 
 // ---------- Startup ----------
 connectWS();
