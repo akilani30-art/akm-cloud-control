@@ -498,6 +498,12 @@ function connectWS() {
     scheduleReconnect();
     return;
   }
+setInterval(() => {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    sendJSON({ type: "scene", scene: currentSceneLive });
+  }
+}, 2000);
+
 
   ws.onopen = () => {
     console.log("✅ WebSocket Connected");
