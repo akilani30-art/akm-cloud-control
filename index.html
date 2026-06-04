@@ -372,6 +372,9 @@ async function checkClipboard() {
 
 
     const trimmed = text.trim();
+const now = Date.now();
+if (now - lastClipboardTime < 2000) return;
+lastClipboardTime = now;
 
     console.log("Clipboard:", trimmed);
 
