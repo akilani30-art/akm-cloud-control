@@ -414,11 +414,12 @@ function switchCam(cam) {
 
   sendJSON({
     type: "camera",
-    camera: cam
+    view: cam
   });
 
   console.log("🎥 Camera:", cam);
 }
+
 
 
 
