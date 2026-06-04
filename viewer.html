@@ -586,17 +586,6 @@ async function processQueue() {
 }
 
 
-function sendStudioBControl(frame, action) {
-  try {
-    const src = (frame.getAttribute("src") || "").split("?")[0];
-    if (src === "sceneStudioB.html" && frame.contentWindow) {
-      frame.contentWindow.postMessage(
-        { type: "studioB_control", action },
-        getTargetOrigin()
-      );
-    }
-  } catch {}
-}
 
 // ---------- Scene Switching ----------
 function sendStudioBControl(frame, action) {
