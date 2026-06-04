@@ -144,9 +144,65 @@ function loadMedia(url) {
 }
 
 /* ✅ Listen for messages */
+let wasPlayingBeforePause = false;
+
+/* ✅ Control current media */
+function pauseMedia() {
+  const video = document.querySelector("video");
+  const iframe = document.querySelector("iframe");
+
+  // HTML5 video
+  if (video) {
+    wasPlayingBeforePause = !video.paused && !video.ended;
+    video.pause();
+    return;
+  }
+
+  // YouTube iframe
+  if (iframe && iframe.src.includes("youtube.com")) {
+    wasPlayingBeforePause = true;
+
+    iframe.contentWindow.postMessage(
+      JSON.stringify({
+        event: "command",
+        func: "pauseVideo",
+        args: []
+      }),
+      "https://www.youtube.com"
+    );
+  }
+}
+
+function resumeMedia() {
+  const video = document.querySelector("video");
+  const iframe = document.querySelector("iframe");
+
+  // HTML5 video
+  if (video && wasPlayingBeforePause) {
+    video.play().catch(() => {});
+    return;
+  }
+
+  // YouTube iframe
+  if (iframe && iframe.src.includes("youtube.com") && wasPlayingBeforePause) {
+    iframe.contentWindow.postMessage(
+      JSON.stringify({
+        event: "command",
+        func: "playVideo",
+        args: []
+      }),
+      "https://www.youtube.com"
+    );
+  }
+}
+
+/* ✅ Listen for messages */
 window.addEventListener("message", (event) => {
   const data = event.data;
 
+  if (!data) return;
+
+  // ✅ Load media
   if (data.type === "studioB") {
     const title = document.getElementById("mediaTitle");
 
@@ -155,8 +211,21 @@ window.addEventListener("message", (event) => {
     if (data.url) {
       loadMedia(data.url);
     }
+    return;
+  }
+
+  // ✅ Pause / Resume control
+  if (data.type === "studioB_control") {
+    if (data.action === "pause") {
+      pauseMedia();
+    }
+
+    if (data.action === "resume") {
+      resumeMedia();
+    }
   }
 });
+
 
 </script>
 
