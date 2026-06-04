@@ -293,6 +293,115 @@ function loadPreview(e, scene) {
   console.log("👁 Preview loaded:", scene);
 }
 
+// ---------- CORE ACTIONS ----------
+
+// TAKE button
+function takeScene() {
+  if (currentPreviewScene === currentProgramScene) return;
+
+  currentProgramScene = currentPreviewScene;
+  currentSceneLive = currentPreviewScene;
+
+  document.getElementById("programFrame").src = currentProgramScene + ".html";
+
+  sendJSON({
+    type: "scene",
+    scene: currentProgramScene
+  });
+
+  console.log("🎬 TAKEN:", currentProgramScene);
+}
+
+
+// ---------- TRANSITIONS ----------
+function sendTransition(e, style) {
+  currentTransitionStyle = style;
+  setActiveTransitionButton(style);
+
+  sendJSON({
+    type: "transition",
+    style
+  });
+
+  console.log("🎞 Transition:", style);
+}
+
+
+// ---------- STUDIO B ----------
+function playStudioB() {
+  const url = document.getElementById("studioBUrl").value.trim();
+
+  if (!url) return;
+
+  sendJSON({
+    type: "studioB",
+    url
+  });
+
+  console.log("🎵 Studio B:", url);
+}
+
+
+// ---------- LOWER THIRD ----------
+function sendLower() {
+  const title = document.getElementById("ltTitle").value;
+  const sub = document.getElementById("ltSub").value;
+
+  sendJSON({
+    type: "lowerThird",
+    show: true,
+    title,
+    subtitle: sub
+  });
+
+  console.log("📺 Lower Third ON");
+}
+
+function hideLower() {
+  sendJSON({
+    type: "lowerThird",
+    show: false
+  });
+
+  console.log("📺 Lower Third OFF");
+}
+
+
+// ---------- TICKER ----------
+function showTicker() {
+  const text = document.getElementById("tickerInput").value;
+
+  sendJSON({
+    type: "ticker",
+    show: true,
+    text
+  });
+
+  console.log("📰 Ticker ON");
+}
+
+function hideTicker() {
+  sendJSON({
+    type: "ticker",
+    show: false
+  });
+
+  console.log("📰 Ticker OFF");
+}
+
+
+// ---------- CAMERA ----------
+function switchCam(cam) {
+  currentCamera = cam;
+
+  sendJSON({
+    type: "camera",
+    camera: cam
+  });
+
+  console.log("🎥 Camera:", cam);
+}
+
 
 
     // ---------- WebSocket ----------
