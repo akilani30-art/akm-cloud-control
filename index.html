@@ -203,6 +203,13 @@ let sendQueue = [];
 
 // State
 let currentPreviewScene = "scene1";
+let currentProgramScene = "scene1";
+let currentSceneLive = "scene1";
+let currentTransitionStyle = "slide";
+let currentCamera = "cam1";
+let lowerThirdVisible = false;
+let tickerVisible = false;
+
 let lastClipboard = "";
 let lastScriptureTitle = "";
 let lastScriptureBody = "";
@@ -245,10 +252,50 @@ function connectWS() {
     } catch {
       return;
     }
+
     if (data.type === "request_latest_scripture") {
-      if (lastScriptureTitle && lastScriptureBody) {
-        sendJSON({ type:"scripture", title:lastScriptureTitle, text:lastScriptureBody });
+      if (lastScriptureTitle || lastScriptureBody) {
+        sendJSON({
+          type: "scripture",
+          title: lastScriptureTitle || "Scripture",
+          text: lastScriptureBody || ""
+        });
       }
+      return;
+    }
+
+    if (data.type === "request_current_scene") {
+      if (currentSceneLive) {
+        sendJSON({
+          type: "scene",
+          scene: currentSceneLive
+        });
+      }
+      return;
+    }
+
+    if (data.type === "request_full_state") {
+      sendJSON({
+        type: "full_state",
+        scene: currentSceneLive,
+        transitionStyle: currentTransitionStyle,
+        studioBUrl: document.getElementById("studioBUrl").value.trim(),
+        lowerThird: {
+          show: lowerThirdVisible,
+          title: document.getElementById("ltTitle").value || "",
+          subtitle: document.getElementById("ltSub").value || ""
+        },
+        ticker: {
+          show: tickerVisible,
+          text: document.getElementById("tickerInput").value || ""
+        },
+        camera: currentCamera,
+        scripture: {
+          title: lastScriptureTitle || "",
+          text: lastScriptureBody || ""
+        }
+      });
+      return;
     }
   };
 }
@@ -278,6 +325,9 @@ function loadPreview(scene) {
 
 function takeScene() {
   document.getElementById("programFrame").src = currentPreviewScene + ".html";
+  currentProgramScene = currentPreviewScene;
+  currentSceneLive = currentPreviewScene;
+
   sendJSON({ type: "scene", scene: currentPreviewScene });
 
   if (currentPreviewScene !== "scene3") lastSceneWas3 = false;
@@ -285,11 +335,13 @@ function takeScene() {
 
 // ---------- Transitions ----------
 function sendTransition(style) {
+  currentTransitionStyle = style;
   sendJSON({ type: "transition", style });
 }
 
 // ---------- Lower Third ----------
 function sendLower() {
+  lowerThirdVisible = true;
   sendJSON({
     type: "lowerthird",
     show: true,
@@ -299,11 +351,13 @@ function sendLower() {
 }
 
 function hideLower() {
+  lowerThirdVisible = false;
   sendJSON({ type: "lowerthird", show: false });
 }
 
 // ---------- Ticker ----------
 function showTicker() {
+  tickerVisible = true;
   sendJSON({
     type: "ticker",
     show: true,
@@ -312,11 +366,13 @@ function showTicker() {
 }
 
 function hideTicker() {
+  tickerVisible = false;
   sendJSON({ type: "ticker", show: false });
 }
 
 // ---------- Camera ----------
 function switchCam(cam) {
+  currentCamera = cam;
   sendJSON({ type: "camera", view: cam });
 }
 
@@ -325,7 +381,7 @@ function playStudioB() {
   const url = document.getElementById("studioBUrl").value.trim();
   if (!url) return;
 
-  // ✅ VERY IMPORTANT: stop clipboard watcher from reprocessing this
+  // prevent clipboard watcher from reprocessing this pasted URL
   lastClipboard = url;
 
   sendJSON({ type: "studioB", url });
@@ -333,7 +389,6 @@ function playStudioB() {
   loadPreview("sceneStudioB");
   takeScene();
 }
-
 
 // ---------- Scripture History ----------
 let scriptureHistory = [];
@@ -373,12 +428,13 @@ function renderHistory() {
 function resendHistory(index) {
   const item = scriptureHistory[index];
   if (!item) return;
+
   sendJSON({ type: "scripture", title: item.title, text: item.body });
   lastScriptureTitle = item.title;
   lastScriptureBody = item.body;
 }
 
-// ---------- Auto Clipboard -> Scripture + Auto Scene 3 ----------
+// ---------- Clipboard helpers ----------
 function looksLikeUrl(text) {
   return /^(https?:\/\/|www\.|youtu\.be\/|youtube\.com\/|m\.youtube\.com\/|open\.spotify\.com\/)/i
     .test((text || "").trim());
@@ -387,14 +443,13 @@ function looksLikeUrl(text) {
 function looksLikeScripture(text) {
   const lines = (text || "").split("\n").map(l => l.trim()).filter(Boolean);
 
-  // Multi-line = very likely scripture
   if (lines.length >= 2) return true;
 
-  // Single-line scripture like "John 3:16"
   return /^[1-3]?\s?[A-Za-z]+(?:\s+[A-Za-z]+)*\s+\d+:\d+([-\u2013]\d+)?$/i
     .test(lines[0] || "");
 }
 
+// ---------- Auto Clipboard -> Scripture + Auto Scene 3 ----------
 async function checkClipboard() {
   try {
     if (!navigator.clipboard || !navigator.clipboard.readText) return;
@@ -405,10 +460,10 @@ async function checkClipboard() {
     const trimmed = text.trim();
     const lower = trimmed.toLowerCase();
 
-    // ✅ 1. BLOCK URLs (MAIN FIX)
+    // block URLs
     if (looksLikeUrl(trimmed)) return;
 
-    // ✅ 2. BLOCK code/html noise
+    // block code/html noise
     if (
       trimmed.includes("<") || trimmed.includes(">") ||
       lower.includes("html") ||
@@ -418,10 +473,10 @@ async function checkClipboard() {
       trimmed.length > 300
     ) return;
 
-    // ✅ 3. ONLY allow scripture-like content
+    // only allow scripture-like content
     if (!looksLikeScripture(trimmed)) return;
 
-    // ✅ 4. Prevent duplicates
+    // prevent duplicates
     if (trimmed === lastClipboard) return;
     lastClipboard = trimmed;
 
@@ -431,7 +486,6 @@ async function checkClipboard() {
     let title = lines[0];
     let body = lines.slice(1).join("\n").trim();
 
-    // Remove verse numbers like "16 "
     body = body.replace(/^\d+\s*/, "");
 
     if (!body) {
@@ -445,15 +499,18 @@ async function checkClipboard() {
     sendJSON({ type: "scripture", title, text: body });
     addToHistory(title, body);
 
-    // ✅ Auto switch Scene 3 (once)
+    // Auto take Scene 3 once
     if (!lastSceneWas3) {
       currentPreviewScene = "scene3";
+      currentProgramScene = "scene3";
+      currentSceneLive = "scene3";
+
       document.getElementById("previewFrame").src = "scene3.html";
       document.getElementById("programFrame").src = "scene3.html";
+
       sendJSON({ type: "scene", scene: "scene3" });
       lastSceneWas3 = true;
     }
-
   } catch (err) {
     console.log("Clipboard read blocked:", err);
   }
@@ -463,6 +520,9 @@ document.addEventListener("visibilitychange", () => {
   if (!document.hidden) checkClipboard();
 });
 setInterval(checkClipboard, 3000);
+</script>
+
+  
 </script>
 
 </body>
