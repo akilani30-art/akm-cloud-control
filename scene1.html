@@ -30,13 +30,32 @@ html, body {
   background: black;
   object-fit: cover;
 }
+
+#controls {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 10;
+}
 </style>
 </head>
 
 <body>
+
 <div id="cameraWrap">
   <iframe id="cameraFeed" src="cam1.html"></iframe>
 </div>
+
+<div id="controls">
+  <button onclick="switchScene('cam1.html')">Scene 1</button>
+  <button onclick="switchScene('cam2.html')">Scene 2</button>
+</div>
+
+<script>
+function switchScene(scene) {
+  document.getElementById("cameraFeed").src = scene;
+}
+</script>
+
 </body>
 </html>
-
