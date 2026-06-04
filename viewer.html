@@ -959,9 +959,9 @@ function handleMessage(data) {
       });
     }
 
-    if (data.scene) {
-      enqueueScene(data.scene, transitionStyle || "cut", { force: true });
-    }
+    if (data.scene && normalizeScene(data.scene) !== currentScene) {
+  enqueueScene(data.scene, transitionStyle || "cut");
+}
 
     return;
   }
