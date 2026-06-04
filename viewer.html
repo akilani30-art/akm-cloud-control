@@ -631,7 +631,11 @@ async function switchScene(newScene, style = "cut", force = false) {
     // ✅ RESET outgoing iframe
     setTimeout(() => {
       try {
-        outgoing.setAttribute("src", "about:blank");
+        const src = outgoing.getAttribute("src");
+if (src === "sceneStudioB.html") {
+  outgoing.setAttribute("src", "about:blank");
+}
+
       } catch {}
     }, 50);
 
