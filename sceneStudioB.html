@@ -121,7 +121,7 @@ function loadMedia(url) {
   if (type === "youtube") {
     const iframe = document.createElement("iframe");
     iframe.src = toYouTubeEmbed(url);
-    iframe.allow = "autoplay; encrypted-media";
+    iframe.allow = "autoplay; encrypted-media; fullscreen";
     iframe.allowFullscreen = true;
     container.appendChild(iframe);
     return;
