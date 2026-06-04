@@ -314,11 +314,21 @@ function setWSStatus(state){
 connectWS();
 
 // ---------- Preview / Program ----------
-function loadPreview(scene) {
+function loadPreview(e, scene) {
   currentPreviewScene = scene;
+
+  // reset buttons
+  document.querySelectorAll("h2 + button, h2 + button + button")
+    .forEach(btn => btn.style.background = "#1e88e5");
+
+  // highlight selected
+  e.target.style.background = "gold";
+
   document.getElementById("previewFrame").src = scene + ".html";
+
   if (scene !== "scene3") lastSceneWas3 = false;
 }
+
 
 function takeScene() {
   document.getElementById("programFrame").src = currentPreviewScene + ".html";
