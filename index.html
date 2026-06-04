@@ -264,6 +264,17 @@ function setWSStatus(state) {
   label.textContent = state.toUpperCase();
 }
 
+function sendJSON(obj) {
+  const msg = JSON.stringify(obj);
+
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(msg);
+  } else {
+    sendQueue.push(msg);
+  }
+}
+
+
 
     // ---------- WebSocket ----------
     // ---------- WebSocket (FIXED + ROBUST) ----------
