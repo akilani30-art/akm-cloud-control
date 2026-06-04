@@ -597,21 +597,13 @@ async function switchScene(newScene, style = "cut", force = false) {
 
   await preloadScene(newScene);
 
-  // If Scene 3 is about to show, ask the server for latest scripture
-  if (newScene === "scene3.html") {
-    requestLatestScripture();
-  }
-
+  // Load new scene into incoming iframe
   const incomingSrc = (incoming.getAttribute("src") || "").split("?")[0];
+
   if (incomingSrc !== newScene) {
     await new Promise((resolve) => {
       incoming.onload = () => {
         incoming.onload = null;
-
-        if (newScene === "scene3.html") {
-          setTimeout(() => replayScriptureToFrame(incoming), 80);
-        }
-
         resolve();
       };
 
@@ -622,24 +614,31 @@ async function switchScene(newScene, style = "cut", force = false) {
 
       incoming.setAttribute("src", newScene);
     });
-  } else {
-    if (newScene === "scene3.html") {
-      setTimeout(() => replayScriptureToFrame(incoming), 50);
-    }
   }
 
+  // Reset both frames before transition
   resetFrame(incoming);
   resetFrame(outgoing);
 
+  // ---------- CUT ----------
   if (style === "cut") {
     activateFrame(incoming);
     deactivateFrame(outgoing);
+
     currentScene = newScene;
     showingA = !showingA;
-    await new Promise(r => setTimeout(r, transitionDuration(style)));
+
+    // ✅ RESET outgoing iframe
+    setTimeout(() => {
+      try {
+        outgoing.setAttribute("src", "about:blank");
+      } catch {}
+    }, 50);
+
     return;
   }
 
+  // ---------- FADE ----------
   if (style === "fade") {
     incoming.classList.add("activeScene");
     incoming.style.left = "0";
@@ -661,21 +660,29 @@ async function switchScene(newScene, style = "cut", force = false) {
 
     deactivateFrame(outgoing);
     activateFrame(incoming);
+
     currentScene = newScene;
     showingA = !showingA;
+
+    // ✅ RESET outgoing iframe
+    setTimeout(() => {
+      try {
+        outgoing.setAttribute("src", "about:blank");
+      } catch {}
+    }, 50);
+
     return;
   }
 
+  // ---------- WIPE ----------
   if (style === "wipe") {
     incoming.classList.add("activeScene");
     incoming.style.left = "100%";
     incoming.style.opacity = "1";
-    incoming.style.pointerEvents = "auto";
 
     outgoing.classList.add("activeScene");
     outgoing.style.left = "0";
     outgoing.style.opacity = "1";
-    outgoing.style.pointerEvents = "none";
 
     await new Promise((resolve) => {
       requestAnimationFrame(() => {
@@ -686,21 +693,28 @@ async function switchScene(newScene, style = "cut", force = false) {
 
     deactivateFrame(outgoing);
     activateFrame(incoming);
+
     currentScene = newScene;
     showingA = !showingA;
+
+    // ✅ RESET outgoing iframe
+    setTimeout(() => {
+      try {
+        outgoing.setAttribute("src", "about:blank");
+      } catch {}
+    }, 50);
+
     return;
   }
 
-  // slide (default)
+  // ---------- SLIDE (default) ----------
   incoming.classList.add("activeScene");
   incoming.style.left = "100%";
   incoming.style.opacity = "1";
-  incoming.style.pointerEvents = "auto";
 
   outgoing.classList.add("activeScene");
   outgoing.style.left = "0";
   outgoing.style.opacity = "1";
-  outgoing.style.pointerEvents = "none";
 
   await new Promise((resolve) => {
     requestAnimationFrame(() => {
@@ -718,8 +732,16 @@ async function switchScene(newScene, style = "cut", force = false) {
   outgoing.classList.remove("noTrans");
 
   activateFrame(incoming);
+
   currentScene = newScene;
   showingA = !showingA;
+
+  // ✅ RESET outgoing iframe
+  setTimeout(() => {
+    try {
+      outgoing.setAttribute("src", "about:blank");
+    } catch {}
+  }, 50);
 }
 
 // ---------- Clock ----------
