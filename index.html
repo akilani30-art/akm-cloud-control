@@ -276,6 +276,23 @@ function sendJSON(obj) {
   }
 }
 
+function loadPreview(e, scene) {
+  currentPreviewScene = scene;
+
+  // update preview screen
+  document.getElementById("previewFrame").src = scene + ".html";
+
+  // update button UI
+  setActiveSceneButton(scene);
+
+  // reset scripture trigger system
+  if (scene !== "scene3") {
+    lastSceneWas3 = false;
+  }
+
+  console.log("👁 Preview loaded:", scene);
+}
+
 
 
     // ---------- WebSocket ----------
