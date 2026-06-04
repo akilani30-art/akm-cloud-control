@@ -670,10 +670,14 @@ if (src === "sceneStudioB.html") {
 
     // ✅ RESET outgoing iframe
     setTimeout(() => {
-      try {
-        outgoing.setAttribute("src", "about:blank");
-      } catch {}
-    }, 50);
+  try {
+    const src = outgoing.getAttribute("src");
+    if (src === "sceneStudioB.html") {
+      outgoing.setAttribute("src", "about:blank");
+    }
+  } catch {}
+}, 50);
+
 
     return;
   }
@@ -703,10 +707,14 @@ if (src === "sceneStudioB.html") {
 
     // ✅ RESET outgoing iframe
     setTimeout(() => {
-      try {
-        outgoing.setAttribute("src", "about:blank");
-      } catch {}
-    }, 50);
+  try {
+    const src = outgoing.getAttribute("src");
+    if (src === "sceneStudioB.html") {
+      outgoing.setAttribute("src", "about:blank");
+    }
+  } catch {}
+}, 50);
+
 
     return;
   }
