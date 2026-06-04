@@ -336,6 +336,13 @@ function takeScene() {
 // ---------- Transitions ----------
 function sendTransition(style) {
   currentTransitionStyle = style;
+
+  // highlight active button
+  document.querySelectorAll(".transitionPanel button")
+    .forEach(btn => btn.style.background = "black");
+
+  event.target.style.background = "gold";
+
   sendJSON({ type: "transition", style });
 }
 
