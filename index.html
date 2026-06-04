@@ -498,11 +498,6 @@ function connectWS() {
     scheduleReconnect();
     return;
   }
-setInterval(() => {
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    sendJSON({ type: "scene", scene: currentSceneLive });
-  }
-}, 2000);
 
 
   ws.onopen = () => {
@@ -561,6 +556,13 @@ function scheduleReconnect() {
 connectWS();
 document.addEventListener("click", checkClipboard);
 setInterval(checkClipboard, 3000);
+
+setInterval(() => {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    sendJSON({ type: "scene", scene: currentSceneLive });
+  }
+}, 2000);
+
 
 </script>
 </body>
