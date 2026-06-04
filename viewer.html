@@ -845,6 +845,9 @@ function handleMessage(data) {
 }
 
 async function switchScene(scene, style = "cut", force = false) {
+if (isTransitioning) return;
+isTransitioning = true;
+
   scene = normalizeScene(scene);
   if (!scene) return;
 
