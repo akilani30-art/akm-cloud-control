@@ -361,8 +361,10 @@ function sendLower() {
   const title = document.getElementById("ltTitle").value;
   const sub = document.getElementById("ltSub").value;
 
+  lowerThirdVisible = true;
+
   sendJSON({
-    type: "lowerThird",
+    type: "lowerthird",
     show: true,
     title,
     subtitle: sub
@@ -370,6 +372,7 @@ function sendLower() {
 
   console.log("📺 Lower Third ON");
 }
+
 
 function hideLower() {
   sendJSON({
