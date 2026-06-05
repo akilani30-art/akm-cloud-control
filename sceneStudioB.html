@@ -1,273 +1,302 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Studio B</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Studio B</title>
 
-<style>
-body {
-  margin: 0;
-  background: black;
-  color: white;
-  font-family: Arial, sans-serif;
-  overflow: hidden;
-}
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      color: white;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
 
-.bgGlow {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle at center, rgba(255,215,0,0.08), transparent 70%);
-  z-index: 0;
-}
+    .bgGlow {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, rgba(255,215,0,0.08), transparent 70%);
+      z-index: 0;
+    }
 
-.playerContainer {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 80%;
-  height: 70%;
-  border: 3px solid gold;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 0 30px rgba(255,215,0,0.3);
-  z-index: 2;
-  animation: pulseGlow 4s infinite;
-}
+    .playerContainer {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80%;
+      height: 70%;
+      border: 3px solid gold;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 0 30px rgba(255,215,0,0.3);
+      z-index: 2;
+      animation: pulseGlow 4s infinite;
+      background: black;
+    }
 
-.playerContainer iframe,
-.playerContainer video,
-#yt-player {
-  width: 100%;
-  height: 100%;
-  border: none;
-  background: black;
-}
+    .playerContainer iframe,
+    .playerContainer video,
+    #yt-player {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: black;
+      display: block;
+    }
 
-#mediaTitle {
-  position: absolute;
-  top: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 28px;
-  font-weight: bold;
-  color: gold;
-  text-shadow: 0 0 10px rgba(255,215,0,0.6);
-  z-index: 3;
-}
+    #mediaTitle {
+      position: absolute;
+      top: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 28px;
+      font-weight: bold;
+      color: gold;
+      text-shadow: 0 0 10px rgba(255,215,0,0.6);
+      z-index: 3;
+    }
 
-@keyframes pulseGlow {
-  0%,100% { box-shadow: 0 0 20px rgba(255,215,0,0.3); }
-  50% { box-shadow: 0 0 40px rgba(255,215,0,0.6); }
-}
-</style>
+    @keyframes pulseGlow {
+      0%,100% { box-shadow: 0 0 20px rgba(255,215,0,0.3); }
+      50% { box-shadow: 0 0 40px rgba(255,215,0,0.6); }
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="bgGlow"></div>
-<div id="mediaTitle">Studio B</div>
-<div class="playerContainer" id="playerContainer"></div>
+  <div class="bgGlow"></div>
+  <div id="mediaTitle">Studio B</div>
+  <div class="playerContainer" id="playerContainer"></div>
 
-<script>
-let ytPlayer = null;
-let ytApiReady = false;
-let pendingYouTubeVideoId = null;
+  <script>
+    let ytPlayer = null;
+    let ytApiReady = false;
+    let pendingYouTubeVideoId = null;
+    let pendingMediaTitle = "Studio B";
 
-/* Load YouTube IFrame API once */
-(function loadYouTubeApi() {
-  const existing = document.querySelector('script[src="https://www.youtube.com/iframe_api"]');
-  if (!existing) {
-    const tag = document.createElement("script");
-    tag.src = "https://www.youtube.com/iframe_api";
-    document.head.appendChild(tag);
-  }
-})();
+    /* Load YouTube IFrame API once */
+    (function loadYouTubeApi() {
+      const existing = document.querySelector('script[src="https://www.youtube.com/iframe_api"]');
+      if (!existing) {
+        const tag = document.createElement("script");
+        tag.src = "https://www.youtube.com/iframe_api";
+        document.head.appendChild(tag);
+      }
+    })();
 
-/* Official YouTube API callback */
-function onYouTubeIframeAPIReady() {
-  ytApiReady = true;
+    /* Official YouTube API callback — must stay global */
+    function onYouTubeIframeAPIReady() {
+      ytApiReady = true;
 
-  if (pendingYouTubeVideoId) {
-    createYouTubePlayer(pendingYouTubeVideoId);
-    pendingYouTubeVideoId = null;
-  }
-}
-
-/* Detect media type */
-function detectType(url) {
-  if (!url) return "unknown";
-
-  if (url.includes("youtube.com") || url.includes("youtu.be")) {
-    return "youtube";
-  }
-
-  if (url.match(/\.(mp4|webm|ogg)(\?|$)/i)) {
-    return "video";
-  }
-
-  return "iframe";
-}
-
-/* Extract YouTube video ID */
-function getYouTubeId(url) {
-  if (url.includes("youtube.com/watch?v=")) {
-    return url.split("v=")[1].split("&")[0];
-  }
-
-  if (url.includes("youtu.be/")) {
-    return url.split("youtu.be/")[1].split("?")[0];
-  }
-
-  return null;
-}
-
-/* Destroy existing YouTube player cleanly */
-function destroyYouTubePlayer() {
-  if (ytPlayer && typeof ytPlayer.destroy === "function") {
-    ytPlayer.destroy();
-  }
-  ytPlayer = null;
-}
-
-/* Create official YouTube player */
-function createYouTubePlayer(videoId) {
-  const container = document.getElementById("playerContainer");
-
-  // Clean up first
-  destroyYouTubePlayer();
-  container.innerHTML = '<div id="yt-player"></div>';
-
-  ytPlayer = new YT.Player("yt-player", {
-    width: "100%",
-    height: "100%",
-    videoId: videoId,
-    playerVars: {
-      autoplay: 1,
-      mute: 1,
-      playsinline: 1
-    },
-    events: {
-      onReady: function (event) {
-        const iframeEl = event.target.getIframe();
-        if (iframeEl) {
-          iframeEl.setAttribute("allow", "autoplay; encrypted-media; fullscreen");
-          iframeEl.setAttribute("allowfullscreen", "true");
-        }
-
-        event.target.mute();
-
-        // Small retry loop for extra resilience
-        let tries = 0;
-        const startPlayback = () => {
-          event.target.playVideo();
-          tries++;
-          if (tries < 6) {
-            setTimeout(startPlayback, 400);
-          }
-        };
-
-        setTimeout(startPlayback, 150);
+      if (pendingYouTubeVideoId) {
+        createYouTubePlayer(pendingYouTubeVideoId);
+        pendingYouTubeVideoId = null;
       }
     }
-  });
-}
 
-/* Load media */
-function loadMedia(url) {
-  const container = document.getElementById("playerContainer");
-  const type = detectType(url);
+    /* Detect media type */
+    function detectType(url) {
+      if (!url) return "unknown";
 
-  if (type === "youtube") {
-    const videoId = getYouTubeId(url);
-    if (!videoId) return;
+      const lower = url.toLowerCase();
 
-    if (ytApiReady && window.YT && window.YT.Player) {
-      createYouTubePlayer(videoId);
-    } else {
-      pendingYouTubeVideoId = videoId;
-    }
-    return;
-  }
+      if (lower.includes("youtube.com") || lower.includes("youtu.be")) {
+        return "youtube";
+      }
 
-  destroyYouTubePlayer();
-  container.innerHTML = "";
+      if (lower.match(/\.(mp4|webm|ogg)(\?|$)/i)) {
+        return "video";
+      }
 
-  if (type === "video") {
-    const video = document.createElement("video");
-    video.src = url;
-    video.autoplay = true;
-    video.controls = true;
-    video.playsInline = true;
-    video.muted = true;
-
-    container.appendChild(video);
-    video.play().catch(() => {});
-    return;
-  }
-
-  const iframe = document.createElement("iframe");
-  iframe.src = url;
-  iframe.allow = "autoplay";
-  container.appendChild(iframe);
-}
-
-/* Pause current media */
-function pauseMedia() {
-  const video = document.querySelector("#playerContainer video");
-
-  if (video) {
-    video.pause();
-    return;
-  }
-
-  if (ytPlayer && typeof ytPlayer.pauseVideo === "function") {
-    ytPlayer.pauseVideo();
-  }
-}
-
-/* Resume current media */
-function resumeMedia() {
-  const video = document.querySelector("#playerContainer video");
-
-  if (video) {
-    video.play().catch(() => {});
-    return;
-  }
-
-  if (ytPlayer && typeof ytPlayer.playVideo === "function") {
-    ytPlayer.playVideo();
-  }
-}
-
-/* Listen for messages */
-window.addEventListener("message", (event) => {
-  const data = event.data;
-  if (!data) return;
-
-  if (data.type === "studioB") {
-    const title = document.getElementById("mediaTitle");
-    title.textContent = data.title || "Studio B";
-
-    if (data.url) {
-      loadMedia(data.url);
-    }
-    return;
-  }
-
-  if (data.type === "studioB_control") {
-    if (data.action === "pause") {
-      pauseMedia();
+      return "iframe";
     }
 
-    if (data.action === "resume" || data.action === "play") {
-      resumeMedia();
+    /* More robust YouTube ID extractor */
+    function getYouTubeId(url) {
+      try {
+        const u = new URL(url);
+
+        if (u.hostname.includes("youtu.be")) {
+          return u.pathname.replace(/^\/+/, "").split("/")[0];
+        }
+
+        if (u.pathname.startsWith("/embed/")) {
+          return u.pathname.split("/embed/")[1].split("/")[0];
+        }
+
+        if (u.pathname.startsWith("/shorts/")) {
+          return u.pathname.split("/shorts/")[1].split("/")[0];
+        }
+
+        return u.searchParams.get("v");
+      } catch {
+        return null;
+      }
     }
-  }
-});
-</script>
+
+    /* Destroy existing YouTube player cleanly */
+    function destroyYouTubePlayer() {
+      if (ytPlayer && typeof ytPlayer.destroy === "function") {
+        try {
+          ytPlayer.destroy();
+        } catch {}
+      }
+      ytPlayer = null;
+    }
+
+    /* Create official YouTube player */
+    function createYouTubePlayer(videoId) {
+      const container = document.getElementById("playerContainer");
+
+      destroyYouTubePlayer();
+      container.innerHTML = '<div id="yt-player"></div>';
+
+      ytPlayer = new YT.Player("yt-player", {
+        width: "100%",
+        height: "100%",
+        videoId: videoId,
+        playerVars: {
+          autoplay: 1,
+          mute: 1,
+          controls: 1,
+          playsinline: 1,
+          rel: 0,
+          enablejsapi: 1,
+          modestbranding: 1
+        },
+        events: {
+          onReady: function(event) {
+            const player = event.target;
+
+            const iframeEl = player.getIframe();
+            if (iframeEl) {
+              iframeEl.setAttribute("allow", "autoplay; encrypted-media; fullscreen; picture-in-picture");
+              iframeEl.setAttribute("allowfullscreen", "true");
+            }
+
+            player.mute();
+
+            /* Force playback a few times for reliability */
+            try { player.playVideo(); } catch {}
+            setTimeout(() => { try { player.playVideo(); } catch {} }, 250);
+            setTimeout(() => { try { player.playVideo(); } catch {} }, 800);
+            setTimeout(() => { try { player.playVideo(); } catch {} }, 1500);
+          }
+        }
+      });
+    }
+
+    /* Load media */
+    function loadMedia(url) {
+      const container = document.getElementById("playerContainer");
+      const type = detectType(url);
+
+      if (type === "youtube") {
+        const videoId = getYouTubeId(url);
+        if (!videoId) {
+          console.warn("Could not extract YouTube video ID from URL:", url);
+          destroyYouTubePlayer();
+          container.innerHTML = "";
+          return;
+        }
+
+        if (ytApiReady && window.YT && window.YT.Player) {
+          createYouTubePlayer(videoId);
+        } else {
+          pendingYouTubeVideoId = videoId;
+        }
+        return;
+      }
+
+      destroyYouTubePlayer();
+      container.innerHTML = "";
+
+      if (type === "video") {
+        const video = document.createElement("video");
+        video.src = url;
+        video.autoplay = true;
+        video.controls = true;
+        video.playsInline = true;
+        video.muted = true;
+        video.setAttribute("webkit-playsinline", "true");
+
+        container.appendChild(video);
+
+        video.play().catch(err => {
+          console.warn("HTML5 video autoplay failed:", err);
+        });
+        return;
+      }
+
+      const iframe = document.createElement("iframe");
+      iframe.src = url;
+      iframe.allow = "autoplay; fullscreen";
+      iframe.setAttribute("allowfullscreen", "true");
+      container.appendChild(iframe);
+    }
+
+    /* Pause current media */
+    function pauseMedia() {
+      const video = document.querySelector("#playerContainer video");
+
+      if (video) {
+        try { video.pause(); } catch {}
+        return;
+      }
+
+      if (ytPlayer && typeof ytPlayer.pauseVideo === "function") {
+        try { ytPlayer.pauseVideo(); } catch {}
+      }
+    }
+
+    /* Resume current media */
+    function resumeMedia() {
+      const video = document.querySelector("#playerContainer video");
+
+      if (video) {
+        video.play().catch(() => {});
+        return;
+      }
+
+      if (ytPlayer && typeof ytPlayer.playVideo === "function") {
+        try {
+          ytPlayer.mute();
+          ytPlayer.playVideo();
+        } catch {}
+      }
+    }
+
+    /* Listen for messages */
+    window.addEventListener("message", (event) => {
+      const data = event.data;
+      if (!data) return;
+
+      if (data.type === "studioB") {
+        const title = document.getElementById("mediaTitle");
+        title.textContent = data.title || "Studio B";
+
+        if (data.url) {
+          loadMedia(data.url);
+        }
+        return;
+      }
+
+      if (data.type === "studioB_control") {
+        if (data.action === "pause") {
+          pauseMedia();
+        }
+
+        if (data.action === "resume" || data.action === "play") {
+          resumeMedia();
+        }
+      }
+    });
+  </script>
 
 </body>
 </html>
