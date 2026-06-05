@@ -171,22 +171,26 @@
         },
         events: {
           onReady: function(event) {
-            const player = event.target;
+  const player = event.target;
 
-            const iframeEl = player.getIframe();
-            if (iframeEl) {
-              iframeEl.setAttribute("allow", "autoplay; encrypted-media; fullscreen; picture-in-picture");
-              iframeEl.setAttribute("allowfullscreen", "true");
-            }
+  try {
+    player.mute();
+  } catch {}
 
-            player.mute();
+  function forcePlay() {
+    try {
+      player.playVideo();
+    } catch {}
+  }
 
-            /* Force playback a few times for reliability */
-            try { player.playVideo(); } catch {}
-            setTimeout(() => { try { player.playVideo(); } catch {} }, 250);
-            setTimeout(() => { try { player.playVideo(); } catch {} }, 800);
-            setTimeout(() => { try { player.playVideo(); } catch {} }, 1500);
-          }
+  // aggressive autoplay attempts
+  forcePlay();
+  setTimeout(forcePlay, 200);
+  setTimeout(forcePlay, 500);
+  setTimeout(forcePlay, 1000);
+  setTimeout(forcePlay, 2000);
+}
+
         }
       });
     }
