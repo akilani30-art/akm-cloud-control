@@ -91,73 +91,75 @@
   <div id="hint">If the browser blocks autoplay, click anywhere once to start the video.</div>
 
   <script>
+   <script>
     let currentEmbedUrl = "";
     let currentRawUrl = "";
 
+    // TEST: Write to page instead of console
+    function debugLog(msg) {
+      console.log(msg);
+      const debug = document.getElementById("debugLog");
+      if (debug) {
+        debug.innerHTML += msg + "<br>";
+      }
+    }
+
+    debugLog("✅ Script loaded");
+
     function getYouTubeId(url) {
+      debugLog("🔍 Parsing: " + url);
       try {
         const u = new URL(url);
-
         if (u.hostname.includes("youtu.be")) {
-          return u.pathname.replace(/^\/+/, "").split("/")[0];
+          const id = u.pathname.replace(/^\/+/, "").split("/")[0];
+          debugLog("✅ Got ID from youtu.be: " + id);
+          return id;
         }
-
         if (u.hostname.includes("youtube.com")) {
           if (u.pathname.startsWith("/embed/")) {
-            return u.pathname.split("/embed/")[1].split("/")[0];
+            const id = u.pathname.split("/embed/")[1].split("/")[0];
+            debugLog("✅ Got ID from /embed/: " + id);
+            return id;
           }
-
           if (u.pathname.startsWith("/shorts/")) {
-            return u.pathname.split("/shorts/")[1].split("/")[0];
+            const id = u.pathname.split("/shorts/")[1].split("/")[0];
+            debugLog("✅ Got ID from /shorts/: " + id);
+            return id;
           }
-
-          return u.searchParams.get("v");
+          const id = u.searchParams.get("v");
+          debugLog("✅ Got ID from ?v: " + id);
+          return id;
         }
-
+        debugLog("⚠️ Unknown format");
         return null;
-      } catch {
+      } catch (e) {
+        debugLog("❌ Parse error: " + e);
         return null;
       }
     }
 
     function buildYouTubeEmbed(videoId) {
       if (!videoId) {
-        console.error("❌ Invalid video ID:", videoId);
+        debugLog("❌ No video ID");
         return null;
       }
-      
-      const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&playsinline=1&rel=0&enablejsapi=1`;
-      console.log("✅ Built embed URL:", embedUrl);
-      return embedUrl;
+      const url = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&playsinline=1&rel=0&enablejsapi=1`;
+      debugLog("✅ Built embed: " + url);
+      return url;
     }
 
     function loadYouTube(url, titleText) {
-      console.log("📺 Loading YouTube:", url);
+      debugLog("🎬 loadYouTube called");
+      debugLog("URL: " + url);
       
-      if (!url || typeof url !== "string") {
-        console.error("❌ Invalid URL:", url);
+      if (!url) {
+        debugLog("❌ No URL");
         return;
       }
 
       const videoId = getYouTubeId(url);
-      
       if (!videoId) {
-        console.error("❌ Could not extract video ID from:", url);
-        document.getElementById("mediaTitle").textContent = "Invalid URL";
-        document.getElementById("playerMount").innerHTML = `
-          <div style="
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #ff1744;
-            font-size: 18px;
-            text-align: center;
-          ">
-            ❌ Invalid YouTube URL
-          </div>
-        `;
+        debugLog("❌ Could not extract video ID");
         return;
       }
 
@@ -165,91 +167,64 @@
       currentEmbedUrl = buildYouTubeEmbed(videoId);
 
       if (!currentEmbedUrl) {
-        console.error("❌ Failed to build embed URL");
+        debugLog("❌ Failed to build embed");
         return;
       }
 
       document.getElementById("mediaTitle").textContent = titleText || "Studio B";
 
-      document.getElementById("playerMount").innerHTML = `
-        <iframe
-          id="studioBFrame"
-          src="${currentEmbedUrl}"
-          allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-          allowfullscreen
-          style="width: 100%; height: 100%; border: none; background: black;">
-        </iframe>
-      `;
-
-      console.log("✅ Studio B iframe loaded");
-
-      // Show fallback hint briefly in case browser blocks autoplay
-      const hint = document.getElementById("hint");
-      hint.style.display = "block";
-      setTimeout(() => {
-        hint.style.display = "none";
-      }, 4000);
+      const html = `<iframe id="studioBFrame" src="${currentEmbedUrl}" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen style="width: 100%; height: 100%; border: none; background: black;"></iframe>`;
+      
+      debugLog("📝 Inserting iframe");
+      document.getElementById("playerMount").innerHTML = html;
+      debugLog("✅ Iframe inserted");
     }
 
     function reloadForPlay() {
+      debugLog("▶️ Reloading");
       const frame = document.getElementById("studioBFrame");
-      if (!frame || !currentEmbedUrl) {
-        console.warn("⚠️ Cannot reload: no frame or embed URL");
-        return;
+      if (frame && currentEmbedUrl) {
+        frame.src = currentEmbedUrl;
       }
-
-      console.log("▶️ Reloading for play");
-      frame.src = currentEmbedUrl;
     }
 
     function pauseMedia() {
+      debugLog("⏸️ Pausing");
       const frame = document.getElementById("studioBFrame");
-      if (!frame) return;
-
-      console.log("⏸️ Pausing media");
-      frame.src = "about:blank";
-    }
-
-    function resumeMedia() {
-      console.log("▶️ Resuming media");
-      reloadForPlay();
+      if (frame) frame.src = "about:blank";
     }
 
     window.addEventListener("message", (event) => {
+      debugLog("📨 MESSAGE RECEIVED");
+      debugLog("Type: " + (event.data?.type || "unknown"));
+      debugLog("URL: " + (event.data?.url || "no url"));
+      
       const data = event.data;
       if (!data) return;
 
-      console.log("📨 Message received:", data);
-
       if (data.type === "studioB") {
+        debugLog("🎬 studioB detected");
         if (data.url) {
-          console.log("🎬 studioB message - loading URL:", data.url);
+          debugLog("✅ URL found: " + data.url);
           loadYouTube(data.url, data.title || "Studio B");
+        } else {
+          debugLog("❌ No URL in message");
         }
         return;
       }
 
       if (data.type === "studioB_control") {
-        if (data.action === "pause") {
-          pauseMedia();
-        }
-
-        if (data.action === "resume" || data.action === "play") {
-          resumeMedia();
-        }
+        debugLog("🎮 Control: " + data.action);
+        if (data.action === "pause") pauseMedia();
+        if (data.action === "play" || data.action === "resume") reloadForPlay();
       }
     });
 
-    // Click fallback for strict browser autoplay cases
     document.body.addEventListener("click", () => {
-      console.log("🖱️ Click detected - attempting to reload video");
+      debugLog("🖱️ Clicked");
       reloadForPlay();
-      document.getElementById("hint").style.display = "none";
     });
 
-    window.addEventListener("load", () => {
-      console.log("✅ sceneStudioB ready");
-      window.parent.postMessage({ type: "sceneReady" }, "*");
-    });
+    debugLog("✅ All listeners set up");
   </script>
 </html>
