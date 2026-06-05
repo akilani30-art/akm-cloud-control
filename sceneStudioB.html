@@ -187,10 +187,11 @@ function resumeMedia() {
   const iframe = document.querySelector("iframe");
 
   // HTML5 video
-  if (video && wasPlayingBeforePause) {
-    video.play().catch(() => {});
-    return;
-  }
+  if (video) {
+  video.play().catch(() => {});
+  return;
+}
+
 
   // YouTube iframe
   if (iframe && iframe.src.includes("youtube.com") && wasPlayingBeforePause) {
