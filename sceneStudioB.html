@@ -229,9 +229,10 @@ window.addEventListener("message", (event) => {
       pauseMedia();
     }
 
-    if (data.action === "resume") {
-      resumeMedia();
-    }
+if (data.action === "resume" || data.action === "play") {
+  resumeMedia();
+}
+
   }
 });
 
