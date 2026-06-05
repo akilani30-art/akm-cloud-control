@@ -188,8 +188,19 @@
     });
 
     document.body.addEventListener("click", () => {
-      reloadForPlay();
-    });
+  const frame = document.getElementById("studioBFrame");
+  if (!frame) return;
+
+  // ✅ If muted → unmute
+  if (frame.src.includes("mute=1")) {
+    frame.src = frame.src.replace("mute=1", "mute=0");
+    return;
+  }
+
+  // ✅ If not muted → just try play again
+  reloadForPlay();
+});
+
   </script>
 </body>
 </html>
