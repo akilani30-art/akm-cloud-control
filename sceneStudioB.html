@@ -127,15 +127,22 @@ function loadMedia(url) {
     return;
   }
 
-  if (type === "video") {
-    const video = document.createElement("video");
-    video.src = url;
-    video.autoplay = true;
-    video.controls = true;
-    video.playsInline = true;
-    container.appendChild(video);
-    return;
-  }
+if (type === "video") {
+  const video = document.createElement("video");
+  video.src = url;
+  video.autoplay = true;
+  video.controls = true;
+  video.playsInline = true;
+
+  // ✅ CRITICAL FIX
+  video.muted = true;
+
+  // ✅ EXTRA RELIABILITY
+  video.play().catch(() => {});
+
+  container.appendChild(video);
+  return;
+}
 
   // fallback (streams, unknown embeds)
   const iframe = document.createElement("iframe");
