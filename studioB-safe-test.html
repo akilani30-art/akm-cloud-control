@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Studio B Safe Test</title>
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: Arial, sans-serif;
+      color: white;
+      flex-direction: column;
+    }
+
+    h1 {
+      color: gold;
+      margin-bottom: 20px;
+    }
+
+    video {
+      width: 80%;
+      max-width: 900px;
+      border: 3px solid gold;
+      border-radius: 20px;
+      box-shadow: 0 0 30px rgba(255,215,0,0.3);
+      background: black;
+    }
+  </style>
+</head>
+<body>
+  <h1>Studio B Safe Test</h1>
+
+  <video
+    id="testVideo"
+    controls
+    muted
+    playsinline
+    src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4">
+    Your browser does not support the video tag.
+  </video>
+
+  <script>
+    const v = document.getElementById("testVideo");
+    v.load();
+  </script>
+</body>
+</html>
