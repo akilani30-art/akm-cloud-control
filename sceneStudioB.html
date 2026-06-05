@@ -112,41 +112,41 @@ function toYouTubeEmbed(url) {
 
 
 /* ✅ Load media */
-function loadMedia(url) {
-  const container = document.getElementById("playerContainer");
-  container.innerHTML = ""; // clear previous
+iframe.onload = () => {
+  let attempts = 0;
 
-  const type = detectType(url);
+  const tryPlay = () => {
+    if (!iframe.contentWindow) return;
 
-  if (type === "youtube") {
-  const iframe = document.createElement("iframe");
-  iframe.src = toYouTubeEmbed(url);
-  iframe.allow = "autoplay; encrypted-media; fullscreen";
-  iframe.allowFullscreen = true;
+    // ✅ Step 1: Tell YouTube we're listening
+    iframe.contentWindow.postMessage(
+      JSON.stringify({
+        event: "listening",
+        id: 1,
+        channel: "widget"
+      }),
+      "*"
+    );
 
-  iframe.onload = () => {
-    let attempts = 0;
+    // ✅ Step 2: Send play command
+    iframe.contentWindow.postMessage(
+      JSON.stringify({
+        event: "command",
+        func: "playVideo",
+        args: []
+      }),
+      "https://www.youtube.com"
+    );
 
-    const tryPlay = () => {
-      if (!iframe.contentWindow) return;
-
-      iframe.contentWindow.postMessage(
-        JSON.stringify({
-          event: "command",
-          func: "playVideo",
-          args: []
-        }),
-        "https://www.youtube.com"
-      );
-
-      attempts++;
-      if (attempts < 10) {
-        setTimeout(tryPlay, 300);
-      }
-    };
-
-    tryPlay();
+    attempts++;
+    if (attempts < 15) {
+      setTimeout(tryPlay, 300);
+    }
   };
+
+  tryPlay();
+};
+
 
   container.appendChild(iframe);
   return;
