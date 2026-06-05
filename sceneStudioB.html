@@ -90,6 +90,23 @@ if<!DOCTYPE html>
 
   <div id="hint">If the browser blocks autoplay, click anywhere once to start the video.</div>
 
+<div id="debugLog" style="
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 150px;
+  background: rgba(0,0,0,0.9);
+  color: #00ff00;
+  font-size: 10px;
+  overflow-y: auto;
+  padding: 10px;
+  border-top: 2px solid gold;
+  font-family: monospace;
+  z-index: 10000;
+  white-space: pre-wrap;
+  word-break: break-all;
+"></div>
   <script>
     let currentEmbedUrl = "";
     let currentRawUrl = "";
