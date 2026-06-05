@@ -125,36 +125,45 @@ function loadMedia(url) {
     iframe.allowFullscreen = true;
 
     iframe.onload = () => {
-      let attempts = 0;
+  let attempts = 0;
 
-      const tryPlay = () => {
-        if (!iframe.contentWindow) return;
+  const tryPlay = () => {
+    if (!iframe.contentWindow) return;
 
-        // Tell YouTube we're listening
-        iframe.contentWindow.postMessage(
-          JSON.stringify({
-            event: "listening",
-            id: 1,
-            channel: "widget"
-          }),
-          "*"
-        );
+    // ✅ handshake (required)
+    iframe.contentWindow.postMessage(
+      JSON.stringify({
+        event: "listening",
+        id: 1,
+        channel: "widget"
+      }),
+      "*"
+    );
 
-        // Ask it to play
-        iframe.contentWindow.postMessage(
-          JSON.stringify({
-            event: "command",
-            func: "playVideo",
-            args: []
-          }),
-          "https://www.youtube.com"
-        );
+    // ✅ delay play slightly AFTER handshake
+    setTimeout(() => {
+      iframe.contentWindow.postMessage(
+        JSON.stringify({
+          event: "command",
+          func: "playVideo",
+          args: []
+        }),
+        "*"
+      );
+    }, 200);
 
-        attempts++;
-        if (attempts < 15) {
-          setTimeout(tryPlay, 300);
-        }
-      };
+    attempts++;
+
+    // ✅ try longer + slower (CRITICAL)
+    if (attempts < 25) {
+      setTimeout(tryPlay, 500);
+    }
+  };
+
+  // ✅ initial delay before starting (VERY IMPORTANT)
+  setTimeout(tryPlay, 800);
+};
+
 
       tryPlay();
     };
