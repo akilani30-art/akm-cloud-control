@@ -329,7 +329,11 @@ function playStudioB() {
   const url = document.getElementById("studioBUrl").value.trim();
   if (!url) return;
 
-  sendJSON({ type: "studioB", url });
+  sendJSON({
+    type: "studioB",
+    url: url,
+    title: "Studio B"
+  });
 
   currentPreviewScene = "sceneStudioB";
   currentProgramScene = "sceneStudioB";
