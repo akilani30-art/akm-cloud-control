@@ -119,13 +119,39 @@ function loadMedia(url) {
   const type = detectType(url);
 
   if (type === "youtube") {
-    const iframe = document.createElement("iframe");
-    iframe.src = toYouTubeEmbed(url);
-    iframe.allow = "autoplay; encrypted-media; fullscreen";
-    iframe.allowFullscreen = true;
-    container.appendChild(iframe);
-    return;
-  }
+  const iframe = document.createElement("iframe");
+  iframe.src = toYouTubeEmbed(url);
+  iframe.allow = "autoplay; encrypted-media; fullscreen";
+  iframe.allowFullscreen = true;
+
+  iframe.onload = () => {
+    let attempts = 0;
+
+    const tryPlay = () => {
+      if (!iframe.contentWindow) return;
+
+      iframe.contentWindow.postMessage(
+        JSON.stringify({
+          event: "command",
+          func: "playVideo",
+          args: []
+        }),
+        "https://www.youtube.com"
+      );
+
+      attempts++;
+      if (attempts < 10) {
+        setTimeout(tryPlay, 300);
+      }
+    };
+
+    tryPlay();
+  };
+
+  container.appendChild(iframe);
+  return;
+}
+
 
 if (type === "video") {
   const video = document.createElement("video");
