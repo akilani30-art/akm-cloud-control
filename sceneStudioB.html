@@ -9,17 +9,8 @@
     body {
       margin: 0;
       background: black;
-      color: white;
-      font-family: Arial, sans-serif;
       overflow: hidden;
-    }
-
-    .bgGlow {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      background: radial-gradient(circle at center, rgba(255,215,0,0.08), transparent 70%);
-      z-index: 0;
+      font-family: Arial, sans-serif;
     }
 
     .playerContainer {
@@ -33,132 +24,73 @@
       border-radius: 20px;
       overflow: hidden;
       box-shadow: 0 0 30px rgba(255,215,0,0.3);
-      z-index: 2;
-      animation: pulseGlow 4s infinite;
-      background: black;
     }
 
-    .playerContainer iframe,
-    .playerContainer video,
     #yt-player {
       width: 100%;
       height: 100%;
-      border: none;
-      background: black;
-      display: block;
     }
 
     #mediaTitle {
       position: absolute;
-      top: 30px;
+      top: 20px;
       left: 50%;
       transform: translateX(-50%);
-      font-size: 28px;
-      font-weight: bold;
       color: gold;
-      text-shadow: 0 0 10px rgba(255,215,0,0.6);
-      z-index: 3;
-    }
-
-    @keyframes pulseGlow {
-      0%,100% { box-shadow: 0 0 20px rgba(255,215,0,0.3); }
-      50% { box-shadow: 0 0 40px rgba(255,215,0,0.6); }
+      font-size: 24px;
+      font-weight: bold;
     }
   </style>
 </head>
 
 <body>
 
-  <div class="bgGlow"></div>
-  <div id="mediaTitle">Studio B</div>
-  <div class="playerContainer" id="playerContainer"></div>
+<div id="mediaTitle">Studio B</div>
+<div class="playerContainer">
+  <div id="yt-player"></div>
+</div>
 
-  <script>
-    let ytPlayer = null;
-    let ytApiReady = false;
-    let pendingYouTubeVideoId = null;
-    let pendingMediaTitle = "Studio B";
+<script>
+let player = null;
+let currentVideoId = null;
 
-    /* Load YouTube IFrame API once */
-    (function loadYouTubeApi() {
-      const existing = document.querySelector('script[src="https://www.youtube.com/iframe_api"]');
-      if (!existing) {
-        const tag = document.createElement("script");
-        tag.src = "https://www.youtube.com/iframe_api";
-        document.head.appendChild(tag);
-      }
-    })();
+/* Load YouTube API */
+const tag = document.createElement("script");
+tag.src = "https://www.youtube.com/iframe_api";
+document.head.appendChild(tag);
 
-    /* Official YouTube API callback — must stay global */
-    function onYouTubeIframeAPIReady() {
-      ytApiReady = true;
+/* Extract YouTube ID */
+function getYouTubeId(url) {
+  try {
+    const u = new URL(url);
 
-      if (pendingYouTubeVideoId) {
-        createYouTubePlayer(pendingYouTubeVideoId);
-        pendingYouTubeVideoId = null;
-      }
+    if (u.hostname.includes("youtu.be")) {
+      return u.pathname.replace("/", "");
     }
 
-    /* Detect media type */
-    function detectType(url) {
-      if (!url) return "unknown";
-
-      const lower = url.toLowerCase();
-
-      if (lower.includes("youtube.com") || lower.includes("youtu.be")) {
-        return "youtube";
-      }
-
-      if (lower.match(/\.(mp4|webm|ogg)(\?|$)/i)) {
-        return "video";
-      }
-
-      return "iframe";
+    if (u.searchParams.get("v")) {
+      return u.searchParams.get("v");
     }
 
-    /* More robust YouTube ID extractor */
-    function getYouTubeId(url) {
-      try {
-        const u = new URL(url);
-
-        if (u.hostname.includes("youtu.be")) {
-          return u.pathname.replace(/^\/+/, "").split("/")[0];
-        }
-
-        if (u.pathname.startsWith("/embed/")) {
-          return u.pathname.split("/embed/")[1].split("/")[0];
-        }
-
-        if (u.pathname.startsWith("/shorts/")) {
-          return u.pathname.split("/shorts/")[1].split("/")[0];
-        }
-
-        return u.searchParams.get("v");
-      } catch {
-        return null;
-      }
+    if (u.pathname.includes("/embed/")) {
+      return u.pathname.split("/embed/")[1];
     }
 
-    /* Destroy existing YouTube player cleanly */
-    function destroyYouTubePlayer() {
-      if (ytPlayer && typeof ytPlayer.destroy === "function") {
-        try {
-          ytPlayer.destroy();
-        } catch {}
-      }
-      ytPlayer = null;
-    }
+    return null;
+  } catch {
+    return null;
+  }
+}
 
-    /* Create official YouTube player */
-    function createYouTubePlayer(videoId) {
-  const container = document.getElementById("playerContainer");
+/* Create player */
+function createPlayer(videoId) {
+  currentVideoId = videoId;
 
-  destroyYouTubePlayer();
-  container.innerHTML = '<div id="yt-player"></div>';
+  if (player) {
+    try { player.destroy(); } catch {}
+  }
 
-  ytPlayer = new YT.Player("yt-player", {
-    width: "100%",
-    height: "100%",
+  player = new YT.Player("yt-player", {
     videoId: videoId,
     playerVars: {
       autoplay: 1,
@@ -166,168 +98,78 @@
       controls: 1,
       playsinline: 1,
       rel: 0,
-      enablejsapi: 1,
-      modestbranding: 1,
       origin: window.location.origin
     },
     events: {
-      onReady: function (event) {
-        const player = event.target;
+      onReady: (event) => {
+        const p = event.target;
 
-        // ✅ IMPORTANT: give iframe permission to autoplay
-        try {
-          const iframeEl = player.getIframe();
-          if (iframeEl) {
-            iframeEl.setAttribute(
-              "allow",
-              "autoplay; encrypted-media; fullscreen; picture-in-picture"
-            );
-            iframeEl.setAttribute("allowfullscreen", "true");
-          }
-        } catch {}
+        try { p.mute(); } catch {}
 
-        try { player.mute(); } catch {}
-
-        const tryPlay = () => {
-          try { player.playVideo(); } catch {}
+        const play = () => {
+          try { p.playVideo(); } catch {}
         };
 
-        // ✅ multiple attempts (this is the key fix)
-        tryPlay();
-        setTimeout(tryPlay, 250);
-        setTimeout(tryPlay, 700);
-        setTimeout(tryPlay, 1500);
-        setTimeout(tryPlay, 2500);
-      },
-
-      onStateChange: function (event) {
-        // ✅ if it didn’t start, force it again
-        if (event.data !== 1) {
-          setTimeout(() => {
-            try {
-              ytPlayer.mute();
-              ytPlayer.playVideo();
-            } catch {}
-          }, 500);
-
-          setTimeout(() => {
-            try {
-              ytPlayer.mute();
-              ytPlayer.playVideo();
-            } catch {}
-          }, 1200);
-        }
+        // multiple attempts (cloud safe)
+        play();
+        setTimeout(play, 300);
+        setTimeout(play, 800);
+        setTimeout(play, 1500);
       }
     }
   });
 }
 
-    /* Load media */
-    function loadMedia(url) {
-      const container = document.getElementById("playerContainer");
-      const type = detectType(url);
+/* Receive messages from Viewer */
+window.addEventListener("message", (event) => {
+  const data = event.data;
 
-      if (type === "youtube") {
-        const videoId = getYouTubeId(url);
-        if (!videoId) {
-          console.warn("Could not extract YouTube video ID from URL:", url);
-          destroyYouTubePlayer();
-          container.innerHTML = "";
-          return;
-        }
+  if (!data) return;
 
-        if (ytApiReady && window.YT && window.YT.Player) {
-          createYouTubePlayer(videoId);
-        } else {
-          pendingYouTubeVideoId = videoId;
-        }
-        return;
-      }
+  if (data.type === "studioB" && data.url) {
+    const id = getYouTubeId(data.url);
 
-      destroyYouTubePlayer();
-      container.innerHTML = "";
+    if (!id) return;
 
-      if (type === "video") {
-        const video = document.createElement("video");
-        video.src = url;
-        video.autoplay = true;
-        video.controls = true;
-        video.playsInline = true;
-        video.muted = true;
-        video.setAttribute("webkit-playsinline", "true");
+    document.getElementById("mediaTitle").textContent =
+      data.title || "Studio B";
 
-        container.appendChild(video);
+    if (window.YT && YT.Player) {
+      createPlayer(id);
+    } else {
+      // wait for API
+      window.onYouTubeIframeAPIReady = () => {
+        createPlayer(id);
+      };
+    }
+  }
 
-        video.play().catch(err => {
-          console.warn("HTML5 video autoplay failed:", err);
-        });
-        return;
-      }
+  if (data.type === "studioB_control") {
+    if (!player) return;
 
-      const iframe = document.createElement("iframe");
-      iframe.src = url;
-      iframe.allow = "autoplay; fullscreen";
-      iframe.setAttribute("allowfullscreen", "true");
-      container.appendChild(iframe);
+    if (data.action === "pause") {
+      try { player.pauseVideo(); } catch {}
     }
 
-    /* Pause current media */
-    function pauseMedia() {
-      const video = document.querySelector("#playerContainer video");
-
-      if (video) {
-        try { video.pause(); } catch {}
-        return;
-      }
-
-      if (ytPlayer && typeof ytPlayer.pauseVideo === "function") {
-        try { ytPlayer.pauseVideo(); } catch {}
-      }
+    if (data.action === "play") {
+      try {
+        player.mute();
+        player.playVideo();
+      } catch {}
     }
+  }
+});
 
-    /* Resume current media */
-    function resumeMedia() {
-      const video = document.querySelector("#playerContainer video");
-
-      if (video) {
-        video.play().catch(() => {});
-        return;
-      }
-
-      if (ytPlayer && typeof ytPlayer.playVideo === "function") {
-        try {
-          ytPlayer.mute();
-          ytPlayer.playVideo();
-        } catch {}
-      }
-    }
-
-    /* Listen for messages */
-    window.addEventListener("message", (event) => {
-      const data = event.data;
-      if (!data) return;
-
-      if (data.type === "studioB") {
-        const title = document.getElementById("mediaTitle");
-        title.textContent = data.title || "Studio B";
-
-        if (data.url) {
-          loadMedia(data.url);
-        }
-        return;
-      }
-
-      if (data.type === "studioB_control") {
-        if (data.action === "pause") {
-          pauseMedia();
-        }
-
-        if (data.action === "resume" || data.action === "play") {
-          resumeMedia();
-        }
-      }
-    });
-  </script>
+/* Fallback: user click starts video if autoplay blocked */
+document.body.addEventListener("click", () => {
+  if (player && player.playVideo) {
+    try {
+      player.mute();
+      player.playVideo();
+    } catch {}
+  }
+});
+</script>
 
 </body>
 </html>
