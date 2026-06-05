@@ -629,15 +629,18 @@ function connectWS() {
   }
 
   socket.onopen = () => {
-    reconnectAttempt = 0;
-    setWSStatus("online");
+  reconnectAttempt = 0;
+  setWSStatus("online");
 
-    // Strong initial sync
-    requestFullState();
+  // ✅ CRITICAL FIX
+  socket.send(JSON.stringify({ type: "request_current_scene" }));
 
-    // Keepalive + auto-resync
-    startHeartbeat();
-  };
+  // Existing
+  requestFullState();
+
+  startHeartbeat();
+};
+
 
   socket.onmessage = (event) => {
     clearHeartbeatTimeout();
