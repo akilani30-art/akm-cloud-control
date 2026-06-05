@@ -695,8 +695,13 @@ function handleMessage(data) {
   }
 
  if (data.type === "scene") {
+  const scene = normalizeScene(data.scene);
+
+  // ✅ STOP LOOP: ignore if already on this scene
+  if (scene === currentScene) return;
+
   const style = data.transition || transitionStyle || "cut";
-  enqueueScene(data.scene, style); // ✅ no force
+  enqueueScene(scene, style);
   return;
 }
 
