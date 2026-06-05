@@ -94,7 +94,6 @@
     let currentEmbedUrl = "";
     let currentRawUrl = "";
 
-
     function getYouTubeId(url) {
       try {
         const u = new URL(url);
@@ -103,30 +102,72 @@
           return u.pathname.replace(/^\/+/, "").split("/")[0];
         }
 
-        if (u.pathname.startsWith("/embed/")) {
-          return u.pathname.split("/embed/")[1].split("/")[0];
+        if (u.hostname.includes("youtube.com")) {
+          if (u.pathname.startsWith("/embed/")) {
+            return u.pathname.split("/embed/")[1].split("/")[0];
+          }
+
+          if (u.pathname.startsWith("/shorts/")) {
+            return u.pathname.split("/shorts/")[1].split("/")[0];
+          }
+
+          return u.searchParams.get("v");
         }
 
-        if (u.pathname.startsWith("/shorts/")) {
-          return u.pathname.split("/shorts/")[1].split("/")[0];
-        }
-
-        return u.searchParams.get("v");
+        return null;
       } catch {
         return null;
       }
     }
 
     function buildYouTubeEmbed(videoId) {
-      return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&playsinline=1&rel=0&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`;
+      if (!videoId) {
+        console.error("❌ Invalid video ID:", videoId);
+        return null;
+      }
+      
+      const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&playsinline=1&rel=0&enablejsapi=1`;
+      console.log("✅ Built embed URL:", embedUrl);
+      return embedUrl;
     }
 
     function loadYouTube(url, titleText) {
+      console.log("📺 Loading YouTube:", url);
+      
+      if (!url || typeof url !== "string") {
+        console.error("❌ Invalid URL:", url);
+        return;
+      }
+
       const videoId = getYouTubeId(url);
-      if (!videoId) return;
+      
+      if (!videoId) {
+        console.error("❌ Could not extract video ID from:", url);
+        document.getElementById("mediaTitle").textContent = "Invalid URL";
+        document.getElementById("playerMount").innerHTML = `
+          <div style="
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ff1744;
+            font-size: 18px;
+            text-align: center;
+          ">
+            ❌ Invalid YouTube URL
+          </div>
+        `;
+        return;
+      }
 
       currentRawUrl = url;
       currentEmbedUrl = buildYouTubeEmbed(videoId);
+
+      if (!currentEmbedUrl) {
+        console.error("❌ Failed to build embed URL");
+        return;
+      }
 
       document.getElementById("mediaTitle").textContent = titleText || "Studio B";
 
@@ -135,9 +176,12 @@
           id="studioBFrame"
           src="${currentEmbedUrl}"
           allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-          allowfullscreen>
+          allowfullscreen
+          style="width: 100%; height: 100%; border: none; background: black;">
         </iframe>
       `;
+
+      console.log("✅ Studio B iframe loaded");
 
       // Show fallback hint briefly in case browser blocks autoplay
       const hint = document.getElementById("hint");
@@ -149,9 +193,12 @@
 
     function reloadForPlay() {
       const frame = document.getElementById("studioBFrame");
-      if (!frame || !currentEmbedUrl) return;
+      if (!frame || !currentEmbedUrl) {
+        console.warn("⚠️ Cannot reload: no frame or embed URL");
+        return;
+      }
 
-      // Reloading the embed is the most reliable fallback with direct iframe embeds
+      console.log("▶️ Reloading for play");
       frame.src = currentEmbedUrl;
     }
 
@@ -159,12 +206,12 @@
       const frame = document.getElementById("studioBFrame");
       if (!frame) return;
 
-      // With direct embed, pause control is limited without full API handshake.
-      // We blank the frame to force stop.
+      console.log("⏸️ Pausing media");
       frame.src = "about:blank";
     }
 
     function resumeMedia() {
+      console.log("▶️ Resuming media");
       reloadForPlay();
     }
 
@@ -172,8 +219,11 @@
       const data = event.data;
       if (!data) return;
 
+      console.log("📨 Message received:", data);
+
       if (data.type === "studioB") {
         if (data.url) {
+          console.log("🎬 studioB message - loading URL:", data.url);
           loadYouTube(data.url, data.title || "Studio B");
         }
         return;
@@ -192,12 +242,14 @@
 
     // Click fallback for strict browser autoplay cases
     document.body.addEventListener("click", () => {
+      console.log("🖱️ Click detected - attempting to reload video");
       reloadForPlay();
       document.getElementById("hint").style.display = "none";
     });
-window.addEventListener("load", () => {
-  window.parent.postMessage({ type: "sceneReady" }, "*");
-});
+
+    window.addEventListener("load", () => {
+      console.log("✅ sceneStudioB ready");
+      window.parent.postMessage({ type: "sceneReady" }, "*");
+    });
   </script>
-</body>
 </html>
