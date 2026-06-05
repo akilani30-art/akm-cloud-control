@@ -379,14 +379,17 @@ let heartbeatTimer = null;
 let heartbeatTimeoutTimer = null;
 
 // Heartbeat settings
-const HEARTBEAT_INTERVAL_MS = 30000;   // periodic re-sync / keepalive
-const HEARTBEAT_TIMEOUT_MS  = 12000;   // if no response after heartbeat, reconnect
+const HEARTBEAT_INTERVAL_MS = 30000;
+const HEARTBEAT_TIMEOUT_MS  = 12000;
 const RECONNECT_BASE_MS     = 1000;
 const RECONNECT_CAP_MS      = 30000;
 
 // Preload cache
 const preloadPromises = new Map();
 const preloadContainer = document.getElementById("preloadContainer");
+
+// Store pending studioB data
+window._pendingStudioB = null;
 
 // ---------- Helpers ----------
 function normalizeScene(scene) {
@@ -442,7 +445,6 @@ function deactivateFrame(frame) {
 }
 
 function getTargetOrigin() {
-  // Use a specific origin when available; fall back to "*" only for opaque origins (e.g. file:)
   return (location.origin && location.origin !== "null") ? location.origin : "*";
 }
 
@@ -467,12 +469,10 @@ function startHeartbeat() {
   heartbeatTimer = setInterval(() => {
     if (!socket || socket.readyState !== WebSocket.OPEN) return;
 
-    // Request a fresh snapshot periodically — acts as both heartbeat and re-sync
     requestFullState();
 
     clearHeartbeatTimeout();
     heartbeatTimeoutTimer = setTimeout(() => {
-      // If the server did not respond in time, force reconnect
       try {
         socket.close();
       } catch {}
@@ -482,7 +482,7 @@ function startHeartbeat() {
 
 function nextReconnectDelay() {
   const base = Math.min(RECONNECT_BASE_MS * (2 ** reconnectAttempt), RECONNECT_CAP_MS);
-  const jitter = base * 0.25 * (Math.random() * 2 - 1); // ±25%
+  const jitter = base * 0.25 * (Math.random() * 2 - 1);
   reconnectAttempt += 1;
   return Math.max(0, Math.floor(base + jitter));
 }
@@ -503,8 +503,6 @@ function requestLatestScripture() {
     socket.send(JSON.stringify({ type: "request_latest_scripture" }));
   }
 }
-
-
 
 function requestFullState() {
   if (socket && socket.readyState === WebSocket.OPEN) {
@@ -542,7 +540,7 @@ function preloadScene(scene) {
     iframe.style.top = "-99999px";
 
     iframe.onload = () => resolve();
-    iframe.onerror = () => resolve(); // fail soft
+    iframe.onerror = () => resolve();
 
     preloadContainer.appendChild(iframe);
   });
@@ -587,8 +585,6 @@ async function processQueue() {
   processingQueue = false;
 }
 
-
-
 // ---------- Scene Switching ----------
 function sendStudioBControl(frame, action) {
   try {
@@ -601,7 +597,6 @@ function sendStudioBControl(frame, action) {
     }
   } catch {}
 }
-
 
 // ---------- Clock ----------
 function updateClock() {
@@ -629,18 +624,12 @@ function connectWS() {
   }
 
   socket.onopen = () => {
-  reconnectAttempt = 0;
-  setWSStatus("online");
-
-  // ✅ CRITICAL FIX
-  socket.send(JSON.stringify({ type: "request_current_scene" }));
-
-  // Existing
-  requestFullState();
-
-  startHeartbeat();
-};
-
+    reconnectAttempt = 0;
+    setWSStatus("online");
+    socket.send(JSON.stringify({ type: "request_current_scene" }));
+    requestFullState();
+    startHeartbeat();
+  };
 
   socket.onmessage = (event) => {
     clearHeartbeatTimeout();
@@ -656,7 +645,6 @@ function connectWS() {
   };
 
   socket.onerror = () => {
-    // Let onclose drive reconnect
     try { socket.close(); } catch {}
   };
 
@@ -664,7 +652,6 @@ function connectWS() {
     setWSStatus("offline");
     stopHeartbeat();
 
-    // Do not auto-reconnect intentional clean closes
     if (event.code !== 1000) {
       scheduleReconnect();
     }
@@ -674,13 +661,10 @@ function connectWS() {
 // ---------- Message Forwarding ----------
 function postToSceneFrames(data) {
   const { A, B } = getFrames();
-  const targetOrigin = "*";  // Use "*" for same-origin iframes
-  
-  console.log("📤 [VIEWER] Posting to frames:", data);
+  const targetOrigin = "*";
 
   try {
     if (A.contentWindow) {
-      console.log("📤 [VIEWER] Posting to Frame A");
       A.contentWindow.postMessage(data, targetOrigin);
     }
   } catch (e) {
@@ -689,18 +673,17 @@ function postToSceneFrames(data) {
 
   try {
     if (B.contentWindow) {
-      console.log("📤 [VIEWER] Posting to Frame B");
       B.contentWindow.postMessage(data, targetOrigin);
     }
   } catch (e) {
     console.error("❌ [VIEWER] Error posting to Frame B:", e);
   }
 }
+
 // ---------- Message Handler ----------
 function handleMessage(data) {
   if (!data || typeof data !== "object") return;
 
-  // If your server ever adds pong, this will keep working
   if (data.type === "pong") {
     return;
   }
@@ -710,29 +693,24 @@ function handleMessage(data) {
     return;
   }
 
- if (data.type === "scene") {
-  const scene = normalizeScene(data.scene);
+  if (data.type === "scene") {
+    const scene = normalizeScene(data.scene);
 
-  // ✅ STOP LOOP: ignore if already on this scene
-  if (scene === currentScene) return;
+    if (scene === currentScene) return;
 
-  const style = data.transition || transitionStyle || "cut";
-  enqueueScene(scene, style);
-  return;
-}
-
+    const style = data.transition || transitionStyle || "cut";
+    enqueueScene(scene, style);
+    return;
+  }
 
   if (data.type === "studioB") {
     console.log("🎬 [VIEWER] Received studioB message from server:", data);
     
-    // First, transition to the sceneStudioB frame
-    enqueueScene("sceneStudioB.html", transitionStyle || "cut", { force: true });
+    // Store the data
+    window._pendingStudioB = data;
     
-    // Then post the message to all frames
-    setTimeout(() => {
-      console.log("🎬 [VIEWER] Forwarding studioB to frames after transition");
-      postToSceneFrames(data);
-    }, 1500);
+    // Switch to sceneStudioB
+    enqueueScene("sceneStudioB.html", transitionStyle || "cut", { force: true });
     
     return;
   }
@@ -871,12 +849,13 @@ function handleMessage(data) {
     }
 
     if (data.scene && normalizeScene(data.scene) !== currentScene) {
-  enqueueScene(data.scene, transitionStyle || "cut");
-}
+      enqueueScene(data.scene, transitionStyle || "cut");
+    }
 
     return;
   }
 }
+
 async function switchScene(scene, style = "cut", force = false) {
   if (isTransitioning) return;
 
@@ -973,6 +952,20 @@ async function switchScene(scene, style = "cut", force = false) {
     // Swap buffers
     showingA = !showingA;
     currentScene = scene;
+
+    // If we just switched to sceneStudioB and have pending data, send it
+    if (currentScene === "sceneStudioB.html" && window._pendingStudioB) {
+      const activeFrame = showingA ? A : B;
+      console.log("🎬 [VIEWER] Sending studioB data to active frame");
+      try {
+        activeFrame.contentWindow.postMessage(window._pendingStudioB, "*");
+        console.log("✅ [VIEWER] Message sent");
+        window._pendingStudioB = null;
+      } catch (e) {
+        console.error("❌ [VIEWER] Error:", e);
+      }
+    }
+
   } finally {
     isTransitioning = false;
   }
@@ -1000,7 +993,6 @@ document.addEventListener("visibilitychange", () => {
 });
 
 window.addEventListener("online", () => {
-  // Avoid duplicate connects while already CONNECTING
   if (!socket || socket.readyState === WebSocket.CLOSED) {
     connectWS();
   } else if (socket.readyState === WebSocket.OPEN) {
@@ -1008,13 +1000,9 @@ window.addEventListener("online", () => {
   }
 });
 
-
 // ---------- Startup ----------
 connectWS();
 preloadCommonScenes();
 </script>
-
-
-
 </body>
 </html>
