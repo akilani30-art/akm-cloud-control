@@ -151,49 +151,76 @@
 
     /* Create official YouTube player */
     function createYouTubePlayer(videoId) {
-      const container = document.getElementById("playerContainer");
+  const container = document.getElementById("playerContainer");
 
-      destroyYouTubePlayer();
-      container.innerHTML = '<div id="yt-player"></div>';
+  destroyYouTubePlayer();
+  container.innerHTML = '<div id="yt-player"></div>';
 
-      ytPlayer = new YT.Player("yt-player", {
-        width: "100%",
-        height: "100%",
-        videoId: videoId,
-        playerVars: {
-          autoplay: 1,
-          mute: 1,
-          controls: 1,
-          playsinline: 1,
-          rel: 0,
-          enablejsapi: 1,
-          modestbranding: 1
-        },
-        events: {
-          onReady: function(event) {
-  const player = event.target;
+  ytPlayer = new YT.Player("yt-player", {
+    width: "100%",
+    height: "100%",
+    videoId: videoId,
+    playerVars: {
+      autoplay: 1,
+      mute: 1,
+      controls: 1,
+      playsinline: 1,
+      rel: 0,
+      enablejsapi: 1,
+      modestbranding: 1,
+      origin: window.location.origin
+    },
+    events: {
+      onReady: function (event) {
+        const player = event.target;
 
-  try {
-    player.mute();
-  } catch {}
+        // ✅ IMPORTANT: give iframe permission to autoplay
+        try {
+          const iframeEl = player.getIframe();
+          if (iframeEl) {
+            iframeEl.setAttribute(
+              "allow",
+              "autoplay; encrypted-media; fullscreen; picture-in-picture"
+            );
+            iframeEl.setAttribute("allowfullscreen", "true");
+          }
+        } catch {}
 
-  function forcePlay() {
-    try {
-      player.playVideo();
-    } catch {}
-  }
+        try { player.mute(); } catch {}
 
-  // aggressive autoplay attempts
-  forcePlay();
-  setTimeout(forcePlay, 200);
-  setTimeout(forcePlay, 500);
-  setTimeout(forcePlay, 1000);
-  setTimeout(forcePlay, 2000);
-}
+        const tryPlay = () => {
+          try { player.playVideo(); } catch {}
+        };
 
+        // ✅ multiple attempts (this is the key fix)
+        tryPlay();
+        setTimeout(tryPlay, 250);
+        setTimeout(tryPlay, 700);
+        setTimeout(tryPlay, 1500);
+        setTimeout(tryPlay, 2500);
+      },
+
+      onStateChange: function (event) {
+        // ✅ if it didn’t start, force it again
+        if (event.data !== 1) {
+          setTimeout(() => {
+            try {
+              ytPlayer.mute();
+              ytPlayer.playVideo();
+            } catch {}
+          }, 500);
+
+          setTimeout(() => {
+            try {
+              ytPlayer.mute();
+              ytPlayer.playVideo();
+            } catch {}
+          }, 1200);
         }
-      });
+      }
     }
+  });
+}
 
     /* Load media */
     function loadMedia(url) {
