@@ -195,6 +195,9 @@
       reloadForPlay();
       document.getElementById("hint").style.display = "none";
     });
+window.addEventListener("load", () => {
+  window.parent.postMessage({ type: "sceneReady" }, "*");
+});
   </script>
 </body>
 </html>
