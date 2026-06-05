@@ -14,7 +14,6 @@ body {
   overflow: hidden;
 }
 
-/* Background glow */
 .bgGlow {
   position: absolute;
   width: 100%;
@@ -23,7 +22,6 @@ body {
   z-index: 0;
 }
 
-/* Player container */
 .playerContainer {
   position: absolute;
   top: 50%;
@@ -39,16 +37,15 @@ body {
   animation: pulseGlow 4s infinite;
 }
 
-/* Media elements */
 .playerContainer iframe,
-.playerContainer video {
+.playerContainer video,
+#yt-player {
   width: 100%;
   height: 100%;
   border: none;
   background: black;
 }
 
-/* Title */
 #mediaTitle {
   position: absolute;
   top: 30px;
@@ -71,12 +68,8 @@ body {
 <body>
 
 <div class="bgGlow"></div>
-
 <div id="mediaTitle">Studio B</div>
-
-<div class="playerContainer" id="playerContainer">
-  <!-- Dynamic player goes here -->
-</div>
+<div class="playerContainer" id="playerContainer"></div>
 
 <script>
 let ytPlayer = null;
@@ -93,7 +86,7 @@ let pendingYouTubeVideoId = null;
   }
 })();
 
-/* YouTube API callback */
+/* Official YouTube API callback */
 function onYouTubeIframeAPIReady() {
   ytApiReady = true;
 
@@ -131,7 +124,7 @@ function getYouTubeId(url) {
   return null;
 }
 
-/* Destroy any existing YouTube player cleanly */
+/* Destroy existing YouTube player cleanly */
 function destroyYouTubePlayer() {
   if (ytPlayer && typeof ytPlayer.destroy === "function") {
     ytPlayer.destroy();
@@ -142,9 +135,10 @@ function destroyYouTubePlayer() {
 /* Create official YouTube player */
 function createYouTubePlayer(videoId) {
   const container = document.getElementById("playerContainer");
-  container.innerHTML = '<div id="yt-player"></div>';
 
+  // Clean up first
   destroyYouTubePlayer();
+  container.innerHTML = '<div id="yt-player"></div>';
 
   ytPlayer = new YT.Player("yt-player", {
     width: "100%",
@@ -153,13 +147,29 @@ function createYouTubePlayer(videoId) {
     playerVars: {
       autoplay: 1,
       mute: 1,
-      playsinline: 1,
-      enablejsapi: 1
+      playsinline: 1
     },
     events: {
       onReady: function (event) {
+        const iframeEl = event.target.getIframe();
+        if (iframeEl) {
+          iframeEl.setAttribute("allow", "autoplay; encrypted-media; fullscreen");
+          iframeEl.setAttribute("allowfullscreen", "true");
+        }
+
         event.target.mute();
-        event.target.playVideo();
+
+        // Small retry loop for extra resilience
+        let tries = 0;
+        const startPlayback = () => {
+          event.target.playVideo();
+          tries++;
+          if (tries < 6) {
+            setTimeout(startPlayback, 400);
+          }
+        };
+
+        setTimeout(startPlayback, 150);
       }
     }
   });
@@ -168,8 +178,6 @@ function createYouTubePlayer(videoId) {
 /* Load media */
 function loadMedia(url) {
   const container = document.getElementById("playerContainer");
-  container.innerHTML = "";
-
   const type = detectType(url);
 
   if (type === "youtube") {
@@ -185,6 +193,7 @@ function loadMedia(url) {
   }
 
   destroyYouTubePlayer();
+  container.innerHTML = "";
 
   if (type === "video") {
     const video = document.createElement("video");
@@ -193,11 +202,8 @@ function loadMedia(url) {
     video.controls = true;
     video.playsInline = true;
     video.muted = true;
-    video.style.width = "100%";
-    video.style.height = "100%";
 
     container.appendChild(video);
-
     video.play().catch(() => {});
     return;
   }
@@ -205,8 +211,6 @@ function loadMedia(url) {
   const iframe = document.createElement("iframe");
   iframe.src = url;
   iframe.allow = "autoplay";
-  iframe.style.width = "100%";
-  iframe.style.height = "100%";
   container.appendChild(iframe);
 }
 
@@ -264,7 +268,6 @@ window.addEventListener("message", (event) => {
   }
 });
 </script>
-
 
 </body>
 </html>
