@@ -191,16 +191,18 @@ function resumeMedia() {
 
 
   // YouTube iframe
-  if (iframe && iframe.src.includes("youtube.com") && wasPlayingBeforePause) {
-    iframe.contentWindow.postMessage(
-      JSON.stringify({
-        event: "command",
-        func: "playVideo",
-        args: []
-      }),
-      "https://www.youtube.com"
-    );
-  }
+ // YouTube iframe
+if (iframe && iframe.src.includes("youtube.com")) {
+  iframe.contentWindow.postMessage(
+    JSON.stringify({
+      event: "command",
+      func: "playVideo",
+      args: []
+    }),
+    "https://www.youtube.com"
+  );
+}
+
 }
 
 /* ✅ Listen for messages */
