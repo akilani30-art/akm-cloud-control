@@ -217,7 +217,6 @@ function resumeMedia() {
 
 
   // YouTube iframe
- // YouTube iframe
 if (iframe && iframe.src.includes("youtube.com")) {
   iframe.contentWindow.postMessage(
     JSON.stringify({
@@ -227,6 +226,8 @@ if (iframe && iframe.src.includes("youtube.com")) {
     }),
     "https://www.youtube.com"
   );
+}
+
 }
 
 }
