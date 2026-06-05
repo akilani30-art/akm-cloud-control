@@ -159,17 +159,14 @@ function pauseMedia() {
   const video = document.querySelector("video");
   const iframe = document.querySelector("#playerContainer iframe");
 
-
   // HTML5 video
   if (video) {
-    wasPlayingBeforePause = !video.paused && !video.ended;
     video.pause();
     return;
   }
 
   // YouTube iframe
-if (iframe && iframe.src.includes("youtube.com"))
-
+  if (iframe && iframe.src.includes("youtube.com")) {
     iframe.contentWindow.postMessage(
       JSON.stringify({
         event: "command",
@@ -180,6 +177,7 @@ if (iframe && iframe.src.includes("youtube.com"))
     );
   }
 }
+
 
 function resumeMedia() {
   const video = document.querySelector("video");
