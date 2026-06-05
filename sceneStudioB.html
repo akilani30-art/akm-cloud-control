@@ -38,7 +38,8 @@
       background: black;
     }
 
-    .playerContainer iframe {
+    .playerContainer iframe,
+    .playerContainer video {
       width: 100%;
       height: 100%;
       border: none;
@@ -90,85 +91,117 @@
 
   <div id="hint">Click once to enable sound 🔊</div>
 
-
   <script>
     let currentEmbedUrl = "";
     let currentRawUrl = "";
+    let currentType = "";
 
     function getYouTubeId(url) {
       try {
         const u = new URL(url);
+
         if (u.hostname.includes("youtu.be")) {
-          const id = u.pathname.replace(/^\/+/, "").split("/")[0];
-          return id;
+          return u.pathname.replace(/^\/+/, "").split("/")[0];
         }
+
         if (u.hostname.includes("youtube.com")) {
           if (u.pathname.startsWith("/embed/")) {
-            const id = u.pathname.split("/embed/")[1].split("/")[0];
-            return id;
+            return u.pathname.split("/embed/")[1].split("/")[0];
           }
           if (u.pathname.startsWith("/shorts/")) {
-            const id = u.pathname.split("/shorts/")[1].split("/")[0];
-            return id;
+            return u.pathname.split("/shorts/")[1].split("/")[0];
           }
-          const id = u.searchParams.get("v");
-          return id;
+          return u.searchParams.get("v");
         }
+
         return null;
       } catch (e) {
-        console.error("Error parsing URL:", e);
         return null;
       }
     }
 
     function buildYouTubeEmbed(videoId) {
-      if (!videoId) {
-        return null;
-      }
-      const url = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&playsinline=1&rel=0&enablejsapi=1`;
-      return url;
+      if (!videoId) return null;
+      return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&playsinline=1&rel=0&enablejsapi=1`;
     }
 
     function loadYouTube(url, titleText) {
-      if (!url) {
-        return;
-      }
-
       const videoId = getYouTubeId(url);
-      if (!videoId) {
-        return;
-      }
+      if (!videoId) return;
 
+      currentType = "youtube";
       currentRawUrl = url;
       currentEmbedUrl = buildYouTubeEmbed(videoId);
 
-      if (!currentEmbedUrl) {
-        return;
-      }
-
       document.getElementById("mediaTitle").textContent = titleText || "Studio B";
 
-      const html = `<iframe id="studioBFrame" src="${currentEmbedUrl}" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen style="width: 100%; height: 100%; border: none; background: black;"></iframe>`;
-      
-      document.getElementById("playerMount").innerHTML = html;
+      document.getElementById("playerMount").innerHTML = `
+        <iframe
+          id="studioBFrame"
+          src="${currentEmbedUrl}"
+          allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+          allowfullscreen>
+        </iframe>
+      `;
 
       const hint = document.getElementById("hint");
       hint.style.display = "block";
-      setTimeout(() => {
-        hint.style.display = "none";
-      }, 4000);
+      setTimeout(() => { hint.style.display = "none"; }, 4000);
+    }
+
+    function loadMP4(url, titleText) {
+      currentType = "mp4";
+      currentRawUrl = url;
+      currentEmbedUrl = url;
+
+      document.getElementById("mediaTitle").textContent = titleText || "Studio B";
+
+      document.getElementById("playerMount").innerHTML = `
+        <video id="studioBFrame" controls autoplay muted playsinline>
+          <source src="${url}" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+      `;
+
+      const hint = document.getElementById("hint");
+      hint.style.display = "block";
+      setTimeout(() => { hint.style.display = "none"; }, 4000);
+    }
+
+    function loadMedia(url, titleText) {
+      if (!url) return;
+
+      if (url.toLowerCase().includes(".mp4")) {
+        loadMP4(url, titleText);
+      } else {
+        loadYouTube(url, titleText);
+      }
     }
 
     function reloadForPlay() {
       const frame = document.getElementById("studioBFrame");
-      if (frame && currentEmbedUrl) {
+      if (!frame) return;
+
+      if (currentType === "youtube" && currentEmbedUrl) {
         frame.src = currentEmbedUrl;
+      }
+
+      if (currentType === "mp4") {
+        frame.play().catch(() => {});
       }
     }
 
     function pauseMedia() {
       const frame = document.getElementById("studioBFrame");
-      if (frame) frame.src = "about:blank";
+      if (!frame) return;
+
+      if (currentType === "youtube") {
+        frame.src = "about:blank";
+      }
+
+      if (currentType === "mp4") {
+        frame.pause();
+      }
     }
 
     window.addEventListener("message", (event) => {
@@ -177,7 +210,7 @@
 
       if (data.type === "studioB") {
         if (data.url) {
-          loadYouTube(data.url, data.title || "Studio B");
+          loadMedia(data.url, data.title || "Studio B");
         }
         return;
       }
@@ -189,19 +222,25 @@
     });
 
     document.body.addEventListener("click", () => {
-  const frame = document.getElementById("studioBFrame");
-  if (!frame) return;
+      const frame = document.getElementById("studioBFrame");
+      if (!frame) return;
 
-  // ✅ If muted → unmute
-  if (frame.src.includes("mute=1")) {
-    frame.src = frame.src.replace("mute=1", "mute=0");
-    return;
-  }
+      if (currentType === "youtube" && frame.src.includes("mute=1")) {
+        frame.src = frame.src.replace("mute=1", "mute=0");
+        return;
+      }
 
-  // ✅ If not muted → just try play again
-  reloadForPlay();
-});
+      if (currentType === "mp4") {
+        frame.muted = false;
+        frame.play().catch(() => {});
+        return;
+      }
 
+      reloadForPlay();
+    });
+
+    // Optional default load for testing:
+    // loadMedia("https://akilani30-art.github.io/akm-cloud-control/video.mp4", "Studio B");
   </script>
 </body>
 </html>
