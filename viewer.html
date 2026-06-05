@@ -723,8 +723,17 @@ function handleMessage(data) {
 
 
   if (data.type === "studioB") {
-    postToSceneFrames(data);
+    console.log("🎬 [VIEWER] Received studioB message from server:", data);
+    
+    // First, transition to the sceneStudioB frame
     enqueueScene("sceneStudioB.html", transitionStyle || "cut", { force: true });
+    
+    // Then post the message to all frames
+    setTimeout(() => {
+      console.log("🎬 [VIEWER] Forwarding studioB to frames after transition");
+      postToSceneFrames(data);
+    }, 100);
+    
     return;
   }
 
