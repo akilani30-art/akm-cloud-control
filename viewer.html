@@ -674,12 +674,28 @@ function connectWS() {
 // ---------- Message Forwarding ----------
 function postToSceneFrames(data) {
   const { A, B } = getFrames();
-  const targetOrigin = getTargetOrigin();
+  const targetOrigin = "*";  // Use "*" for same-origin iframes
+  
+  console.log("📤 [VIEWER] Posting to frames:", data);
 
-  try { A.contentWindow && A.contentWindow.postMessage(data, targetOrigin); } catch {}
-  try { B.contentWindow && B.contentWindow.postMessage(data, targetOrigin); } catch {}
+  try {
+    if (A.contentWindow) {
+      console.log("📤 [VIEWER] Posting to Frame A");
+      A.contentWindow.postMessage(data, targetOrigin);
+    }
+  } catch (e) {
+    console.error("❌ [VIEWER] Error posting to Frame A:", e);
+  }
+
+  try {
+    if (B.contentWindow) {
+      console.log("📤 [VIEWER] Posting to Frame B");
+      B.contentWindow.postMessage(data, targetOrigin);
+    }
+  } catch (e) {
+    console.error("❌ [VIEWER] Error posting to Frame B:", e);
+  }
 }
-
 // ---------- Message Handler ----------
 function handleMessage(data) {
   if (!data || typeof data !== "object") return;
