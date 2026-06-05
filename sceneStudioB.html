@@ -168,8 +168,7 @@ function pauseMedia() {
   }
 
   // YouTube iframe
-  if (iframe && iframe.src.includes("youtube.com")) {
-    wasPlayingBeforePause = true;
+if (iframe && iframe.src.includes("youtube.com"))
 
     iframe.contentWindow.postMessage(
       JSON.stringify({
