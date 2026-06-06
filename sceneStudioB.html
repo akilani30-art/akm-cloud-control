@@ -30,21 +30,6 @@
       pointer-events: none;
     }
 
-    .borderFrame {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      border: 3px solid gold;
-      pointer-events: none;
-      z-index: 10;
-      animation: pulseGlow 4s infinite;
-      box-shadow: 
-        inset 0 0 30px rgba(255,215,0,0.3),
-        0 0 30px rgba(255,215,0,0.3);
-    }
-
     .playerContainer {
       position: fixed;
       top: 0;
@@ -74,7 +59,7 @@
       font-weight: bold;
       color: gold;
       text-shadow: 0 0 10px rgba(255,215,0,0.6);
-      z-index: 11;
+      z-index: 3;
     }
 
     #hint {
@@ -82,7 +67,7 @@
       bottom: 24px;
       left: 50%;
       transform: translateX(-50%);
-      z-index: 11;
+      z-index: 3;
       color: #ddd;
       font-size: 14px;
       background: rgba(0,0,0,0.6);
@@ -90,19 +75,6 @@
       border-radius: 8px;
       border: 1px solid rgba(255,215,0,0.4);
       display: none;
-    }
-
-    @keyframes pulseGlow {
-      0%,100% { 
-        box-shadow: 
-          inset 0 0 20px rgba(255,215,0,0.3),
-          0 0 20px rgba(255,215,0,0.3);
-      }
-      50% { 
-        box-shadow: 
-          inset 0 0 40px rgba(255,215,0,0.6),
-          0 0 40px rgba(255,215,0,0.6);
-      }
     }
   </style>
 </head>
@@ -114,7 +86,6 @@
     <div id="playerMount"></div>
   </div>
 
-  <div class="borderFrame"></div>
   <div id="mediaTitle">Studio B</div>
   <div id="hint">Click to enable sound 🔊</div>
 
