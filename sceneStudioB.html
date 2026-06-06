@@ -27,22 +27,32 @@
       height: 100%;
       background: radial-gradient(circle at center, rgba(255,215,0,0.08), transparent 70%);
       z-index: 0;
+      pointer-events: none;
     }
 
-    .playerContainer {
-      position: absolute;
+    .borderFrame {
+      position: fixed;
       top: 0;
       left: 0;
-      width: 100vw;
-      height: 100vh;
+      width: 100%;
+      height: 100%;
       border: 3px solid gold;
-      border-radius: 0;
-      overflow: hidden;
+      pointer-events: none;
+      z-index: 10;
+      animation: pulseGlow 4s infinite;
       box-shadow: 
         inset 0 0 30px rgba(255,215,0,0.3),
         0 0 30px rgba(255,215,0,0.3);
+    }
+
+    .playerContainer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
       z-index: 2;
-      animation: pulseGlow 4s infinite;
       background: black;
     }
 
@@ -64,7 +74,7 @@
       font-weight: bold;
       color: gold;
       text-shadow: 0 0 10px rgba(255,215,0,0.6);
-      z-index: 3;
+      z-index: 11;
     }
 
     #hint {
@@ -72,7 +82,7 @@
       bottom: 24px;
       left: 50%;
       transform: translateX(-50%);
-      z-index: 4;
+      z-index: 11;
       color: #ddd;
       font-size: 14px;
       background: rgba(0,0,0,0.6);
@@ -99,12 +109,13 @@
 
 <body>
   <div class="bgGlow"></div>
-  <div id="mediaTitle">Studio B</div>
-
+  
   <div class="playerContainer">
     <div id="playerMount"></div>
   </div>
 
+  <div class="borderFrame"></div>
+  <div id="mediaTitle">Studio B</div>
   <div id="hint">Click to enable sound 🔊</div>
 
   <script>
