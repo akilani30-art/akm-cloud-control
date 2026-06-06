@@ -26,15 +26,17 @@
 
     .playerContainer {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      border: none;
-      border-radius: 0;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80%;
+      height: 70%;
+      border: 3px solid gold;
+      border-radius: 20px;
       overflow: hidden;
-      box-shadow: none;
+      box-shadow: 0 0 30px rgba(255,215,0,0.3);
       z-index: 2;
+      animation: pulseGlow 4s infinite;
       background: black;
     }
 
@@ -123,21 +125,35 @@
 
     function buildYouTubeEmbed(videoId) {
       if (!videoId) return null;
-      // Changed mute=1 to mute=0 to enable sound by default
-      return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&play B";
+      return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&playsinline=1&rel=0&enablejsapi=1`;
+    }
+
+    function loadYouTube(url, titleText) {
+      const videoId = getYouTubeId(url);
+      if (!videoId) {
+        console.error("Invalid YouTube URL:", url);
+        return;
+      }
+
+      currentType = "youtube";
+      currentRawUrl = url;
+      currentEmbedUrl = buildYouTubeEmbed(videoId);
+
+      document.getElementById("mediaTitle").textContent = titleText || "Studio B";
 
       document.getElementById("playerMount").innerHTML = `
         <iframe
           id="studioBFrame"
           src="${currentEmbedUrl}"
           allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-          allowfullscreen>
+          allowfullscreen
+          style="width: 100%; height: 100%; border: none;">
         </iframe>
       `;
 
       const hint = document.getElementById("hint");
       hint.style.display = "block";
-      setTimeout(() => { hint.style.display = "none"; }, 3000);
+      setTimeout(() => { hint.style.display = "none"; }, 4000);
     }
 
     function loadMP4(url, titleText) {
@@ -148,7 +164,7 @@
       document.getElementById("mediaTitle").textContent = titleText || "Studio B";
 
       document.getElementById("playerMount").innerHTML = `
-        <video id="studioBFrame" autoplay playsinline style="width: 100%; height: 100%; object-fit: contain;">
+        <video id="studioBFrame" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: contain;">
           <source src="${url}" type="video/mp4">
           Your browser does not support the video tag.
         </video>
@@ -156,7 +172,7 @@
 
       const hint = document.getElementById("hint");
       hint.style.display = "block";
-      setTimeout(() => { hint.style.display = "none"; }, 3000);
+      setTimeout(() => { hint.style.display = "none"; }, 4000);
 
       // Auto-play with sound after a short delay
       setTimeout(() => {
@@ -190,9 +206,7 @@
 
       if (currentType === "mp4") {
         frame.muted = false;
-        frame.play().catch((err) => {
-          console.error("Play error:", err);
-        });
+        frame.play().catch(() => {});
       }
     }
 
@@ -226,27 +240,21 @@
       }
     });
 
-    // Single click to unmute and play - only one click needed
+    // Single click to unmute and play
     document.body.addEventListener("click", () => {
       const frame = document.getElementById("studioBFrame");
       if (!frame) return;
 
       hasUserInteracted = true;
 
-      if (currentType === "youtube") {
-        // Unmute YouTube video with single click
-        if (frame.src.includes("mute=1")) {
-          frame.src = frame.src.replace("mute=1", "mute=0");
-        }
+      if (currentType === "youtube" && frame.src.includes("mute=1")) {
+        frame.src = frame.src.replace("mute=1", "mute=0");
         return;
       }
 
       if (currentType === "mp4") {
-        // Unmute and play MP4 with single click
         frame.muted = false;
-        frame.play().catch((err) => {
-          console.error("Play error:", err);
-        });
+        frame.play().catch(() => {});
         return;
       }
 
