@@ -35,27 +35,24 @@
       left: 0;
       width: 100vw;
       height: 100vh;
-      border: none;
+      border: 3px solid gold;
+      border-radius: 0;
       overflow: hidden;
+      box-shadow: 
+        inset 0 0 30px rgba(255,215,0,0.3),
+        0 0 30px rgba(255,215,0,0.3);
       z-index: 2;
+      animation: pulseGlow 4s infinite;
       background: black;
     }
 
     .playerContainer iframe,
     .playerContainer video {
-      position: absolute;
-      top: 0;
-      left: 0;
       width: 100%;
       height: 100%;
       border: none;
       background: black;
-    }
-
-    #playerMount {
-      width: 100%;
-      height: 100%;
-      position: relative;
+      display: block;
     }
 
     #mediaTitle {
@@ -83,6 +80,19 @@
       border-radius: 8px;
       border: 1px solid rgba(255,215,0,0.4);
       display: none;
+    }
+
+    @keyframes pulseGlow {
+      0%,100% { 
+        box-shadow: 
+          inset 0 0 20px rgba(255,215,0,0.3),
+          0 0 20px rgba(255,215,0,0.3);
+      }
+      50% { 
+        box-shadow: 
+          inset 0 0 40px rgba(255,215,0,0.6),
+          0 0 40px rgba(255,215,0,0.6);
+      }
     }
   </style>
 </head>
@@ -144,17 +154,15 @@
       currentRawUrl = url;
       currentEmbedUrl = buildYouTubeEmbed(videoId);
 
-      // Set title
       document.getElementById("mediaTitle").textContent = titleText || "Studio B";
 
-      // Load the iframe fullscreen
       document.getElementById("playerMount").innerHTML = `
         <iframe
           id="studioBFrame"
           src="${currentEmbedUrl}"
           allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
           allowfullscreen
-          style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;">
+          style="width: 100%; height: 100%; border: none;">
         </iframe>
       `;
 
@@ -170,7 +178,6 @@
       currentRawUrl = url;
       currentEmbedUrl = url;
 
-      // Set title
       document.getElementById("mediaTitle").textContent = titleText || "Studio B";
 
       document.getElementById("playerMount").innerHTML = `
@@ -179,7 +186,7 @@
           autoplay 
           playsinline 
           muted 
-          style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;">
+          style="width: 100%; height: 100%; object-fit: contain;">
           <source src="${url}" type="video/mp4">
           Your browser does not support the video tag.
         </video>
@@ -191,7 +198,6 @@
       hint.style.display = "block";
       setTimeout(() => { hint.style.display = "none"; }, 4000);
 
-      // Auto-play with sound after a short delay
       setTimeout(() => {
         const video = document.getElementById("studioBFrame");
         if (video) {
@@ -240,7 +246,6 @@
       }
     }
 
-    // Message listener - ready immediately
     window.addEventListener("message", (event) => {
       const data = event.data;
       if (!data) return;
@@ -260,7 +265,6 @@
       }
     });
 
-    // Single click to unmute and play
     document.body.addEventListener("click", () => {
       const frame = document.getElementById("studioBFrame");
       if (!frame) return;
