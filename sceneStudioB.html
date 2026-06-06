@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Studio B</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: black;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+
+    .bgGlow {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, rgba(255,215,0,0.08), transparent 70%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .playerContainer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 2;
+      background: black;
+    }
+
+    .playerContainer iframe,
+    .playerContainer video {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: black;
+      display: block;
+    }
+
+    #mediaTitle {
+      position: fixed;
+      top: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 28px;
+      font-weight: bold;
+      color: gold;
+      text-shadow: 0 0 10px rgba(255,215,0,0.6);
+      z-index: 3;
+    }
+
+    #hint {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 3;
+      color: #ddd;
+      font-size: 14px;
+      background: rgba(0,0,0,0.6);
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,215,0,0.4);
+      display: none;
+    }
+
+    #loadingSpinner {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 4;
+      display: none;
+      text-align: center;
+    }
+
+    .spinner {
+      border: 4px solid rgba(255, 215, 0, 0.2);
+      border-top: 4px solid gold;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="bgGlow"></div>
+  
+  <div class="playerContainer">
+    <div id="playerMount"></div>
+  </div>
+
+  <div id="loadingSpinner">
+    <div class="spinner"></div>
+  </div>
+
+  <div id="mediaTitle">Studio B</div>
+  <div id="hint">Click to enable sound 🔊</div>
+
+  <script>
+    let currentEmbedUrl = "";
+    let currentRawUrl = "";
+    let currentType = "";
+    let hasUserInteracted = false;
+    let mediaLoaded = false;
+    let currentTitle = "Studio B";
+
+    // Store current media state globally so new instances load it immediately
+    window.studioBState = {
+      url: null,
+      title: "Studio B",
+      type: null,
+      embedUrl: null
+    };
+
+    function showLoading() {
+      document.getElementById("loadingSpinner").style.display = "block";
+    }
+
+    function hideLoading() {
+      document.getElementById("loadingSpinner").style.display = "none";
+    }
+
+    function getYouTubeId(url) {
+      try {
+        const u = new URL(url);
+
+        if (u.hostname.includes("youtu.be")) {
+          return u.pathname.replace(/^\/+/, "").split("/")[0];
+        }
+
+        if (u.hostname.includes("youtube.com")) {
+          if (u.pathname.startsWith("/embed/")) {
+            return u.pathname.split("/embed/")[1].split("/")[0];
+          }
+          if (u.pathname.startsWith("/shorts/")) {
+            return u.pathname.split("/shorts/")[1].split("/")[0];
+          }
+          return u.searchParams.get("v");
+        }
+
+        return null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function buildYouTubeEmbed(videoId) {
+      if (!videoId) return null;
+      return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&playsinline=1&rel=0&enablejsapi=1`;
+    }
+
+    function loadYouTube(url, titleText) {
+      showLoading();
+      
+      const videoId = getYouTubeId(url);
+      if (!videoId) {
+        console.error("Invalid YouTube URL:", url);
+        hideLoading();
+        return;
+      }
+
+      currentType = "youtube";
+      currentRawUrl = url;
+      currentEmbedUrl = buildYouTubeEmbed(videoId);
+      currentTitle = titleText || "Studio B";
+
+      // Save state for new devices
+      window.studioBState = {
+        url: url,
+        title: currentTitle,
+        type: "youtube",
+        embedUrl: currentEmbedUrl
+      };
+
+      document.getElementById("mediaTitle").textContent = currentTitle;
+
+      document.getElementById("playerMount").innerHTML = `
+        <iframe
+          id="studioBFrame"
+          src="${currentEmbedUrl}"
+          allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+          allowfullscreen
+          style="width: 100%; height: 100%; border: none;">
+        </iframe>
+      `;
+
+      mediaLoaded = true;
+      hideLoading();
+
+      const hint = document.getElementById("hint");
+      hint.style.display = "block";
+      setTimeout(() => { hint.style.display = "none"; }, 4000);
+
+      console.log("✅ YouTube loaded:", currentTitle);
+    }
+
+    function loadMP4(url, titleText) {
+      showLoading();
+      
+      currentType = "mp4";
+      currentRawUrl = url;
+      currentEmbedUrl = url;
+      currentTitle = titleText || "Studio B";
+
+      // Save state for new devices
+      window.studioBState = {
+        url: url,
+        title: currentTitle,
+        type: "mp4",
+        embedUrl: url
+      };
+
+      document.getElementById("mediaTitle").textContent = currentTitle;
+
+      document.getElementById("playerMount").innerHTML = `
+        <video 
+          id="studioBFrame" 
+          autoplay 
+          playsinline 
+          muted 
+          style="width: 100%; height: 100%; object-fit: contain;">
+          <source src="${url}" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+      `;
+
+      mediaLoaded = true;
+      hideLoading();
+
+      const hint = document.getElementById("hint");
+      hint.style.display = "block";
+      setTimeout(() => { hint.style.display = "none"; }, 4000);
+
+      setTimeout(() => {
+        const video = document.getElementById("studioBFrame");
+        if (video) {
+          video.muted = false;
+          video.play().catch((err) => {
+            console.log("Auto-play blocked, waiting for user interaction:", err);
+          });
+        }
+      }, 500);
+
+      console.log("✅ MP4 loaded:", currentTitle);
+    }
+
+    function loadMedia(url, titleText) {
+      if (!url) return;
+
+      if (url.toLowerCase().includes(".mp4")) {
+        loadMP4(url, titleText);
+      } else {
+        loadYouTube(url, titleText);
+      }
+    }
+
+    function reloadForPlay() {
+      const frame = document.getElementById("studioBFrame");
+      if (!frame) return;
+
+      if (currentType === "youtube" && currentEmbedUrl) {
+        frame.src = currentEmbedUrl;
+      }
+
+      if (currentType === "mp4") {
+        frame.muted = false;
+        frame.play().catch(() => {});
+      }
+    }
+
+    function pauseMedia() {
+      const frame = document.getElementById("studioBFrame");
+      if (!frame) return;
+
+      if (currentType === "youtube") {
+        frame.src = "about:blank";
+      }
+
+      if (currentType === "mp4") {
+        frame.pause();
+      }
+    }
+
+    // Listen for messages from viewer/parent
+    window.addEventListener("message", (event) => {
+      const data = event.data;
+      if (!data) return;
+
+      console.log("📨 [StudioB] Received message:", data);
+
+      if (data.type === "studioB") {
+        if (data.url) {
+          loadMedia(data.url, data.title || "Studio B");
+        }
+        return;
+      }
+
+      if (data.type === "studioB_control") {
+        if (data.action === "pause") pauseMedia();
+        if (data.action === "play" || data.action === "resume") reloadForPlay();
+      }
+    });
+
+    // Single click to unmute and play
+    document.body.addEventListener("click", () => {
+      const frame = document.getElementById("studioBFrame");
+      if (!frame) return;
+
+      hasUserInteracted = true;
+
+      if (currentType === "youtube" && frame.src.includes("mute=1")) {
+        frame.src = frame.src.replace("mute=1", "mute=0");
+        return;
+      }
+
+      if (currentType === "mp4") {
+        frame.muted = false;
+        frame.play().catch(() => {});
+        return;
+      }
+
+      reloadForPlay();
+    });
+
+    // When page visibility changes (device returns to focus)
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden && window.studioBState.url) {
+        console.log("🔄 [StudioB] Page became visible, reloading current media:", window.studioBState.title);
+        loadMedia(window.studioBState.url, window.studioBState.title);
+      }
+    });
+
+    console.log("✅ [StudioB] Ready - waiting for media from viewer...");
+
+   
+  </script>
+</body>
+</html>
