@@ -243,9 +243,12 @@ document.getElementById("playerMount").innerHTML = `
     playsinline 
     muted 
     style="object-fit: cover;">
-    ${url}
-    Your browser does not support the video tag.
+ document.getElementById("playerMount").innerHTML = `
+  ${url}
   </video>
+`;
+
+requestAnimationFrame(fitMediaCover);
 `;
 
 requestAnimationFrame(fitMediaCover);
