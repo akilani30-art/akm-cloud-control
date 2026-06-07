@@ -296,7 +296,13 @@ function sendJSON(obj) {
 function loadPreview(e, scene) {
   currentPreviewScene = scene;
 
-  document.getElementById("previewFrame").src = scene + ".html";
+  const previewFrame = document.getElementById("previewFrame");
+
+  // ✅ Prevent reload for Studio B
+  if (scene !== "sceneStudioB") {
+    previewFrame.src = scene + ".html";
+  }
+
   setActiveSceneButton(scene);
 
   if (scene !== "scene3") {
