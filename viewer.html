@@ -315,11 +315,11 @@
     border-radius: 50%;
   }
 
-  .wsStatus.IMSD .dot { background:#00e676; }
+  .wsStatus.online .dot { background:#00e676; }
   .wsStatus.offline .dot { background:#ff1744; }
   .wsStatus.connecting .dot { background:#ffea00; }
 
-  .wsStatus.IMSD .label { color:#00e676; }
+  .wsStatus.online .label { color:#00e676; }
   .wsStatus.offline .label { color:#ff1744; }
   .wsStatus.connecting .label { color:#ffea00; }
 </style>
@@ -407,7 +407,7 @@ function getFrames() {
 function setWSStatus(state) {
   const el = document.getElementById("wsStatus");
   const label = el.querySelector(".label");
-  el.classList.remove("online", "Offline", "connecting");
+  el.classList.remove("online", "offline", "connecting");
   el.classList.add(state);
   label.textContent = state.toUpperCase();
 }
