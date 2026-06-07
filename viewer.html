@@ -407,7 +407,7 @@ function getFrames() {
 function setWSStatus(state) {
   const el = document.getElementById("wsStatus");
   const label = el.querySelector(".label");
-  el.classList.remove("IMSD", "Offline", "connecting");
+  el.classList.remove("online", "Offline", "connecting");
   el.classList.add(state);
   label.textContent = state.toUpperCase();
 }
