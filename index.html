@@ -364,8 +364,16 @@ function playStudioB() {
   currentProgramScene = "sceneStudioB";
   currentSceneLive = "sceneStudioB";
 
-  document.getElementById("previewFrame").src = "sceneStudioB.html";
-  document.getElementById("programFrame").src = "sceneStudioB.html";
+  const previewFrame = document.getElementById("previewFrame");
+  const programFrame = document.getElementById("programFrame");
+
+  if (!previewFrame.src.includes("sceneStudioB.html")) {
+    previewFrame.src = "sceneStudioB.html";
+  }
+
+  if (!programFrame.src.includes("sceneStudioB.html")) {
+    programFrame.src = "sceneStudioB.html";
+  }
 
   setActiveSceneButton("sceneStudioB");
 
@@ -373,6 +381,7 @@ function playStudioB() {
 
   console.log("🎵 Studio B LIVE:", url);
 }
+
 
 // ---------- LOWER THIRD ----------
 function sendLower() {
