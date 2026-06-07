@@ -237,14 +237,14 @@
 
       document.getElementById("playerMount").innerHTML = `
         <video 
-          id="studioBFrame" 
-          autoplay 
-          playsinline 
-          muted 
-          style="object-fit: cover>;"
-          <source src="${url}" type="video/mp4">
-          Your browser does not support the video tag.
-        </video>
+  id="studioBFrame" 
+  autoplay 
+  playsinline 
+  muted 
+  style="object-fit: cover;">
+  ${url}
+  Your browser does not support the video tag.
+</video>
       `;
 
       mediaLoaded = true;
