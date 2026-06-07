@@ -236,21 +236,8 @@
       document.getElementById("mediaTitle").textContent = currentTitle;
 
       document.getElementById("playerMount").innerHTML = `
-document.getElementById("playerMount").innerHTML = `
-  <video 
-    id="studioBFrame" 
-    autoplay 
-    playsinline 
-    muted 
-    style="object-fit: cover;">
- document.getElementById("playerMount").innerHTML = `
   ${url}
   </video>
-`;
-
-requestAnimationFrame(fitMediaCover);
-`;
-
 requestAnimationFrame(fitMediaCover);
       mediaLoaded = true;
       hideLoading();
