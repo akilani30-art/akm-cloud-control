@@ -320,8 +320,12 @@ function takeScene() {
 
   const programFrame = document.getElementById("programFrame");
 
-  // ✅ Only reload if NOT Studio B
-  if (currentProgramScene !== "sceneStudioB") {
+  if (currentProgramScene === "sceneStudioB") {
+    // ✅ Ensure Studio B is loaded if needed
+    if (!programFrame.src.includes("sceneStudioB.html")) {
+      programFrame.src = "sceneStudioB.html";
+    }
+  } else {
     programFrame.src = currentProgramScene + ".html";
   }
 
@@ -329,6 +333,7 @@ function takeScene() {
 
   console.log("🎬 TAKEN:", currentProgramScene);
 }
+
 
 
 // ---------- TRANSITIONS ----------
