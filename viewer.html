@@ -625,7 +625,7 @@ function connectWS() {
 
   socket.onopen = () => {
     reconnectAttempt = 0;
-    setWSStatus("online");
+    setWSStatus("IMSD");
     socket.send(JSON.stringify({ type: "request_current_scene" }));
     requestFullState();
     startHeartbeat();
