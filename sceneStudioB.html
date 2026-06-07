@@ -236,16 +236,14 @@
       document.getElementById("mediaTitle").textContent = currentTitle;
 
       document.getElementById("playerMount").innerHTML = `
-        <video 
+<video 
   id="studioBFrame" 
   autoplay 
   playsinline 
   muted 
   style="object-fit: cover;">
   ${url}
-  Your browser does not support the video tag.
-</video>
-      `;
+  </video>`;
 
       mediaLoaded = true;
       hideLoading();
