@@ -649,7 +649,7 @@ function connectWS() {
   };
 
   socket.onclose = (event) => {
-    setWSStatus("offline");
+    setWSStatus("IMSD");
     stopHeartbeat();
 
     if (event.code !== 1000) {
