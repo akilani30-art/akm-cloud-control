@@ -352,6 +352,32 @@
 
     console.log("✅ [StudioB] Ready - waiting for media from viewer...");
 
+function fitMediaCover() {
+  const frame = document.getElementById("studioBFrame");
+  const container = document.querySelector(".playerContainer");
+  if (!frame || !container) return;
+
+  const cw = container.clientWidth;
+  const ch = container.clientHeight;
+  if (!cw || !ch) return;
+
+  // Default aspect ratio for YouTube embeds
+  // If you later support other sources, you can change this dynamically.
+  let mediaAspect = 16 / 9;
+
+  const containerAspect = cw / ch;
+
+  if (containerAspect > mediaAspect) {
+    // Screen is wider than media → fill width, crop top/bottom
+    frame.style.width = cw + "px";
+    frame.style.height = (cw / mediaAspect) + "px";
+  } else {
+    // Screen is taller/narrower than media → fill height, crop sides
+    frame.style.width = (ch * mediaAspect) + "px";
+    frame.style.height = ch + "px";
+  }
+}
+
    
   </script>
 </body>
