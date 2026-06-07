@@ -312,9 +312,12 @@ function takeScene() {
   currentProgramScene = currentPreviewScene;
   currentSceneLive = currentPreviewScene;
 
-  document.getElementById("programFrame").src =
-  currentProgramScene + ".html";
+  const programFrame = document.getElementById("programFrame");
 
+  // ✅ Only reload if NOT Studio B
+  if (currentProgramScene !== "sceneStudioB") {
+    programFrame.src = currentProgramScene + ".html";
+  }
 
   sendJSON({ type: "scene", scene: currentProgramScene });
 
