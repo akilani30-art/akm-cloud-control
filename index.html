@@ -313,7 +313,8 @@ function takeScene() {
   currentSceneLive = currentPreviewScene;
 
   document.getElementById("programFrame").src =
-    currentProgramScene + ".html";
+  currentProgramScene + ".html";
+
 
   sendJSON({ type: "scene", scene: currentProgramScene });
 
