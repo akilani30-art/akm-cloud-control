@@ -226,6 +226,7 @@
 
   <script>
    
+<script>
 const WS_URL = "wss://akm-cloud-control-production.up.railway.app";
 
 let ws;
@@ -293,14 +294,24 @@ function sendJSON(obj) {
 
 
 // ---------- SCENES ----------
-if (scene === "sceneStudioB") {
-  if (!previewFrame.src.includes("sceneStudioB.html")) {
-    previewFrame.src = "sceneStudioB.html";
-  }
-} else {
-  previewFrame.src = scene + ".html";
-}
+function loadPreview(e, scene) {
+  currentPreviewScene = scene;
 
+  const previewFrame = document.getElementById("previewFrame");
+
+  if (scene === "sceneStudioB") {
+    if (!previewFrame.src.includes("sceneStudioB.html")) {
+      previewFrame.src = "sceneStudioB.html";
+    }
+  } else {
+    previewFrame.src = scene + ".html";
+  }
+
+  setActiveSceneButton(scene);
+
+  if (scene !== "scene3") {
+    lastSceneWas3 = false;
+  }
 
   console.log("👁 Preview:", scene);
 }
@@ -314,7 +325,6 @@ function takeScene() {
   const programFrame = document.getElementById("programFrame");
 
   if (currentProgramScene === "sceneStudioB") {
-    // ✅ Ensure Studio B is loaded if needed
     if (!programFrame.src.includes("sceneStudioB.html")) {
       programFrame.src = "sceneStudioB.html";
     }
@@ -326,6 +336,7 @@ function takeScene() {
 
   console.log("🎬 TAKEN:", currentProgramScene);
 }
+
 
 
 
