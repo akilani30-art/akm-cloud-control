@@ -293,21 +293,14 @@ function sendJSON(obj) {
 
 
 // ---------- SCENES ----------
-function loadPreview(e, scene) {
-  currentPreviewScene = scene;
-
-  const previewFrame = document.getElementById("previewFrame");
-
-  // ✅ Prevent reload for Studio B
-  if (scene !== "sceneStudioB") {
-    previewFrame.src = scene + ".html";
+if (scene === "sceneStudioB") {
+  if (!previewFrame.src.includes("sceneStudioB.html")) {
+    previewFrame.src = "sceneStudioB.html";
   }
+} else {
+  previewFrame.src = scene + ".html";
+}
 
-  setActiveSceneButton(scene);
-
-  if (scene !== "scene3") {
-    lastSceneWas3 = false;
-  }
 
   console.log("👁 Preview:", scene);
 }
