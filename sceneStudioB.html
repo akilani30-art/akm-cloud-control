@@ -236,15 +236,19 @@
       document.getElementById("mediaTitle").textContent = currentTitle;
 
       document.getElementById("playerMount").innerHTML = `
-<video 
-  id="studioBFrame" 
-  autoplay 
-  playsinline 
-  muted 
-  style="object-fit: cover;">
-  ${url}
-  </video>`;
+document.getElementById("playerMount").innerHTML = `
+  <video 
+    id="studioBFrame" 
+    autoplay 
+    playsinline 
+    muted 
+    style="object-fit: cover;">
+    ${url}
+    Your browser does not support the video tag.
+  </video>
+`;
 
+requestAnimationFrame(fitMediaCover);
       mediaLoaded = true;
       hideLoading();
 
