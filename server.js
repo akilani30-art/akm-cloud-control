@@ -50,27 +50,37 @@ function broadcast(data) {
 }
 
 // ---------- STATE TRACKING --------
-const state = {
+  const state = {
   scene: "sceneStudioB",
   transitionStyle: "slide",
+
   studioBUrl: "",
   dinabUrl: "",
+
+  // ✅ multi-guest DINAB
+  dinabGuests: ["", "", "", ""],
+  dinabLayout: "solo",
+
   camera: "cam1",
+
   scripture: {
     title: "",
     text: ""
   },
+
   lowerThird: {
     show: false,
     title: "",
     subtitle: ""
   },
+
   ticker: {
     show: false,
     text: "",
     label: "BREAKING NEWS"
   }
 };
+
 function sendFullState(ws) {
 const playback = getPlaybackState();
   ws.send(JSON.stringify({
