@@ -682,7 +682,7 @@ function postToSceneFrames(data) {
 
   try {
     if (B.contentWindow) {
-      B.contentWindow.postMessage(data, targetOrigin);
+      B.contentWindow.postMessage (data, targetOrigin);
     }
   } catch (e) {
     console.error("❌ [VIEWER] Error posting to Frame B:", e);
@@ -877,6 +877,7 @@ if (data.type === "full_state") {
   }
 
   return;
+}
 
 
 async function switchScene(scene, style = "cut", force = false) {
