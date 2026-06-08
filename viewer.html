@@ -869,6 +869,16 @@ if (data.type === "speaker_level") {
     enqueueScene(scene, style);
     return;
   }
+if (data.type === "speaker_level") {
+  if (Number.isInteger(data.index) && typeof data.level === "number") {
+    if (data.index >= 0 && data.index < 4) {
+      speakerLevels[data.index] = Math.max(speakerLevels[data.index], data.level);
+      lastSpeakerSignalAt = Date.now();
+    }
+  }
+  return;
+}
+
 
   if (data.type === "studioB") {
     console.log("🎬 [VIEWER] Received studioB message from server:", data);
