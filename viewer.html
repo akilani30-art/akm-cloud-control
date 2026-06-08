@@ -400,6 +400,56 @@ window._pendingDINABMulti = null;
 
 
 // ---------- Helpers ----------
+
+
+function getActiveSceneFrame() {
+  const { A, B } = getFrames();
+  return showingA ? A : B;
+}
+
+function sendActiveSpeakerToDINAB(index) {
+  if (currentScene !== "sceneDINAB.html") return;
+
+  const activeFrame = getActiveSceneFrame();
+  if (!activeFrame || !activeFrame.contentWindow) return;
+
+  activeFrame.contentWindow.postMessage({
+    type: "active_speaker",
+    index
+  }, "*");
+}
+
+function chooseActiveSpeaker() {
+  let maxIndex = 0;
+  let maxLevel = -1;
+
+  for (let i = 0; i < speakerLevels.length; i++) {
+    if (speakerLevels[i] > maxLevel) {
+      maxLevel = speakerLevels[i];
+      maxIndex = i;
+    }
+  }
+
+  // small gate to avoid noisy switching
+  if (maxLevel > 0.08 && maxIndex !== lastActiveSpeaker) {
+    lastActiveSpeaker = maxIndex;
+    sendActiveSpeakerToDINAB(maxIndex);
+  }
+
+  // decay levels so old peaks fade out
+  speakerLevels = speakerLevels.map(v => v * 0.75);
+}
+
+function startActiveSpeakerLoop() {
+  if (activeSpeakerTimer) clearInterval(activeSpeakerTimer);
+
+  activeSpeakerTimer = setInterval(() => {
+    chooseActiveSpeaker();
+  }, 250);
+}
+
+
+
 function normalizeScene(scene) {
   if (!scene) return "";
   return scene.endsWith(".html") ? scene : scene + ".html";
