@@ -49,44 +49,8 @@ function broadcast(data) {
 }
 
 // ---------- STATE TRACKING ----------
-let currentState = {
-  scene: "sceneStudioB",
-  studioB: {
-    url: null,
-    title: "Studio B",
-    type: null
-  },
-  transitionStyle: "cut",
-  scripture: null,
-  camera: null,
-  lowerThird: null,
-  ticker: null
-};
 
-function updateState(data) {
-  if (data.type === "scene") {
-    currentState.scene = data.scene;
-  } else if (data.type === "studioB") {
-    currentState.studioB = {
-      url: data.url,
-      title: data.title || "Studio B",
-      type: data.url?.toLowerCase().includes(".mp4") ? "mp4" : "youtube"
-    };
-  } else if (data.type === "transition") {
-    currentState.transitionStyle = data.style;
-  } else if (data.type === "scripture") {
-    currentState.scripture = {
-      title: data.title,
-      text: data.text
-    };
-  } else if (data.type === "camera") {
-    currentState.camera = data.view;
-  } else if (data.type === "lowerthird") {
-    currentState.lowerThird = data;
-  } else if (data.type === "ticker") {
-    currentState.ticker = data;
-  }
-}
+};
 
 
 const state = {
