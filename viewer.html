@@ -745,7 +745,10 @@ if (data.type === "dinab") {
   postToSceneFrames(window._pendingDINAB);
   return;
 }
-
+if (data.type === "reload_dinab") {
+  postToSceneFrames({ type: "reload_dinab" });
+  return;
+}
 
   if (data.type === "camera") {
     postToSceneFrames(data);
