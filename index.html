@@ -694,25 +694,22 @@ function connectWS() {
   }
 
   // ✅ ✅ PASTE YOUR BLOCK RIGHT HERE
-if (data.type === "full_state") {
+if(data.type === "full_state") {
   if (data.scene) {
     currentSceneLive = data.scene;
     currentProgramScene = data.scene;
     currentPreviewScene = data.scene;
 
     const program = document.getElementById("programFrame");
-const preview = document.getElementById("previewFrame");
+    const preview = document.getElementById("previewFrame");
 
-// FORCE reload
-program.src = "";
-preview.src = "";
+    program.src = "";
+    preview.src = "";
 
-setTimeout(() => {
-  program.src = getSceneSrc(data.scene);
-  preview.src = getSceneSrc(data.scene);
-}, 50);
-
-
+    setTimeout(() => {
+      program.src = getSceneSrc(data.scene);
+      preview.src = getSceneSrc(data.scene);
+    }, 50);
 
     setActiveSceneButton(data.scene);
   }
@@ -722,13 +719,26 @@ setTimeout(() => {
     setActiveTransitionButton(currentTransitionStyle);
   }
 
-  if (data.dinabUrl) {
+  if (typeof data.dinabUrl === "string") {
     currentDINABUrl = data.dinabUrl;
 
     const dinabInput = document.getElementById("dinabUrl");
     if (dinabInput) dinabInput.value = data.dinabUrl;
   }
+
+  if (Array.isArray(data.dinabGuests)) {
+    currentDINABGuests = data.dinabGuests;
+    currentDINABLayout = data.dinabLayout || "solo";
+    currentDINABUrl = "";
+
+    const ids = ["guest1Url", "guest2Url", "guest3Url", "guest4Url"];
+    ids.forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (el) el.value = currentDINABGuests[i] || "";
+    });
+  }
 }
+
 
 
   
