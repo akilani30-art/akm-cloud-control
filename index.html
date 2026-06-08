@@ -285,7 +285,13 @@ let currentDINABGuests = ["", "", "", ""];
 let currentDINABLayout = "solo";
 
 function sendActive(index) {
-  const programFrame = document.getElementById("programFrame");
+  sendJSON({
+    type: "speaker_level",
+    index: index,
+    level: 1.0
+  });
+}
+
 
   programFrame.contentWindow.postMessage({
     type: "active_speaker",
