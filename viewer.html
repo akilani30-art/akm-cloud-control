@@ -840,6 +840,24 @@ function handleMessage(data) {
       });
     }
 
+if (data.type === "dinab") {
+  console.log("📺 [VIEWER] Received DINAB link:", data);
+
+  window._pendingDINAB = {
+    type: "dinab",
+    url: data.url || ""
+  };
+
+  postToSceneFrames(window._pendingDINAB);
+  return;
+}
+
+if (data.type === "reload_dinab") {
+  postToSceneFrames({ type: "reload_dinab" });
+  return;
+}
+
+
     if (data.lowerThird) {
       handleMessage({
         type: "lowerthird",
