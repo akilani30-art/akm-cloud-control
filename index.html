@@ -391,6 +391,41 @@ function playStudioB() {
 }
 
 
+
+function setDINABUrl() {
+  const url = document.getElementById("dinabUrl").value.trim();
+  currentDINABUrl = url;
+
+  sendJSON({
+    type: "dinab",
+    url: url
+  });
+
+  // Refresh preview if DINAB is currently loaded there
+  if (currentPreviewScene === "sceneDINAB") {
+    document.getElementById("previewFrame").src = getSceneSrc("sceneDINAB");
+  }
+
+  // Refresh program monitor if DINAB is live there
+  if (currentProgramScene === "sceneDINAB") {
+    document.getElementById("programFrame").src = getSceneSrc("sceneDINAB");
+  }
+
+  console.log("📺 DINAB link loaded:", url);
+}
+
+function reloadDINAB() {
+  sendJSON({ type: "reload_dinab" });
+
+  if (currentPreviewScene === "sceneDINAB") {
+    document.getElementById("previewFrame").src = getSceneSrc("sceneDINAB");
+  }
+
+  if (currentProgramScene === "sceneDINAB") {
+    document.getElementById("programFrame").src = getSceneSrc("sceneDINAB");
+  }
+}
+
 // ---------- LOWER THIRD ----------
 function sendLower() {
   const title = document.getElementById("ltTitle").value;
