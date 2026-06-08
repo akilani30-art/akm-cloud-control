@@ -852,10 +852,7 @@ if (data.type === "dinab") {
   return;
 }
 
-if (data.type === "reload_dinab") {
-  postToSceneFrames({ type: "reload_dinab" });
-  return;
-}
+
 
 
     if (data.lowerThird) {
@@ -881,6 +878,11 @@ if (data.type === "reload_dinab") {
 
     return;
   }
+}
+
+(data.type === "reload_dinab") {
+  postToSceneFrames({ type: "reload_dinab" });
+  return;
 }
 
 async function switchScene(scene, style = "cut", force = false) {
