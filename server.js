@@ -86,6 +86,39 @@ function updateState(data) {
     currentState.ticker = data;
   }
 }
+
+
+
+// ---------- PLAYBACK TRACKING ----------
+let playbackState = {
+  url: null,
+  currentTime: 0,
+  isPlaying: false,
+  lastUpdate: Date.now()
+};
+
+function updatePlaybackState(url, currentTime, isPlaying) {
+  playbackState = {
+    url,
+    currentTime,
+    isPlaying,
+    lastUpdate: Date.now()
+  };
+}
+
+function getPlaybackState() {
+  // If video is playing, calculate elapsed time since last update
+  if (playbackState.isPlaying) {
+    const elapsed = (Date.now() - playbackState.lastUpdate) / 1000;
+    return {
+      url: playbackState.url,
+      currentTime: playbackState.currentTime + elapsed,
+      isPlaying: true
+    };
+  }
+  return playbackState;
+}
+
 // ---------- Channel Engine ----------
 const channelEngine = new ChannelEngine({
   playlistFile: "./channel.json",
