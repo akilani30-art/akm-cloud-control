@@ -359,16 +359,21 @@
     <div id="ltSub"></div>
   </div>
 <script>
+<script>
 let socket;
 let showingA = true;
 let transitionStyle = "slide";
 let currentScene = "sceneStudioB.html";
 let lastScripture = null;
 let isTransitioning = false;
-let speakerLevels = [0, 0, 0, 0];
-let lastActiveSpeaker = 0;
-let activeSpeakerTimer = null;
 
+const WS_URL = "wss://akm-cloud-control-production.up.railway.app";
+
+let transitionQueue = [];
+let processingQueue = false;
+
+// Speaker engine
+let speakerLevels = [0, 0, 0, 0];
 let currentActiveSpeaker = 0;
 let activeSpeakerLockedUntil = 0;
 let lastSpeakerSignalAt = 0;
@@ -377,13 +382,6 @@ let speakerEngineTimer = null;
 const SPEAKER_THRESHOLD = 0.08;
 const SPEAKER_HOLD_MS = 1800;
 const SPEAKER_FALLBACK_ROTATE_MS = 5000;
-
-
-
-const WS_URL = "wss://akm-cloud-control-production.up.railway.app";
-
-let transitionQueue = [];
-let processingQueue = false;
 
 // Reconnect / reliability state
 let reconnectAttempt = 0;
@@ -401,146 +399,12 @@ const RECONNECT_CAP_MS      = 30000;
 const preloadPromises = new Map();
 const preloadContainer = document.getElementById("preloadContainer");
 
-// Store pending studioB data
-
+// Pending state
 window._pendingStudioB = null;
 window._pendingDINAB = null;
 window._pendingDINABMulti = null;
 
-
 // ---------- Helpers ----------
-function getActiveSceneFrame() {
-  const { A, B } = getFrames();
-  return showingA ? A : B;
-}
-
-function sendActiveSpeakerToDINAB(index) {
-  if (currentScene !== "sceneDINAB.html") return;
-
-  const activeFrame = getActiveSceneFrame();
-  if (!activeFrame || !activeFrame.contentWindow) return;
-
-  activeFrame.contentWindow.postMessage({
-    type: "active_speaker",
-    index
-  }, "*");
-}
-
-function countVisibleGuests() {
-  if (window._pendingDINABMulti && Array.isArray(window._pendingDINABMulti.guests)) {
-    return window._pendingDINABMulti.guests.filter(Boolean).length;
-  }
-
-  if (window._pendingDINAB && window._pendingDINAB.url) {
-    return 1;
-  }
-
-  return 0;
-}
-
-function chooseNextVisibleSpeaker(currentIndex, visibleCount) {
-  if (visibleCount <= 1) return 0;
-  return (currentIndex + 1) % visibleCount;
-}
-
-function processSpeakerEngine() {
-  const now = Date.now();
-  const visibleCount = countVisibleGuests();
-
-  if (visibleCount <= 1) return;
-
-  // If we have recent speaker signals, use them
-  const hasRecentSignal = (now - lastSpeakerSignalAt) < 2500;
-
-  if (hasRecentSignal) {
-    if (now < activeSpeakerLockedUntil) return;
-
-    let bestIndex = 0;
-    let bestLevel = -1;
-
-    for (let i = 0; i < visibleCount; i++) {
-      if (speakerLevels[i] > bestLevel) {
-        bestLevel = speakerLevels[i];
-        bestIndex = i;
-      }
-    }
-
-    if (bestLevel >= SPEAKER_THRESHOLD && bestIndex !== currentActiveSpeaker) {
-      currentActiveSpeaker = bestIndex;
-      activeSpeakerLockedUntil = now + SPEAKER_HOLD_MS;
-      sendActiveSpeakerToDINAB(currentActiveSpeaker);
-    }
-
-    // decay levels
-    for (let i = 0; i < speakerLevels.length; i++) {
-      speakerLevels[i] *= 0.65;
-    }
-
-    return;
-  }
-
-  // Fallback mode: rotate slowly if no real levels are arriving
-  if (now >= activeSpeakerLockedUntil) {
-    currentActiveSpeaker = chooseNextVisibleSpeaker(currentActiveSpeaker, visibleCount);
-    activeSpeakerLockedUntil = now + SPEAKER_FALLBACK_ROTATE_MS;
-    sendActiveSpeakerToDINAB(currentActiveSpeaker);
-  }
-}
-
-function startSpeakerEngine() {
-  if (speakerEngineTimer) clearInterval(speakerEngineTimer);
-  speakerEngineTimer = setInterval(processSpeakerEngine, 250);
-}
-
-
-function getActiveSceneFrame() {
-  const { A, B } = getFrames();
-  return showingA ? A : B;
-}
-
-function sendActiveSpeakerToDINAB(index) {
-  if (currentScene !== "sceneDINAB.html") return;
-
-  const activeFrame = getActiveSceneFrame();
-  if (!activeFrame || !activeFrame.contentWindow) return;
-
-  activeFrame.contentWindow.postMessage({
-    type: "active_speaker",
-    index
-  }, "*");
-}
-
-function chooseActiveSpeaker() {
-  let maxIndex = 0;
-  let maxLevel = -1;
-
-  for (let i = 0; i < speakerLevels.length; i++) {
-    if (speakerLevels[i] > maxLevel) {
-      maxLevel = speakerLevels[i];
-      maxIndex = i;
-    }
-  }
-
-  // small gate to avoid noisy switching
-  if (maxLevel > 0.08 && maxIndex !== lastActiveSpeaker) {
-    lastActiveSpeaker = maxIndex;
-    sendActiveSpeakerToDINAB(maxIndex);
-  }
-
-  // decay levels so old peaks fade out
-  speakerLevels = speakerLevels.map(v => v * 0.75);
-}
-
-function startActiveSpeakerLoop() {
-  if (activeSpeakerTimer) clearInterval(activeSpeakerTimer);
-
-  activeSpeakerTimer = setInterval(() => {
-    chooseActiveSpeaker();
-  }, 250);
-}
-
-
-
 function normalizeScene(scene) {
   if (!scene) return "";
   return scene.endsWith(".html") ? scene : scene + ".html";
@@ -551,6 +415,11 @@ function getFrames() {
     A: document.getElementById("sceneA"),
     B: document.getElementById("sceneB")
   };
+}
+
+function getActiveSceneFrame() {
+  const { A, B } = getFrames();
+  return showingA ? A : B;
 }
 
 function setWSStatus(state) {
@@ -666,6 +535,82 @@ function replayScriptureToFrame(frame) {
   } catch {}
 }
 
+// ---------- Speaker Engine ----------
+function sendActiveSpeakerToDINAB(index) {
+  if (currentScene !== "sceneDINAB.html") return;
+
+  const activeFrame = getActiveSceneFrame();
+  if (!activeFrame || !activeFrame.contentWindow) return;
+
+  activeFrame.contentWindow.postMessage({
+    type: "active_speaker",
+    index
+  }, "*");
+}
+
+function countVisibleGuests() {
+  if (window._pendingDINABMulti && Array.isArray(window._pendingDINABMulti.guests)) {
+    return window._pendingDINABMulti.guests.filter(Boolean).length;
+  }
+
+  if (window._pendingDINAB && window._pendingDINAB.url) {
+    return 1;
+  }
+
+  return 0;
+}
+
+function chooseNextVisibleSpeaker(currentIndex, visibleCount) {
+  if (visibleCount <= 1) return 0;
+  return (currentIndex + 1) % visibleCount;
+}
+
+function processSpeakerEngine() {
+  const now = Date.now();
+  const visibleCount = countVisibleGuests();
+
+  if (visibleCount <= 1) return;
+
+  const hasRecentSignal = (now - lastSpeakerSignalAt) < 2500;
+
+  if (hasRecentSignal) {
+    if (now < activeSpeakerLockedUntil) return;
+
+    let bestIndex = 0;
+    let bestLevel = -1;
+
+    for (let i = 0; i < visibleCount; i++) {
+      if (speakerLevels[i] > bestLevel) {
+        bestLevel = speakerLevels[i];
+        bestIndex = i;
+      }
+    }
+
+    if (bestLevel >= SPEAKER_THRESHOLD && bestIndex !== currentActiveSpeaker) {
+      currentActiveSpeaker = bestIndex;
+      activeSpeakerLockedUntil = now + SPEAKER_HOLD_MS;
+      sendActiveSpeakerToDINAB(currentActiveSpeaker);
+    }
+
+    for (let i = 0; i < speakerLevels.length; i++) {
+      speakerLevels[i] *= 0.65;
+    }
+
+    return;
+  }
+
+  if (now >= activeSpeakerLockedUntil) {
+    currentActiveSpeaker = chooseNextVisibleSpeaker(currentActiveSpeaker, visibleCount);
+    activeSpeakerLockedUntil = now + SPEAKER_FALLBACK_ROTATE_MS;
+    sendActiveSpeakerToDINAB(currentActiveSpeaker);
+  }
+}
+
+function startSpeakerEngine() {
+  if (speakerEngineTimer) clearInterval(speakerEngineTimer);
+  speakerEngineTimer = setInterval(processSpeakerEngine, 250);
+}
+
 // ---------- Preloading ----------
 function preloadScene(scene) {
   scene = normalizeScene(scene);
@@ -708,7 +653,6 @@ function preloadCommonScenes() {
     "sceneDINAB.html"
   ].forEach(preloadScene);
 }
-
 
 // ---------- Transition Queue ----------
 function enqueueScene(scene, style = "cut", options = {}) {
@@ -780,15 +724,14 @@ function connectWS() {
   }
 
   socket.onopen = () => {
-  reconnectAttempt = 0;
-  setWSStatus("online");
-  
-  // REQUEST FULL STATE FIRST
-  socket.send(JSON.stringify({ type: "request_full_state" }));
-  
-  socket.send(JSON.stringify({ type: "request_current_scene" }));
-  startHeartbeat();
-};
+    reconnectAttempt = 0;
+    setWSStatus("online");
+
+    socket.send(JSON.stringify({ type: "request_full_state" }));
+    socket.send(JSON.stringify({ type: "request_current_scene" }));
+    startHeartbeat();
+  };
+
   socket.onmessage = (event) => {
     clearHeartbeatTimeout();
 
@@ -831,7 +774,7 @@ function postToSceneFrames(data) {
 
   try {
     if (B.contentWindow) {
-      B.contentWindow.postMessage (data, targetOrigin);
+      B.contentWindow.postMessage(data, targetOrigin);
     }
   } catch (e) {
     console.error("❌ [VIEWER] Error posting to Frame B:", e);
@@ -842,18 +785,17 @@ function postToSceneFrames(data) {
 function handleMessage(data) {
   if (!data || typeof data !== "object") return;
 
-  if (data.type === "pong") {
+  if (data.type === "pong") return;
+
+  if (data.type === "speaker_level") {
+    if (Number.isInteger(data.index) && typeof data.level === "number") {
+      if (data.index >= 0 && data.index < 4) {
+        speakerLevels[data.index] = Math.max(speakerLevels[data.index], data.level);
+        lastSpeakerSignalAt = Date.now();
+      }
+    }
     return;
   }
-
-if (data.type === "speaker_level") {
-  if (Number.isInteger(data.index) && typeof data.level === "number") {
-    if (data.index >= 0 && data.index < 4) {
-      speakerLevels[data.index] = Math.max(speakerLevels[data.index], data.level);
-    }
-  }
-  return;
-}
 
   if (data.type === "transition") {
     transitionStyle = data.style || "cut";
@@ -869,26 +811,10 @@ if (data.type === "speaker_level") {
     enqueueScene(scene, style);
     return;
   }
-if (data.type === "speaker_level") {
-  if (Number.isInteger(data.index) && typeof data.level === "number") {
-    if (data.index >= 0 && data.index < 4) {
-      speakerLevels[data.index] = Math.max(speakerLevels[data.index], data.level);
-      lastSpeakerSignalAt = Date.now();
-    }
-  }
-  return;
-}
-
 
   if (data.type === "studioB") {
-    console.log("🎬 [VIEWER] Received studioB message from server:", data);
-    
-    // Store the data
     window._pendingStudioB = data;
-    
-    // Switch to sceneStudioB
     enqueueScene("sceneStudioB.html", transitionStyle || "cut", { force: true });
-    
     return;
   }
 
@@ -900,21 +826,31 @@ if (data.type === "speaker_level") {
     return;
   }
 
-if (data.type === "dinab") {
-  console.log("📺 [VIEWER] Received DINAB:", data);
+  if (data.type === "dinab") {
+    window._pendingDINAB = {
+      type: "dinab",
+      url: data.url || ""
+    };
+    postToSceneFrames(window._pendingDINAB);
+    return;
+  }
 
-  window._pendingDINAB = {
-    type: "dinab",
-    url: data.url || ""
-  };
+  if (data.type === "dinab_multi") {
+    window._pendingDINABMulti = {
+      type: "dinab_multi",
+      guests: Array.isArray(data.guests) ? data.guests : ["", "", "", ""],
+      layout: data.layout || "solo"
+    };
 
-  postToSceneFrames(window._pendingDINAB);
-  return;
-}
-if (data.type === "reload_dinab") {
-  postToSceneFrames({ type: "reload_dinab" });
-  return;
-}
+    window._pendingDINAB = null;
+    postToSceneFrames(window._pendingDINABMulti);
+    return;
+  }
+
+  if (data.type === "reload_dinab") {
+    postToSceneFrames({ type: "reload_dinab" });
+    return;
+  }
 
   if (data.type === "camera") {
     postToSceneFrames(data);
@@ -930,22 +866,6 @@ if (data.type === "reload_dinab") {
     postToSceneFrames(lastScripture);
     return;
   }
-if (data.type === "dinab_multi") {
-  console.log("👥 [VIEWER] Received DINAB multi:", data);
-
-  window._pendingDINABMulti = {
-    type: "dinab_multi",
-    guests: Array.isArray(data.guests) ? data.guests : ["", "", "", ""],
-    layout: data.layout || "solo"
-  };
-
-  // Optional: clear single mode
-  window._pendingDINAB = null;
-
-  postToSceneFrames(window._pendingDINABMulti);
-  return;
-}
-
 
   if (data.type === "lowerthird") {
     const box = document.getElementById("lowerThird");
@@ -1012,91 +932,86 @@ if (data.type === "dinab_multi") {
     return;
   }
 
-if (data.type === "full_state") {
-  if (data.transitionStyle) {
-    transitionStyle = data.transitionStyle;
+  if (data.type === "full_state") {
+    if (data.transitionStyle) {
+      transitionStyle = data.transitionStyle;
+    }
+
+    if (data.scripture && (data.scripture.title || data.scripture.text)) {
+      lastScripture = {
+        type: "scripture",
+        title: data.scripture.title || "",
+        text: data.scripture.text || ""
+      };
+      postToSceneFrames(lastScripture);
+    }
+
+    if (data.studioBUrl) {
+      postToSceneFrames({
+        type: "studioB",
+        url: data.studioBUrl
+      });
+    }
+
+    if (data.dinabUrl) {
+      window._pendingDINAB = {
+        type: "dinab",
+        url: data.dinabUrl
+      };
+      postToSceneFrames(window._pendingDINAB);
+    }
+
+    if (Array.isArray(data.dinabGuests)) {
+      window._pendingDINAB = null;
+
+      window._pendingDINABMulti = {
+        type: "dinab_multi",
+        guests: data.dinabGuests,
+        layout: data.dinabLayout || "solo"
+      };
+
+      postToSceneFrames(window._pendingDINABMulti);
+    }
+
+    if (data.camera) {
+      postToSceneFrames({
+        type: "camera",
+        view: data.camera
+      });
+    }
+
+    if (data.lowerThird) {
+      handleMessage({
+        type: "lowerthird",
+        show: !!data.lowerThird.show,
+        title: data.lowerThird.title || "",
+        subtitle: data.lowerThird.subtitle || ""
+      });
+    }
+
+    if (data.ticker) {
+      handleMessage({
+        type: "ticker",
+        show: !!data.ticker.show,
+        text: data.ticker.text || "",
+        label: data.ticker.label || "BREAKING NEWS"
+      });
+    }
+
+    if (data.scene && normalizeScene(data.scene) !== currentScene) {
+      enqueueScene(normalizeScene(data.scene), transitionStyle || "cut");
+    }
+
+    return;
   }
-
-  if (data.scripture && (data.scripture.title || data.scripture.text)) {
-    lastScripture = {
-      type: "scripture",
-      title: data.scripture.title || "",
-      text: data.scripture.text || ""
-    };
-    postToSceneFrames(lastScripture);
-  }
-
-  if (data.studioBUrl) {
-    postToSceneFrames({
-      type: "studioB",
-      url: data.studioBUrl
-    });
-  }
-
-  if (data.dinabUrl) {
-    window._pendingDINAB = {
-      type: "dinab",
-      url: data.dinabUrl
-    };
-
-    postToSceneFrames(window._pendingDINAB);
-  }
-
-  if (Array.isArray(data.dinabGuests)) {
-  window._pendingDINAB = null;
-
-  window._pendingDINABMulti = {
-    type: "dinab_multi",
-    guests: data.dinabGuests,
-    layout: data.dinabLayout || "solo"
-  };
-
-  postToSceneFrames(window._pendingDINABMulti);
 }
 
-
-  if (data.camera) {
-    postToSceneFrames({
-      type: "camera",
-      view: data.camera
-    });
-  }
-
-  if (data.lowerThird) {
-    handleMessage({
-      type: "lowerthird",
-      show: !!data.lowerThird.show,
-      title: data.lowerThird.title || "",
-      subtitle: data.lowerThird.subtitle || ""
-    });
-  }
-
-  if (data.ticker) {
-    handleMessage({
-      type: "ticker",
-      show: !!data.ticker.show,
-      text: data.ticker.text || "",
-      label: data.ticker.label || "BREAKING NEWS"
-    });
-  }
-
-
-  if (data.scene && normalizeScene(data.scene) !== currentScene) {
-        enqueueScene(normalizeScene(data.scene), transitionStyle || "cut");
-
-  }
-
-  return;
-}
-
-} // ✅ closes handleMessage
-
-async function switchScene(scene, style = "cut", force = false){
+// ---------- Scene Switch ----------
+async function switchScene(scene, style = "cut", force = false) {
   if (isTransitioning) return;
 
   scene = normalizeScene(scene);
   if (!scene) return;
-
   if (!force && currentScene === scene) return;
 
   isTransitioning = true;
@@ -1107,10 +1022,8 @@ async function switchScene(scene, style = "cut", force = false){
     const currentFrame = showingA ? A : B;
     const nextFrame = showingA ? B : A;
 
-    // Load new scene into hidden frame
     nextFrame.src = scene;
 
-    // Wait for iframe to load (with safety timeout)
     await new Promise((resolve) => {
       let done = false;
 
@@ -1129,13 +1042,9 @@ async function switchScene(scene, style = "cut", force = false){
       }, 3000);
     });
 
-    // Restore any persistent state
     replayScriptureToFrame(nextFrame);
-
-    // Pause Studio B if leaving it
     sendStudioBControl(currentFrame, "pause");
 
-    // --- TRANSITIONS ---
     switch (style) {
       case "slide":
         nextFrame.style.left = "100%";
@@ -1173,7 +1082,6 @@ async function switchScene(scene, style = "cut", force = false){
         break;
     }
 
-    // Play Studio B if entering it
     sendStudioBControl(nextFrame, "play");
 
     await new Promise((resolve) =>
@@ -1184,30 +1092,23 @@ async function switchScene(scene, style = "cut", force = false){
     currentFrame.style.left = "0";
     nextFrame.style.left = "0";
 
-    // Swap buffers
     showingA = !showingA;
     currentScene = scene;
 
-        // If we just switched to sceneStudioB and have pending data, send it
     if (currentScene === "sceneStudioB.html" && window._pendingStudioB) {
       const activeFrame = showingA ? A : B;
-      console.log("🎬 [VIEWER] Sending studioB data to active frame");
       try {
         activeFrame.contentWindow.postMessage(window._pendingStudioB, "*");
-        console.log("✅ [VIEWER] Message sent");
         window._pendingStudioB = null;
       } catch (e) {
         console.error("❌ [VIEWER] StudioB error:", e);
       }
     }
 
-    // If we just switched to sceneDINAB and have pending data, send it
     if (currentScene === "sceneDINAB.html" && window._pendingDINAB) {
       const activeFrame = showingA ? A : B;
-      console.log("📺 [VIEWER] Sending DINAB data to active frame");
       try {
         activeFrame.contentWindow.postMessage(window._pendingDINAB, "*");
-        console.log("✅ [VIEWER] DINAB message sent");
       } catch (e) {
         console.error("❌ [VIEWER] DINAB error:", e);
       }
@@ -1215,16 +1116,12 @@ async function switchScene(scene, style = "cut", force = false){
 
     if (currentScene === "sceneDINAB.html" && window._pendingDINABMulti) {
       const activeFrame = showingA ? A : B;
-      console.log("👥 [VIEWER] Sending DINAB multi to active frame");
       try {
         activeFrame.contentWindow.postMessage(window._pendingDINABMulti, "*");
-        console.log("✅ [VIEWER] DINAB multi sent");
       } catch (e) {
         console.error("❌ [VIEWER] DINAB multi error:", e);
       }
     }
-
-
   } finally {
     isTransitioning = false;
   }
@@ -1259,13 +1156,7 @@ window.addEventListener("online", () => {
   }
 });
 
-// ---------- Startup ----------
-connectWS();
-preloadCommonScenes();
-startActiveSpeakerLoop();
-startSpeakerEngine();
-
-
+// ---------- Startup --
 </script>
 </body>
 </html>
