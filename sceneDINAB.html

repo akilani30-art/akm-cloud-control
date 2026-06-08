@@ -17,12 +17,10 @@
     #wrap {
       position: fixed;
       inset: 0;
-      width: 100vw;
-      height: 100vh;
       background: black;
     }
 
-    iframe {
+    #dinabFrame {
       position: absolute;
       inset: 0;
       width: 100vw;
@@ -30,11 +28,86 @@
       border: none;
       background: black;
     }
+
+    #placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-family: Arial, sans-serif;
+      font-size: 24px;
+      background: black;
+      z-index: 2;
+    }
+
+    .hidden {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
   <div id="wrap">
-    https://vdo.ninja/?view=YOUR_GROUP_SCENE_ID&cleanoutput&autostart&noheader</iframe>
+    <div id="placeholder">DINAB ready — waiting for VDO.Ninja group scene link</div>
+    <iframe id="dinabFrame" allow="autoplay; camera; microphone; fullscreen; display-capture"></iframe>
   </div>
+
+  <script>
+    const frame = document.getElementById("dinabFrame");
+    const placeholder = document.getElementById("placeholder");
+    let currentUrl = "";
+
+    function cleanDinabUrl(url) {
+      if (!url) return "";
+
+      url = String(url).trim();
+
+      // If user pasted a full VDO.Ninja URL, keep it.
+      if (/^https?:\/\//i.test(url)) return url;
+
+      // If user pasted only a room/scene/view token, turn it into a VDO.Ninja view link.
+      return "https://vdo.ninja/?view=" + encodeURIComponent(url) + "&cleanoutput&autostart&noheader";
+    }
+
+    function setDinabUrl(url) {
+      const finalUrl = cleanDinabUrl(url);
+      currentUrl = finalUrl;
+
+      if (!finalUrl) {
+        frame.src = "about:blank";
+        placeholder.classList.remove("hidden");
+        return;
+      }
+
+      placeholder.classList.add("hidden");
+      frame.src = finalUrl;
+    }
+
+    // Allow query-param loading for local preview/program frames in control room
+    const params = new URLSearchParams(window.location.search);
+    const urlFromQuery = params.get("dinab");
+    if (urlFromQuery) {
+      setDinabUrl(urlFromQuery);
+    }
+
+    // Allow postMessage loading for viewer/program restore
+    window.addEventListener("message", (event) => {
+      const data = event.data;
+      if (!data || typeof data !== "object") return;
+
+      if (data.type === "dinab") {
+        setDinabUrl(data.url || "");
+      }
+
+      if (data.type === "reload_dinab" && currentUrl) {
+        const old = currentUrl;
+        frame.src = "about:blank";
+        setTimeout(() => {
+          frame.src = old;
+        }, 150);
+      }
+    });
+  </script>
 </body>
 </html>
