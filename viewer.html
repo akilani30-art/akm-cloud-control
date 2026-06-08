@@ -1037,16 +1037,6 @@ if (currentScene === "sceneDINAB.html" && window._pendingDINAB) {
   try {
 
 
-
-   if (data.type === "dinab") {
-   activeFrame.contentWindow.postMessage(window._pendingDINAB, "*");
-    console.log("✅ [VIEWER] DINAB message sent");
-  } catch (e) {
-    console.error("❌ [VIEWER] DINAB error:", e);
-  }
-}
-
-
 // ---------- Safety helper ----------
 function escapeHTML(str) {
   return String(str ?? "")
