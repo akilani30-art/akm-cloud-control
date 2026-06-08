@@ -812,73 +812,68 @@ function handleMessage(data) {
     return;
   }
 
-  if (data.type === "full_state") {
-    if (data.transitionStyle) {
-      transitionStyle = data.transitionStyle;
-    }
+  
+if (data.type === "full_state") {
+  if (data.transitionStyle) {
+    transitionStyle = data.transitionStyle;
+  }
 
-    if (data.scripture && (data.scripture.title || data.scripture.text)) {
-      lastScripture = {
-        type: "scripture",
-        title: data.scripture.title || "",
-        text: data.scripture.text || ""
-      };
-      postToSceneFrames(lastScripture);
-    }
+  if (data.scripture && (data.scripture.title || data.scripture.text)) {
+    lastScripture = {
+      type: "scripture",
+      title: data.scripture.title || "",
+      text: data.scripture.text || ""
+    };
+    postToSceneFrames(lastScripture);
+  }
 
-    if (data.studioBUrl) {
-      postToSceneFrames({
-        type: "studioB",
-        url: data.studioBUrl
-      });
-    }
+  if (data.studioBUrl) {
+    postToSceneFrames({
+      type: "studioB",
+      url: data.studioBUrl
+    });
+  }
 
-    if (data.camera) {
-      postToSceneFrames({
-        type: "camera",
-        view: data.camera
-      });
-    }
+  if (data.dinabUrl) {
+    window._pendingDINAB = {
+      type: "dinab",
+      url: data.dinabUrl
+    };
 
-if (data.type === "dinab") {
-  console.log("📺 [VIEWER] Received DINAB link:", data);
+    postToSceneFrames(window._pendingDINAB);
+  }
 
-  window._pendingDINAB = {
-    type: "dinab",
-    url: data.url || ""
-  };
+  if (data.camera) {
+    postToSceneFrames({
+      type: "camera",
+      view: data.camera
+    });
+  }
 
-  postToSceneFrames(window._pendingDINAB);
+  if (data.lowerThird) {
+    handleMessage({
+      type: "lowerthird",
+      show: !!data.lowerThird.show,
+      title: data.lowerThird.title || "",
+      subtitle: data.lowerThird.subtitle || ""
+    });
+  }
+
+  if (data.ticker) {
+    handleMessage({
+      type: "ticker",
+      show: !!data.ticker.show,
+      text: data.ticker.text || ""
+    });
+  }
+
+  if (data.scene && normalizeScene(data.scene) !== currentScene) {
+    enqueueScene(data.scene, transitionStyle || "cut");
+  }
+
   return;
 }
 
-
-
-
-    if (data.lowerThird) {
-      handleMessage({
-        type: "lowerthird",
-        show: !!data.lowerThird.show,
-        title: data.lowerThird.title || "",
-        subtitle: data.lowerThird.subtitle || ""
-      });
-    }
-
-    if (data.ticker) {
-      handleMessage({
-        type: "ticker",
-        show: !!data.ticker.show,
-        text: data.ticker.text || ""
-      });
-    }
-
-    if (data.scene && normalizeScene(data.scene) !== currentScene) {
-      enqueueScene(data.scene, transitionStyle || "cut");
-    }
-
-    return;
-  }
-}
 
 (data.type === "reload_dinab") {
   postToSceneFrames({ type: "reload_dinab" });
