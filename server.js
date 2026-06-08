@@ -81,6 +81,7 @@ function sendFullState(ws) {
     scripture: state.scripture,
     lowerThird: state.lowerThird,
     ticker: state.ticker
+    playback: playback 
   }));
 }
 
