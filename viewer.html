@@ -1004,31 +1004,38 @@ if (currentScene === "sceneStudioB.html" && window._pendingStudioB) {
   }
 }
 
-// If we just switched to sceneDINAB and h
-// If we just switched to sceneStudioB and have pending data, send it
-if (currentScene === "sceneStudioB.html" && window._pendingStudioB) {
-  const activeFrame = showingA ? A : B;
-  console.log("🎬 [VIEWER] Sending studioB data to active frame");
-  try {
-    activeFrame.contentWindow.postMessage(window._pendingStudioB, "*");
-    console.log("✅ [VIEWER] Message sent");
-    window._pendingStudioB = null;
-  } catch (e) {
-    console.error("❌ [VIEWER] StudioB error:", e);
+// If we just switched to sceneDINAB and 
+
+    // If we just switched to sceneStudioB and have pending data, send it
+    if (currentScene === "sceneStudioB.html" && window._pendingStudioB) {
+      const activeFrame = showingA ? A : B;
+      console.log("🎬 [VIEWER] Sending studioB data to active frame");
+      try {
+        activeFrame.contentWindow.postMessage(window._pendingStudioB, "*");
+        console.log("✅ [VIEWER] Message sent");
+        window._pendingStudioB = null;
+      } catch (e) {
+        console.error("❌ [VIEWER] StudioB error:", e);
+      }
+    }
+
+    // ✅ DINAB APPLY (THIS IS CRITICAL)
+    if (currentScene === "sceneDINAB.html" && window._pendingDINAB) {
+      const activeFrame = showingA ? A : B;
+      console.log("📺 [VIEWER] Sending DINAB data to active frame");
+      try {
+        activeFrame.contentWindow.postMessage(window._pendingDINAB, "*");
+        console.log("✅ [VIEWER] DINAB message sent");
+      } catch (e) {
+        console.error("❌ [VIEWER] DINAB error:", e);
+      }
+    }
+
+  } finally {
+    isTransitioning = false;
   }
 }
 
-// If we just switched to sceneDINAB and have pending data, send it
-if (currentScene === "sceneDINAB.html" && window._pendingDINAB) {
-  const activeFrame = showingA ? A : B;
-  console.log("📺 [VIEWER] Sending DINAB data to active frame");
-  try {
-    activeFrame.contentWindow.postMessage(window._pendingDINAB, "*");
-    console.log("✅ [VIEWER] DINAB message sent");
-  } catch (e) {
-    console.error("❌ [VIEWER] DINAB error:", e);
-  }
-}
 
 
 // ---------- Safety helper ----------
