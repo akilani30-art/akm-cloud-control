@@ -576,31 +576,46 @@ function processSpeakerEngine() {
 
   const hasRecentSignal = (now - lastSpeakerSignalAt) < 2500;
 
-  if (hasRecentSignal) {
-    if (now < activeSpeakerLockedUntil) return;
+ if (hasRecentSignal) {
+  if (now < activeSpeakerLockedUntil) return;
 
-    let bestIndex = 0;
-    let bestLevel = -1;
+  let bestIndex = 0;
+  let bestLevel = -1;
 
-    for (let i = 0; i < visibleCount; i++) {
-      if (speakerLevels[i] > bestLevel) {
-        bestLevel = speakerLevels[i];
-        bestIndex = i;
-      }
+  // Find loudest speaker
+  for (let i = 0; i < visibleCount; i++) {
+    if (speakerLevels[i] > bestLevel) {
+      bestLevel = speakerLevels[i];
+      bestIndex = i;
     }
-
-    if (bestLevel >= SPEAKER_THRESHOLD && bestIndex !== currentActiveSpeaker) {
-      currentActiveSpeaker = bestIndex;
-      activeSpeakerLockedUntil = now + SPEAKER_HOLD_MS;
-      sendActiveSpeakerToDINAB(currentActiveSpeaker);
-    }
-
-    for (let i = 0; i < speakerLevels.length; i++) {
-      speakerLevels[i] *= 0.65;
-    }
-
-    return;
   }
+
+  const hostLevel = speakerLevels[HOST_INDEX] || 0;
+
+  // ✅ HOST PRIORITY LOGIC
+  let chosenIndex = bestIndex;
+
+  // If host is speaking at all (low threshold), override
+  if (hostLevel >= HOST_PRIORITY_THRESHOLD) {
+    chosenIndex = HOST_INDEX;
+  }
+
+  if (
+    speakerLevels[chosenIndex] >= SPEAKER_THRESHOLD &&
+    chosenIndex !== currentActiveSpeaker
+  ) {
+    currentActiveSpeaker = chosenIndex;
+    activeSpeakerLockedUntil = now + SPEAKER_HOLD_MS;
+    sendActiveSpeakerToDINAB(currentActiveSpeaker);
+  }
+
+  // decay levels
+  for (let i = 0; i < speakerLevels.length; i++) {
+    speakerLevels[i] *= 0.65;
+  }
+
+  return;
+}
 
   if (now >= activeSpeakerLockedUntil) {
     currentActiveSpeaker = chooseNextVisibleSpeaker(currentActiveSpeaker, visibleCount);
