@@ -297,6 +297,13 @@ loadSchedule();
       state.studioBUrl = data.url || "";
       broadcast(data);
     }
+else if (data.type === "speaker_level") {
+  broadcast({
+    type: "speaker_level",
+    index: data.index,
+    level: data.level
+  });
+}
 
    
     else if (data.type === "dinab") {
