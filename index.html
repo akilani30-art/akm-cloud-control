@@ -284,6 +284,14 @@ let currentDINABUrl = "";
 let currentDINABGuests = ["", "", "", ""];
 let currentDINABLayout = "solo";
 
+function sendActive(index) {
+  const programFrame = document.getElementById("programFrame");
+
+  programFrame.contentWindow.postMessage({
+    type: "active_speaker",
+    index: index
+  }, "*");
+}
 
 
 // ---------- UI ----------
