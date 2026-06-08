@@ -331,6 +331,18 @@ function loadPreview(e, scene) {
 }
 
 
+function takeScene() {
+  if (currentPreviewScene === currentProgramScene) return;
+
+  currentProgramScene = currentPreviewScene;
+  currentSceneLive = currentPreviewScene;
+
+  document.getElementById("programFrame").src = getSceneSrc(currentProgramScene);
+
+  sendJSON({ type: "scene", scene: currentProgramScene });
+
+  console.log("🎬 TAKEN:", currentProgramScene);
+}
 
 
 
