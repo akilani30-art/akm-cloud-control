@@ -203,7 +203,7 @@
           src="${currentEmbedUrl}"
           allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
           allowfullscreen
-        </iframe>`;
+        ></iframe>`;
 
       requestAnimationFrame(fitMediaCover);
 
@@ -236,10 +236,13 @@
       document.getElementById("mediaTitle").textContent = currentTitle;
 
       document.getElementById("playerMount").innerHTML = `
-  ${url}
-  </video>
-';
-requestAnimationFrame(fitMediaCover);
+        <video id="studioBFrame" style="width:100%; height:100%; background:black;"></video>
+      `;
+
+      const video = document.getElementById("studioBFrame");
+      video.src = url;
+
+      requestAnimationFrame(fitMediaCover);
       mediaLoaded = true;
       hideLoading();
 
