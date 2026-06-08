@@ -302,6 +302,27 @@ loadSchedule();
       state.dinabUrl = data.url || "";
       broadcast({ type: "dinab", url: state.dinabUrl });
     }
+    else if (data.type === "dinab_multi") {
+      state.dinabGuests = Array.isArray(data.guests)
+        ? data.guests.slice(0, 4)
+        : ["", "", "", ""];
+
+      while (state.dinabGuests.length < 4) {
+        state.dinabGuests.push("");
+      }
+
+      state.dinabLayout = data.layout || "solo";
+
+      // Optional: clear single DINAB when multi mode is used
+      state.dinabUrl = "";
+
+      broadcast({
+        type: "dinab_multi",
+        guests: state.dinabGuests,
+        layout: state.dinabLayout
+      });
+    }
+
 
     else if (data.type === "reload_dinab") {
       broadcast({ type: "reload_dinab" });
