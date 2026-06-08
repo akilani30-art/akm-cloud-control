@@ -908,9 +908,11 @@ if (Array.isArray(data.dinabGuests)) {
     handleMessage({
       type: "ticker",
       show: !!data.ticker.show,
-      text: data.ticker.text || ""
+      text: data.ticker.text || "",
+      label: data.ticker.label || "BREAKING NEWS"
     });
   }
+
 
   if (data.scene && normalizeScene(data.scene) !== currentScene) {
     enqueueScene(data.scene, transitionStyle || "cut");
