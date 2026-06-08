@@ -89,6 +89,41 @@ function updateState(data) {
 }
 
 
+const state = {
+  scene: "sceneStudioB",
+  transitionStyle: "slide",
+  studioBUrl: "",
+  dinabUrl: "",
+  camera: "cam1",
+  scripture: {
+    title: "",
+    text: ""
+  },
+  lowerThird: {
+    show: false,
+    title: "",
+    subtitle: ""
+  },
+  ticker: {
+    show: false,
+    text: "",
+    label: "BREAKING NEWS"
+  }
+};
+function sendFullState(ws) {
+  ws.send(JSON.stringify({
+    type: "full_state",
+    scene: state.scene,
+    transitionStyle: state.transitionStyle,
+    studioBUrl: state.studioBUrl,
+    dinabUrl: state.dinabUrl,
+    camera: state.camera,
+    scripture: state.scripture,
+    lowerThird: state.lowerThird,
+    ticker: state.ticker
+  }));
+}
+
 
 // ---------- PLAYBACK TRACKING ----------
 let playbackState = {
