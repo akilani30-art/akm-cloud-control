@@ -23,9 +23,10 @@ app.use(
 
 // ---------- Static files ----------
 app.use(express.static(__dirname));
+app.use("/videos", express.static(path.join(__dirname, "videos")));
 
 app.get("/", (_req, res) => {
-  res.sendFile(path.join(__dirname, "viewer.html"));
+
 });
 
 app.get("/health", (_req, res) => {
