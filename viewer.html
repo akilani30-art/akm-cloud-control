@@ -624,13 +624,15 @@ function connectWS() {
   }
 
   socket.onopen = () => {
-    reconnectAttempt = 0;
-    setWSStatus("online");
-    socket.send(JSON.stringify({ type: "request_current_scene" }));
-    requestFullState();
-    startHeartbeat();
-  };
-
+  reconnectAttempt = 0;
+  setWSStatus("online");
+  
+  // REQUEST FULL STATE FIRST
+  socket.send(JSON.stringify({ type: "request_full_state" }));
+  
+  socket.send(JSON.stringify({ type: "request_current_scene" }));
+  startHeartbeat();
+};
   socket.onmessage = (event) => {
     clearHeartbeatTimeout();
 
