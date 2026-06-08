@@ -877,12 +877,18 @@ if (data.type === "full_state") {
 
     postToSceneFrames(window._pendingDINAB);
   }
-if (Array.isArray(data.dinabGuests)) {
+
+  if (Array.isArray(data.dinabGuests)) {
+  window._pendingDINAB = null;
+
   window._pendingDINABMulti = {
     type: "dinab_multi",
     guests: data.dinabGuests,
     layout: data.dinabLayout || "solo"
   };
+
+  postToSceneFrames(window._pendingDINABMulti);
+}
 
   postToSceneFrames(window._pendingDINABMulti);
 }
