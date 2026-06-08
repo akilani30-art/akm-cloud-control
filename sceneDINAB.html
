@@ -79,11 +79,12 @@
     function setDinabUrl(url) {
   const finalUrl = cleanDinabUrl(url);
 
-  if (!finalUrl) {
-    frame.src = "about:blank";
-    placeholder.classList.remove("hidden");
-    return;
-  }
+if (!finalUrl) {
+  frame.src = "about:blank";
+  placeholder.classList.remove("hidden");
+  currentUrl = ""; // ✅ ADD THIS
+  return;
+}
 
   if (currentUrl === finalUrl) return;
 
