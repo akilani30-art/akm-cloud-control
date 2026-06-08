@@ -990,23 +990,7 @@ async function switchScene(scene, style = "cut", force = false){
     showingA = !showingA;
     currentScene = scene;
 
-    // If we just switched to sceneStudioB and have pending data, send it
-   // If we just switched to sceneStudioB and have pending data, send it
-if (currentScene === "sceneStudioB.html" && window._pendingStudioB) {
-  const activeFrame = showingA ? A : B;
-  console.log("🎬 [VIEWER] Sending studioB data to active frame");
-  try {
-    activeFrame.contentWindow.postMessage(window._pendingStudioB, "*");
-    console.log("✅ [VIEWER] Message sent");
-    window._pendingStudioB = null;
-  } catch (e) {
-    console.error("❌ [VIEWER] StudioB error:", e);
-  }
-}
-
-// If we just switched to sceneDINAB and 
-
-    // If we just switched to sceneStudioB and have pending data, send it
+        // If we just switched to sceneStudioB and have pending data, send it
     if (currentScene === "sceneStudioB.html" && window._pendingStudioB) {
       const activeFrame = showingA ? A : B;
       console.log("🎬 [VIEWER] Sending studioB data to active frame");
@@ -1019,7 +1003,7 @@ if (currentScene === "sceneStudioB.html" && window._pendingStudioB) {
       }
     }
 
-    // ✅ DINAB APPLY (THIS IS CRITICAL)
+    // If we just switched to sceneDINAB and have pending data, send it
     if (currentScene === "sceneDINAB.html" && window._pendingDINAB) {
       const activeFrame = showingA ? A : B;
       console.log("📺 [VIEWER] Sending DINAB data to active frame");
