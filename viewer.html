@@ -838,6 +838,10 @@ function handleMessage(data) {
     transitionStyle = data.style || "cut";
     return;
   }
+if (data.type === "host_lock") {
+  hostLocked = !!data.enabled;
+  return;
+}
 
   if (data.type === "scene") {
     const scene = normalizeScene(data.scene);
