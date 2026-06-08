@@ -331,26 +331,7 @@ function loadPreview(e, scene) {
 }
 
 
-function takeScene() {
-  if (currentPreviewScene === currentProgramScene) return;
 
-  currentProgramScene = currentPreviewScene;
-  currentSceneLive = currentPreviewScene;
-
-  const programFrame = document.getElementById("programFrame");
-
-  if (currentProgramScene === "sceneStudioB") {
-    if (!programFrame.src.includes("sceneStudioB.html")) {
-      programFrame.src = "sceneStudioB.html";
-    }
-  } else {
-    programFrame.src = currentProgramScene + ".html";
-  }
-
-  sendJSON({ type: "scene", scene: currentProgramScene });
-
-  console.log("🎬 TAKEN:", currentProgramScene);
-}
 
 
 
