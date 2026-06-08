@@ -421,13 +421,7 @@ function playStudioB() {
     url: url
   });
 
-  // Refresh preview if DINAB is currently loaded there
-  if (currentPreviewScene === "sceneDINAB") {
-    document.getElementById("previewFrame").src = "";
-    setTimeout(() => {
-      document.getElementById("previewFrame").src = getSceneSrc("sceneDINAB");
-    }, 50);
-  }
+
 
 function setDINABMulti(layout) {
   const guests = [
