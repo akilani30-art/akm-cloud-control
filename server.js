@@ -71,6 +71,7 @@ const state = {
   }
 };
 function sendFullState(ws) {
+const playback = getPlaybackState();
   ws.send(JSON.stringify({
     type: "full_state",
     scene: state.scene,
