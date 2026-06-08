@@ -577,6 +577,14 @@ function processSpeakerEngine() {
   if (visibleCount <= 1) return;
 
   const hasRecentSignal = (now - lastSpeakerSignalAt) < 2500;
+// 🔒 HOST LOCK MODE
+if (hostLocked) {
+  if (currentActiveSpeaker !== HOST_INDEX) {
+    currentActiveSpeaker = HOST_INDEX;
+    sendActiveSpeakerToDINAB(HOST_INDEX);
+  }
+  return;
+}
 
  if (hasRecentSignal) {
   if (now < activeSpeakerLockedUntil) return;
