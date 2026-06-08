@@ -105,7 +105,7 @@ function sendFullState(ws) {
   }));
 }
 
-}
+
 
 
 // ---------- PLAYBACK TRACKING ----------
