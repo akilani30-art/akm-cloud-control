@@ -830,7 +830,6 @@ if (data.type === "reload_dinab") {
     return;
   }
 
-  
 if (data.type === "full_state") {
   if (data.transitionStyle) {
     transitionStyle = data.transitionStyle;
@@ -892,8 +891,9 @@ if (data.type === "full_state") {
   return;
 }
 
+} // ✅ closes handleMessage
 
-async function switchScene(scene, style = "cut", force = false) {
+async function switchScene(scene, style = "cut", force = false){
   if (isTransitioning) return;
 
   scene = normalizeScene(scene);
