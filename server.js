@@ -26,6 +26,9 @@ app.use(express.static(__dirname));
 app.use("/videos", express.static(path.join(__dirname, "videos")));
 
 app.get("/", (_req, res) => {
+  res.send("STATION BROADCAST SYSTEM RUNNING");
+});
+
 
 });
 
