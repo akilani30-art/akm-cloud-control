@@ -85,7 +85,7 @@
     return;
   }
 
-  if (frame.src === finalUrl) return;
+  if (currentUrl === finalUrl) return;
 
   currentUrl = finalUrl;
   placeholder.classList.add("hidden");
