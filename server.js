@@ -214,8 +214,22 @@ setInterval(runScheduler, 30000);
 loadSchedule();
 
 // ---------- WebSocket handling ----------
+// ---------- WebSocket handling ----------
 wss.on("connection", (ws) => {
   console.log("✅ WebSocket client connected");
+
+  // SEND CURRENT STATE TO NEW VIEWER
+  ws.send(JSON.stringify({
+    type: "full_state",
+    scene: currentState.scene,
+    studioBUrl: currentState.studioB.url,
+    studioB: currentState.studioB,
+    transitionStyle: currentState.transitionStyle,
+    scripture: currentState.scripture,
+    camera: currentState.camera,
+    lowerThird: currentState.lowerThird,
+    ticker: currentState.ticker
+  }));
 
   ws.on("message", (message) => {
     let data;
@@ -226,8 +240,8 @@ wss.on("connection", (ws) => {
       return;
     }
 
-// UPDATE STATE TRACKING
-updateState(data);
+    // UPDATE STATE TRACKING
+    updateState(data);
 
     if (
       data.type === "scene" ||
@@ -249,32 +263,6 @@ updateState(data);
   ws.on("close", () => {
     console.log("❌ WebSocket client disconnected");
   });
-
-wss.on("connection", (ws) => {
-  console.log("✅ WebSocket client connected");
-
-  // SEND CURRENT STATE TO NEW VIEWER
-  ws.send(JSON.stringify({
-    type: "full_state",
-    scene: currentState.scene,
-    studioBUrl: currentState.studioB.url,
-    studioB: currentState.studioB,
-    transitionStyle: currentState.transitionStyle,
-    scripture: currentState.scripture,
-    camera: currentState.camera,
-    lowerThird: currentState.lowerThird,
-    ticker: currentState.ticker
-  }));
-
-  ws.on("message", (message) => {
-    // ... rest of your message handler
-  });
-
-  ws.on("close", () => {
-    console.log("❌ WebSocket client disconnected");
-  });
-});
-
 });
 
 // ---------- Start server ----------
