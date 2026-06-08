@@ -48,11 +48,7 @@ function broadcast(data) {
   });
 }
 
-// ---------- STATE TRACKING ----------
-
-};
-
-
+// ---------- STATE TRACKING --------
 const state = {
   scene: "sceneStudioB",
   transitionStyle: "slide",
@@ -337,23 +333,93 @@ if (data.type === "request_full_state") {
 
 
     // UPDATE STATE TRACKING
-    updateState(data);
+  
 
-    if (
-      data.type === "scene" ||
-      data.type === "studioB" ||
-      data.type === "camera"
-    ) {
-      // Optional: pause automation if operator takes over
-      // channelEngine.stop();
+wss.on("connection", (ws) => {
+  console.log("✅ WebSocket client connected");
+
+  const playback = getPlaybackState();
+
+  ws.send(JSON.stringify({
+    type: "full_state",
+    scene: state.scene,
+    transitionStyle: state.transitionStyle,
+    studioBUrl: state.studioBUrl,
+    dinabUrl: state.dinabUrl,
+    camera: state.camera,
+    scripture: state.scripture,
+    lowerThird: state.lowerThird,
+    ticker: state.ticker,
+    playback: playback
+  }));
+
+  ws.on("message", (message) => {
+    let data;
+    try {
+      data = JSON.parse(message);
+    } catch {
+      console.log("❌ Invalid JSON:", message.toString());
+      return;
     }
 
-    // Broadcast to all other clients
-    wss.clients.forEach((client) => {
-      if (client !== ws && client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify(data));
-      }
-    });
+    if (data.type === "scene") {
+      state.scene = data.scene;
+      broadcast({ type: "scene", scene: data.scene });
+    }
+
+    else if (data.type === "transition") {
+      state.transitionStyle = data.style || "slide";
+      broadcast({ type: "transition", style: state.transitionStyle });
+    }
+
+    else if (data.type === "studioB") {
+      state.studioBUrl = data.url || "";
+      broadcast(data);
+    }
+
+    else if (data.type === "dinab") {
+      state.dinabUrl = data.url || "";
+      broadcast({ type: "dinab", url: state.dinabUrl });
+    }
+
+    else if (data.type === "reload_dinab") {
+      broadcast({ type: "reload_dinab" });
+    }
+
+    else if (data.type === "camera") {
+      state.camera = data.view || "cam1";
+      broadcast(data);
+    }
+
+    else if (data.type === "scripture") {
+      state.scripture = {
+        title: data.title || "",
+        text: data.text || ""
+      };
+      broadcast(data);
+    }
+
+    else if (data.type === "lowerthird") {
+      state.lowerThird = {
+        show: !!data.show,
+        title: data.title || "",
+        subtitle: data.subtitle || ""
+      };
+      broadcast(data);
+    }
+
+    else if (data.type === "ticker") {
+      state.ticker = {
+        show: !!data.show,
+        text: data.text || "",
+        label: data.label || "BREAKING NEWS"
+      };
+      broadcast(data);
+    }
+
+    else if (data.type === "request_full_state") {
+      sendFullState(ws);
+    }
   });
 
   ws.on("close", () => {
