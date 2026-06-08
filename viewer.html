@@ -915,7 +915,8 @@ if (Array.isArray(data.dinabGuests)) {
 
 
   if (data.scene && normalizeScene(data.scene) !== currentScene) {
-    enqueueScene(data.scene, transitionStyle || "cut");
+        enqueueScene(normalizeScene(data.scene), transitionStyle || "cut");
+
   }
 
   return;
