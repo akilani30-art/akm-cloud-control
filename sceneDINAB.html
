@@ -2,239 +2,181 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>DINAB Multi Guest</title>
+<title>DINAB Scene</title>
 
 <style>
   html, body {
-    margin: 0;
-    padding: 0;
-    background: black;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-  }
-
-  #wrap {
-    position: absolute;
-    inset: 0;
-    background: black;
-  }
-
-  #placeholder {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #888;
-    font-size: 22px;
-    font-family: Arial;
-    z-index: 5;
-  }
-
-  #placeholder.hidden {
-    display: none;
+    margin:0;
+    padding:0;
+    width:100%;
+    height:100%;
+    background:black;
+    overflow:hidden;
   }
 
   #panel {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    gap: 4px;
-    background: black;
+    position:absolute;
+    inset:0;
+    display:grid;
+    gap:6px;
+    padding:6px;
   }
 
-  .guestFrame {
-    width: 100%;
-    height: 100%;
-    border: none;
-    background: black;
+  iframe {
+    width:100%;
+    height:100%;
+    border:none;
+    background:black;
   }
 
-  /* ===== LAYOUTS ===== */
-
-  .layout-solo {
-    grid-template-columns: 1fr;
-    grid-template-rows: 1fr;
-  }
+  /* Layouts */
+  .layout-solo { grid-template-columns:1fr; }
 
   .layout-two-up {
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr;
+    grid-template-columns:1fr 1fr;
   }
 
   .layout-three-up {
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
+    grid-template-columns:1fr 1fr;
+    grid-template-rows:1fr 1fr;
   }
 
   .layout-grid-4 {
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
+    grid-template-columns:1fr 1fr;
+    grid-template-rows:1fr 1fr;
   }
 
-  /* Positioning for 3 layout */
-  .layout-three-up iframe:nth-child(1) {
-    grid-column: 1 / span 2;
+  /* ✅ Active Speaker Layout */
+  .layout-active-speaker {
+    grid-template-columns:2fr 1fr;
+    grid-template-rows:1fr 1fr 1fr;
   }
+
+  .activeSpeaker {
+    grid-column:1;
+    grid-row:1 / span 3;
+  }
+
+  .thumb1 { grid-column:2; grid-row:1; }
+  .thumb2 { grid-column:2; grid-row:2; }
+  .thumb3 { grid-column:2; grid-row:3; }
 
 </style>
 </head>
 
 <body>
 
-<div id="wrap">
-
-  <div id="placeholder">
-    Waiting for guests...
-  </div>
-
-  <div id="panel" class="layout-solo">
-
-    <iframe id="f1" class="guestFrame"></iframe>
-    <iframe id="f2" class="guestFrame"></iframe>
-    <iframe id="f3" class="guestFrame"></iframe>
-    <iframe id="f4" class="guestFrame"></iframe>
-
-  </div>
-
-</div>
+<div id="panel"></div>
 
 <script>
-const frames = [
-  document.getElementById("f1"),
-  document.getElementById("f2"),
-  document.getElementById("f3"),
-  document.getElementById("f4")
-];
-
 const panel = document.getElementById("panel");
-const placeholder = document.getElementById("placeholder");
 
+let frames = [];
 let currentGuests = ["", "", "", ""];
 let currentLayout = "solo";
+let activeSpeakerIndex = 0;
 
-// ✅ Clean VDO.Ninja URLs
-function cleanURL(url) {
-  if (!url) return "";
-
-  url = String(url).trim();
-
-  if (!/^https?:\/\//i.test(url)) {
-    url = "https://vdo.ninja/?view=" + encodeURIComponent(url);
+// ---------- Create Frames ----------
+function createFrames() {
+  for (let i = 0; i < 4; i++) {
+    const iframe = document.createElement("iframe");
+    iframe.style.display = "none";
+    panel.appendChild(iframe);
+    frames.push(iframe);
   }
-
-  if (!url.includes("cleanoutput")) url += "&cleanoutput";
-  if (!url.includes("autostart")) url += "&autostart";
-  if (!url.includes("noheader")) url += "&noheader";
-
-  return url;
 }
 
-// ✅ Apply layout
+// ---------- Apply Guests ----------
+function applyGuests(guests) {
+  currentGuests = guests;
+
+  frames.forEach((frame, i) => {
+    const url = guests[i];
+
+    if (url) {
+      frame.src = url.includes("vdo.ninja")
+        ? url + "&cleanoutput&transparent"
+        : url;
+
+      frame.style.display = "block";
+    } else {
+      frame.style.display = "none";
+      frame.src = "about:blank";
+    }
+  });
+
+  if (currentLayout === "active-speaker") {
+    applyActiveSpeakerClasses();
+  }
+}
+
+// ---------- Apply Layout ----------
 function applyLayout(layout) {
   currentLayout = layout || "solo";
 
   panel.className = "";
   panel.classList.add("layout-" + currentLayout);
-}
 
-// ✅ Apply guest URLs
-function applyGuests(guests) {
-  currentGuests = Array.isArray(guests)
-    ? guests.slice(0, 4)
-    : ["", "", "", ""];
-
-  while (currentGuests.length < 4) {
-    currentGuests.push("");
-  }
-
-  let visible = 0;
-
-  frames.forEach((frame, i) => {
-    const url = cleanURL(currentGuests[i]);
-
-    if (!url) {
-      frame.style.display = "none";
-      frame.src = "about:blank";
-      return;
-    }
-
-    visible++;
-    frame.style.display = "block";
-
-    // ✅ prevent reload flicker
-    if (frame.dataset.url !== url) {
-      frame.dataset.url = url;
-      frame.src = url;
-    }
-  });
-
-  if (visible === 0) {
-    placeholder.classList.remove("hidden");
-  } else {
-    placeholder.classList.add("hidden");
+  if (layout === "active-speaker") {
+    applyActiveSpeakerClasses();
   }
 }
 
-// ✅ Reload guests (used by viewer)
-function reloadGuests() {
+// ---------- Active Speaker Logic ----------
+function applyActiveSpeakerClasses() {
   frames.forEach(frame => {
-    if (frame.dataset.url) {
-      const url = frame.dataset.url;
-      frame.src = "about:blank";
-
-      setTimeout(() => {
-        frame.src = url;
-      }, 150);
-    }
+    frame.classList.remove("activeSpeaker", "thumb1", "thumb2", "thumb3");
   });
+
+  const visibleFrames = frames.filter(f => f.style.display !== "none");
+  if (!visibleFrames.length) return;
+
+  const active = visibleFrames[Math.min(activeSpeakerIndex, visibleFrames.length - 1)];
+  const others = visibleFrames.filter(f => f !== active);
+
+  if (active) active.classList.add("activeSpeaker");
+  if (others[0]) others[0].classList.add("thumb1");
+  if (others[1]) others[1].classList.add("thumb2");
+  if (others[2]) others[2].classList.add("thumb3");
 }
 
-// ✅ Message listener (from viewer)
+// ---------- Messages ----------
 window.addEventListener("message", (event) => {
   const data = event.data;
 
   if (!data || typeof data !== "object") return;
 
-  // ✅ MULTI GUEST
   if (data.type === "dinab_multi") {
-    console.log("👥 DINAB multi:", data);
-
-    applyLayout(data.layout);
-    applyGuests(data.guests);
-
+    applyGuests(Array.isArray(data.guests) ? data.guests : ["", "", "", ""]);
+    applyLayout(data.layout || "solo");
     return;
   }
 
-  // ✅ SINGLE MODE (fallback)
   if (data.type === "dinab") {
-    console.log("📺 DINAB single:", data);
-
+    applyGuests([data.url, "", "", ""]);
     applyLayout("solo");
-    applyGuests([data.url]);
-
     return;
   }
 
-  // ✅ RELOAD
+  if (data.type === "active_speaker") {
+    activeSpeakerIndex = Number.isInteger(data.index) ? data.index : 0;
+
+    if (currentLayout === "active-speaker") {
+      applyActiveSpeakerClasses();
+    }
+    return;
+  }
+
   if (data.type === "reload_dinab") {
-    reloadGuests();
+    applyGuests(currentGuests);
     return;
   }
 
-});
+}, false);
 
-// ✅ Optional: query param fallback
-const params = new URLSearchParams(window.location.search);
-const single = params.get("dinab");
-
-if (single) {
-  applyLayout("solo");
-  applyGuests([single]);
-}
+// ---------- Init ----------
+createFrames();
+applyLayout("solo");
 
 </script>
 
