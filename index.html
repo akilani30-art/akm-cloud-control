@@ -404,12 +404,7 @@ function playStudioB() {
 }
 
 
-
-
-
-
-  
-  function setDINABUrl() {
+function setDINABUrl() {
   const url = document.getElementById("dinabUrl").value.trim();
 
   currentDINABUrl = url;
@@ -421,7 +416,35 @@ function playStudioB() {
     url: url
   });
 
+  // Refresh preview if DINAB is currently loaded there
+  if (currentPreviewScene === "sceneDINAB") {
+    document.getElementById("previewFrame").src = "";
+    setTimeout(() => {
+      document.getElementById("previewFrame").src = getSceneSrc("sceneDINAB");
+    }, 50);
+  }
 
+  // Refresh program monitor if DINAB is live there
+  if (currentProgramScene === "sceneDINAB") {
+    document.getElementById("programFrame").src = "";
+    setTimeout(() => {
+      document.getElementById("programFrame").src = getSceneSrc("sceneDINAB");
+    }, 50);
+  }
+
+  // Auto TAKE
+  currentPreviewScene = "sceneDINAB";
+  currentProgramScene = "sceneDINAB";
+  currentSceneLive = "sceneDINAB";
+
+  document.getElementById("previewFrame").src = getSceneSrc("sceneDINAB");
+  document.getElementById("programFrame").src = getSceneSrc("sceneDINAB");
+
+  setActiveSceneButton("sceneDINAB");
+  sendJSON({ type: "scene", scene: "sceneDINAB" });
+
+  console.log("📺 DINAB single live:", url);
+}
 
 function setDINABMulti(layout) {
   const guests = [
@@ -461,42 +484,7 @@ function setDINABMulti(layout) {
 }
 
 
-  // Refresh program monitor if DINAB is live there
-  if (currentProgramScene === "sceneDINAB") {
-    document.getElementById("programFrame").src = "";
-    setTimeout(() => {
-      document.getElementById("programFrame").src = getSceneSrc("sceneDINAB");
-    }, 50);
-  }
-
-  // ✅ AUTO TAKE DINAB (CORRECT PLACE)
-  currentPreviewScene = "sceneDINAB";
-  currentProgramScene = "sceneDINAB";
-  currentSceneLive = "sceneDINAB";
-
-  document.getElementById("previewFrame").src = getSceneSrc("sceneDINAB");
-  document.getElementById("programFrame").src = getSceneSrc("sceneDINAB");
-
-  setActiveSceneButton("sceneDINAB");
-
-  sendJSON({ type: "scene", scene: "sceneDINAB" });
-
-  console.log("📺 DINAB link loaded + LIVE:", url);
-}
-
-
-
-function reloadDINAB() {
-  sendJSON({ type: "reload_dinab" });
-
-  if (currentPreviewScene === "sceneDINAB") {
-    document.getElementById("previewFrame").src = getSceneSrc("sceneDINAB");
-  }
-
-  if (currentProgramScene === "sceneDINAB") {
-    document.getElementById("programFrame").src = getSceneSrc("sceneDINAB");
-  }
-}
+ 
 
 // ---------- LOWER THIRD ----------
 function sendLower() {
