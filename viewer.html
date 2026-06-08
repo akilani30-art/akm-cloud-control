@@ -409,6 +409,88 @@ window._pendingDINABMulti = null;
 
 
 // ---------- Helpers ----------
+function getActiveSceneFrame() {
+  const { A, B } = getFrames();
+  return showingA ? A : B;
+}
+
+function sendActiveSpeakerToDINAB(index) {
+  if (currentScene !== "sceneDINAB.html") return;
+
+  const activeFrame = getActiveSceneFrame();
+  if (!activeFrame || !activeFrame.contentWindow) return;
+
+  activeFrame.contentWindow.postMessage({
+    type: "active_speaker",
+    index
+  }, "*");
+}
+
+function countVisibleGuests() {
+  if (window._pendingDINABMulti && Array.isArray(window._pendingDINABMulti.guests)) {
+    return window._pendingDINABMulti.guests.filter(Boolean).length;
+  }
+
+  if (window._pendingDINAB && window._pendingDINAB.url) {
+    return 1;
+  }
+
+  return 0;
+}
+
+function chooseNextVisibleSpeaker(currentIndex, visibleCount) {
+  if (visibleCount <= 1) return 0;
+  return (currentIndex + 1) % visibleCount;
+}
+
+function processSpeakerEngine() {
+  const now = Date.now();
+  const visibleCount = countVisibleGuests();
+
+  if (visibleCount <= 1) return;
+
+  // If we have recent speaker signals, use them
+  const hasRecentSignal = (now - lastSpeakerSignalAt) < 2500;
+
+  if (hasRecentSignal) {
+    if (now < activeSpeakerLockedUntil) return;
+
+    let bestIndex = 0;
+    let bestLevel = -1;
+
+    for (let i = 0; i < visibleCount; i++) {
+      if (speakerLevels[i] > bestLevel) {
+        bestLevel = speakerLevels[i];
+        bestIndex = i;
+      }
+    }
+
+    if (bestLevel >= SPEAKER_THRESHOLD && bestIndex !== currentActiveSpeaker) {
+      currentActiveSpeaker = bestIndex;
+      activeSpeakerLockedUntil = now + SPEAKER_HOLD_MS;
+      sendActiveSpeakerToDINAB(currentActiveSpeaker);
+    }
+
+    // decay levels
+    for (let i = 0; i < speakerLevels.length; i++) {
+      speakerLevels[i] *= 0.65;
+    }
+
+    return;
+  }
+
+  // Fallback mode: rotate slowly if no real levels are arriving
+  if (now >= activeSpeakerLockedUntil) {
+    currentActiveSpeaker = chooseNextVisibleSpeaker(currentActiveSpeaker, visibleCount);
+    activeSpeakerLockedUntil = now + SPEAKER_FALLBACK_ROTATE_MS;
+    sendActiveSpeakerToDINAB(currentActiveSpeaker);
+  }
+}
+
+function startSpeakerEngine() {
+  if (speakerEngineTimer) clearInterval(speakerEngineTimer);
+  speakerEngineTimer = setInterval(processSpeakerEngine, 250);
+}
 
 
 function getActiveSceneFrame() {
