@@ -64,7 +64,13 @@
       url = String(url).trim();
 
       // If user pasted a full VDO.Ninja URL, keep it.
-      if (/^https?:\/\//i.test(url)) return url;
+      if (/^https?:\/\//i.test(url)) {
+  if (!url.includes("autostart")) url += "&autostart";
+  if (!url.includes("cleanoutput")) url += "&cleanoutput";
+  if (!url.includes("noheader")) url += "&noheader";
+  return url;
+}
+
 
       // If user pasted only a room/scene/view token, turn it into a VDO.Ninja view link.
       return "https://vdo.ninja/?view=" + encodeURIComponent(url) + "&cleanoutput&autostart&noheader";
