@@ -81,20 +81,30 @@ function broadcast(data) {
   }
 };
 
+
 function sendFullState(ws) {
-const playback = getPlaybackState();
+  const playback = getPlaybackState();
+
   ws.send(JSON.stringify({
     type: "full_state",
     scene: state.scene,
     transitionStyle: state.transitionStyle,
+
     studioBUrl: state.studioBUrl,
     dinabUrl: state.dinabUrl,
+
+    // ✅ multi-guest DINAB state
+    dinabGuests: state.dinabGuests,
+    dinabLayout: state.dinabLayout,
+
     camera: state.camera,
     scripture: state.scripture,
     lowerThird: state.lowerThird,
     ticker: state.ticker,
-    playback: playback 
+    playback: playback
   }));
+}
+
 }
 
 
