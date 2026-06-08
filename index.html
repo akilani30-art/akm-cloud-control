@@ -425,6 +425,44 @@ function playStudioB() {
     }, 50);
   }
 
+function setDINABMulti(layout) {
+  const guests = [
+    document.getElementById("guest1Url").value.trim(),
+    document.getElementById("guest2Url").value.trim(),
+    document.getElementById("guest3Url").value.trim(),
+    document.getElementById("guest4Url").value.trim()
+  ];
+
+  currentDINABGuests = guests;
+  currentDINABLayout = layout || "solo";
+  currentDINABUrl = "";
+
+  sendJSON({
+    type: "dinab_multi",
+    guests: guests,
+    layout: currentDINABLayout
+  });
+
+  // Auto take DINAB live
+  currentPreviewScene = "sceneDINAB";
+  currentProgramScene = "sceneDINAB";
+  currentSceneLive = "sceneDINAB";
+
+  document.getElementById("previewFrame").src = "";
+  document.getElementById("programFrame").src = "";
+
+  setTimeout(() => {
+    document.getElementById("previewFrame").src = getSceneSrc("sceneDINAB");
+    document.getElementById("programFrame").src = getSceneSrc("sceneDINAB");
+  }, 50);
+
+  setActiveSceneButton("sceneDINAB");
+  sendJSON({ type: "scene", scene: "sceneDINAB" });
+
+  console.log("👥 DINAB multi live:", guests, currentDINABLayout);
+}
+
+
   // Refresh program monitor if DINAB is live there
   if (currentProgramScene === "sceneDINAB") {
     document.getElementById("programFrame").src = "";
