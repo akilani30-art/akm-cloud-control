@@ -411,6 +411,8 @@ function playStudioB() {
   function setDINABUrl() {
   const url = document.getElementById("dinabUrl").value.trim();
   currentDINABUrl = url;
+currentDINABGuests = ["", "", "", ""];
+currentDINABLayout = "solo";
 
   sendJSON({
     type: "dinab",
@@ -721,6 +723,7 @@ if(data.type === "full_state") {
 
   if (typeof data.dinabUrl === "string") {
     currentDINABUrl = data.dinabUrl;
+
 
     const dinabInput = document.getElementById("dinabUrl");
     if (dinabInput) dinabInput.value = data.dinabUrl;
