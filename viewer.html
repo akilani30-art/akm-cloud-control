@@ -755,6 +755,15 @@ function handleMessage(data) {
     return;
   }
 
+if (data.type === "speaker_level") {
+  if (Number.isInteger(data.index) && typeof data.level === "number") {
+    if (data.index >= 0 && data.index < 4) {
+      speakerLevels[data.index] = Math.max(speakerLevels[data.index], data.level);
+    }
+  }
+  return;
+}
+
   if (data.type === "transition") {
     transitionStyle = data.style || "cut";
     return;
