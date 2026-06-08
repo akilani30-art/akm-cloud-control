@@ -226,6 +226,9 @@ wss.on("connection", (ws) => {
       return;
     }
 
+// UPDATE STATE TRACKING
+updateState(data);
+
     if (
       data.type === "scene" ||
       data.type === "studioB" ||
