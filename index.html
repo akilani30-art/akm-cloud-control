@@ -316,19 +316,10 @@ function getSceneSrc(scene) {
 }
 
 
-// ---------- SCENES ----------
+// ---------- SCENES --------
 function loadPreview(e, scene) {
   currentPreviewScene = scene;
-
-  const previewFrame = document.getElementById("previewFrame");
-
-  if (scene === "sceneStudioB") {
-    if (!previewFrame.src.includes("sceneStudioB.html")) {
-      previewFrame.src = "sceneStudioB.html";
-    }
-  } else {
-    previewFrame.src = scene + ".html";
-  }
+  document.getElementById("previewFrame").src = getSceneSrc(scene);
 
   setActiveSceneButton(scene);
 
@@ -338,6 +329,7 @@ function loadPreview(e, scene) {
 
   console.log("👁 Preview:", scene);
 }
+
 
 function takeScene() {
   if (currentPreviewScene === currentProgramScene) return;
