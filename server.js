@@ -81,7 +81,7 @@ const playback = getPlaybackState();
     camera: state.camera,
     scripture: state.scripture,
     lowerThird: state.lowerThird,
-    ticker: state.ticker
+    ticker: state.ticker,
     playback: playback 
   }));
 }
