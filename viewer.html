@@ -601,18 +601,19 @@ function processSpeakerEngine() {
   }
 
   if (
-    speakerLevels[chosenIndex] >= SPEAKER_THRESHOLD &&
-    chosenIndex !== currentActiveSpeaker
-  ) {
-    currentActiveSpeaker = chosenIndex;
-    activeSpeakerLockedUntil = now + SPEAKER_HOLD_MS;
-    sendActiveSpeakerToDINAB(currentActiveSpeaker);
-  }
+  speakerLevels[chosenIndex] >= SPEAKER_THRESHOLD &&
+  chosenIndex !== currentActiveSpeaker
+) {
+  currentActiveSpeaker = chosenIndex;
+  activeSpeakerLockedUntil = now + SPEAKER_HOLD_MS;
+  sendActiveSpeakerToDINAB(currentActiveSpeaker);
+}
+
+    
 
   // decay levels
   for (let i = 0; i < speakerLevels.length; i++) {
-    speakerLevels[i] *= 0.65;
-  }
+    speakerLevels[i] *= 0  }
 
   return;
 }
