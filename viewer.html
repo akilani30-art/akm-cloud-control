@@ -365,6 +365,10 @@ let transitionStyle = "slide";
 let currentScene = "sceneStudioB.html";
 let lastScripture = null;
 let isTransitioning = false;
+let speakerLevels = [0, 0, 0, 0];
+let lastActiveSpeaker = 0;
+let activeSpeakerTimer = null;
+
 
 
 const WS_URL = "wss://akm-cloud-control-production.up.railway.app";
