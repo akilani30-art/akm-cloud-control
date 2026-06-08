@@ -298,11 +298,16 @@ loadSchedule();
       broadcast(data);
     }
 
+   
     else if (data.type === "dinab") {
       state.dinabUrl = data.url || "";
+      state.dinabGuests = ["", "", "", ""];
+      state.dinabLayout = "solo";
+
       broadcast({ type: "dinab", url: state.dinabUrl });
     }
-    else if (data.type === "dinab_multi") {
+
+else if (data.type === "dinab_multi") {
       state.dinabGuests = Array.isArray(data.guests)
         ? data.guests.slice(0, 4)
         : ["", "", "", ""];
