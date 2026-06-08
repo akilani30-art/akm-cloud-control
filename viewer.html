@@ -970,8 +970,12 @@ async function switchScene(scene, style = "cut", force = false) {
         activeFrame.contentWindow.postMessage(window._pendingStudioB, "*");
         console.log("✅ [VIEWER] Message sent");
         window._pendingStudioB = null;
+        window._pendingDINAB = null;
+
+        
       } catch (e) {
-        console.error("❌ [VIEWER] Error:", e);
+        console.errorwindow._pendingDINAB = null;
+
       }
     }
 
