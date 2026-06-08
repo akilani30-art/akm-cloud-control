@@ -733,18 +733,19 @@ function handleMessage(data) {
     }
     return;
   }
-if (data.type === "studioB_control") {
-  postToSceneFrames(data);
-  if (data.action === "play") {
-    enqueueScene("sceneStudioB.html", transitionStyle || "cut", { force: true });
-  }
+
+if (data.type === "dinab") {
+  console.log("📺 [VIEWER] Received DINAB:", data);
+
+  window._pendingDINAB = {
+    type: "dinab",
+    url: data.url || ""
+  };
+
+  postToSceneFrames(window._pendingDINAB);
   return;
 }
 
-if (data.type === "reload_dinab") {
-  postToSceneFrames({ type: "reload_dinab" });
-  return;
-}
 
   if (data.type === "camera") {
     postToSceneFrames(data);
