@@ -635,8 +635,18 @@ if (data.type === "full_state") {
     currentProgramScene = data.scene;
     currentPreviewScene = data.scene;
 
-    document.getElementById("programFrame").src = getSceneSrc(data.scene);
-document.getElementById("previewFrame").src = getSceneSrc(data.scene);
+    const program = document.getElementById("programFrame");
+const preview = document.getElementById("previewFrame");
+
+// FORCE reload
+program.src = "";
+preview.src = "";
+
+setTimeout(() => {
+  program.src = getSceneSrc(data.scene);
+  preview.src = getSceneSrc(data.scene);
+}, 50);
+
 
 
     setActiveSceneButton(data.scene);
