@@ -596,9 +596,9 @@ function processSpeakerEngine() {
   let chosenIndex = bestIndex;
 
   // If host is speaking at all (low threshold), override
-  if (hostLevel >= HOST_PRIORITY_THRESHOLD) {
-    chosenIndex = HOST_INDEX;
-  }
+  if (speakerLevels[HOST_INDEX] >= HOST_PRIORITY_THRESHOLD) {
+  chosenIndex = HOST_INDEX;
+}
 
   
   const chosenLevel = speakerLevels[chosenIndex] || 0;
