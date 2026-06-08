@@ -369,6 +369,15 @@ let speakerLevels = [0, 0, 0, 0];
 let lastActiveSpeaker = 0;
 let activeSpeakerTimer = null;
 
+let currentActiveSpeaker = 0;
+let activeSpeakerLockedUntil = 0;
+let lastSpeakerSignalAt = 0;
+let speakerEngineTimer = null;
+
+const SPEAKER_THRESHOLD = 0.08;
+const SPEAKER_HOLD_MS = 1800;
+const SPEAKER_FALLBACK_ROTATE_MS = 5000;
+
 
 
 const WS_URL = "wss://akm-cloud-control-production.up.railway.app";
