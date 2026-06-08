@@ -766,6 +766,22 @@ if (data.type === "reload_dinab") {
     postToSceneFrames(lastScripture);
     return;
   }
+if (data.type === "dinab_multi") {
+  console.log("👥 [VIEWER] Received DINAB multi:", data);
+
+  window._pendingDINABMulti = {
+    type: "dinab_multi",
+    guests: Array.isArray(data.guests) ? data.guests : ["", "", "", ""],
+    layout: data.layout || "solo"
+  };
+
+  // Optional: clear single mode
+  window._pendingDINAB = null;
+
+  postToSceneFrames(window._pendingDINABMulti);
+  return;
+}
+
 
   if (data.type === "lowerthird") {
     const box = document.getElementById("lowerThird");
