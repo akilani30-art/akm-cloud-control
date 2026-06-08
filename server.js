@@ -311,6 +311,66 @@ wss.on("connection", (ws) => {
       console.log("❌ Invalid JSON:", message.toString());
       return;
     }
+if (data.type === "scene") {
+  state.scene = data.scene;
+  broadcast({ type: "scene", scene: data.scene });
+}
+
+if (data.type === "transition") {
+  state.transitionStyle = data.style || "slide";
+  broadcast({ type: "transition", style: state.transitionStyle });
+}
+
+if (data.type === "studioB") {
+  state.studioBUrl = data.url || "";
+  broadcast(data);
+}
+
+if (data.type === "dinab") {
+  state.dinabUrl = data.url || "";
+  broadcast({ type: "dinab", url: state.dinabUrl });
+}
+
+if (data.type === "reload_dinab") {
+  broadcast({ type: "reload_dinab" });
+}
+
+if (data.type === "camera") {
+  state.camera = data.view || "cam1";
+  broadcast(data);
+}
+
+if (data.type === "scripture") {
+  state.scripture = {
+    title: data.title || "",
+    text: data.text || ""
+  };
+  broadcast(data);
+}
+
+if (data.type === "lowerthird") {
+  state.lowerThird = {
+    show: !!data.show,
+    title: data.title || "",
+    subtitle: data.subtitle || ""
+  };
+  broadcast(data);
+}
+
+if (data.type === "ticker") {
+  state.ticker = {
+    show: !!data.show,
+    text: data.text || "",
+    label: data.label || "BREAKING NEWS"
+  };
+  broadcast(data);
+}
+
+if (data.type === "request_full_state") {
+  sendFullState(ws);
+}
+
+
 
     // UPDATE STATE TRACKING
     updateState(data);
