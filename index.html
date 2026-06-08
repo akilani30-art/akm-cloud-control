@@ -317,16 +317,13 @@ function sendJSON(obj) {
   }
 }
 
-function getSceneSrc(scene) {
+
+  function getSceneSrc(scene) {
   if (scene === "sceneStudioB") return "sceneStudioB.html";
-
-  if (scene === "sceneDINAB") {
-    if (!currentDINABUrl) return "sceneDINAB.html";
-    return "sceneDINAB.html?dinab=" + encodeURIComponent(currentDINABUrl);
-  }
-
+  if (scene === "sceneDINAB") return "sceneDINAB.html";
   return scene + ".html";
 }
+
 
 
 
