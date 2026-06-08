@@ -629,25 +629,33 @@ function connectWS() {
   }
 
   // ✅ ✅ PASTE YOUR BLOCK RIGHT HERE
-  if (data.type === "full_state") {
-    if (data.scene) {
-      currentSceneLive = data.scene;
-      currentProgramScene = data.scene;
-      document.getElementById("programFrame").src = getSceneSrc(data.scene);
-    }
+if (data.type === "full_state") {
+  if (data.scene) {
+    currentSceneLive = data.scene;
+    currentProgramScene = data.scene;
+    currentPreviewScene = data.scene;
 
-    if (data.transitionStyle) {
-      currentTransitionStyle = data.transitionStyle;
-      setActiveTransitionButton(currentTransitionStyle);
-    }
+    document.getElementById("programFrame").src = getSceneSrc(data.scene);
+    document.getElementById("previewFrame").src = getSceneSrc(data.scene);
 
-    if (data.dinabUrl) {
-      currentDINABUrl = data.dinabUrl;
-
-      const dinabInput = document.getElementById("dinabUrl");
-      if (dinabInput) dinabInput.value = data.dinabUrl;
-    }
+    setActiveSceneButton(data.scene);
   }
+
+  if (data.transitionStyle) {
+    currentTransitionStyle = data.transitionStyle;
+    setActiveTransitionButton(currentTransitionStyle);
+  }
+
+  if (data.dinabUrl) {
+    currentDINABUrl = data.dinabUrl;
+
+    const dinabInput = document.getElementById("dinabUrl");
+    if (dinabInput) dinabInput.value = data.dinabUrl;
+  }
+}
+
+
+  
 };
 
 }
