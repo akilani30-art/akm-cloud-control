@@ -877,6 +877,16 @@ if (data.type === "full_state") {
 
     postToSceneFrames(window._pendingDINAB);
   }
+if (Array.isArray(data.dinabGuests)) {
+  window._pendingDINABMulti = {
+    type: "dinab_multi",
+    guests: data.dinabGuests,
+    layout: data.dinabLayout || "solo"
+  };
+
+  postToSceneFrames(window._pendingDINABMulti);
+}
+
 
   if (data.camera) {
     postToSceneFrames({
