@@ -405,13 +405,20 @@ function setDINABUrl() {
 
   // Refresh preview if DINAB is currently loaded there
   if (currentPreviewScene === "sceneDINAB") {
+  document.getElementById("previewFrame").src = "";
+  setTimeout(() => {
     document.getElementById("previewFrame").src = getSceneSrc("sceneDINAB");
-  }
+  }, 50);
+}
+
 
   // Refresh program monitor if DINAB is live there
   if (currentProgramScene === "sceneDINAB") {
+  document.getElementById("programFrame").src = "";
+  setTimeout(() => {
     document.getElementById("programFrame").src = getSceneSrc("sceneDINAB");
-  }
+  }, 50);
+}
 
   console.log("📺 DINAB link loaded:", url);
 }
