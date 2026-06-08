@@ -110,12 +110,17 @@
       }
 
       if (data.type === "reload_dinab" && currentUrl) {
-        const old = currentUrl;
-        frame.src = "about:blank";
-        setTimeout(() => {
-          frame.src = old;
-        }, 150);
-      }
+  const old = currentUrl;
+
+  placeholder.classList.remove("hidden"); // ✅ show loading
+  frame.src = "about:blank";
+
+  setTimeout(() => {
+    placeholder.classList.add("hidden");
+    frame.src = old;
+  }, 150);
+}
+
     });
   </script>
 </body>
