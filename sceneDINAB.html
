@@ -1,128 +1,242 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DINAB</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-      background: black;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    #wrap {
-      position: fixed;
-      inset: 0;
-      background: black;
-    }
+<title>DINAB Multi Guest</title>
 
-    #dinabFrame {
-      position: absolute;
-      inset: 0;
-      width: 100vw;
-      height: 100vh;
-      border: none;
-      background: black;
-    }
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: black;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
 
-    #placeholder {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-family: Arial, sans-serif;
-      font-size: 24px;
-      background: black;
-      z-index: 2;
-    }
+  #wrap {
+    position: absolute;
+    inset: 0;
+    background: black;
+  }
 
-    .hidden {
-      display: none !important;
-    }
-  </style>
+  #placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #888;
+    font-size: 22px;
+    font-family: Arial;
+    z-index: 5;
+  }
+
+  #placeholder.hidden {
+    display: none;
+  }
+
+  #panel {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    gap: 4px;
+    background: black;
+  }
+
+  .guestFrame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: black;
+  }
+
+  /* ===== LAYOUTS ===== */
+
+  .layout-solo {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+  }
+
+  .layout-two-up {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+  }
+
+  .layout-three-up {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+
+  .layout-grid-4 {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+
+  /* Positioning for 3 layout */
+  .layout-three-up iframe:nth-child(1) {
+    grid-column: 1 / span 2;
+  }
+
+</style>
 </head>
+
 <body>
-  <div id="wrap">
-    <div id="placeholder">DINAB ready — waiting for VDO.Ninja group scene link</div>
-    <iframe id="dinabFrame" allow="autoplay; camera; microphone; fullscreen; display-capture"></iframe>
+
+<div id="wrap">
+
+  <div id="placeholder">
+    Waiting for guests...
   </div>
 
-  <script>
-    const frame = document.getElementById("dinabFrame");
-    const placeholder = document.getElementById("placeholder");
-    let currentUrl = "";
+  <div id="panel" class="layout-solo">
 
-    function cleanDinabUrl(url) {
-      if (!url) return "";
+    <iframe id="f1" class="guestFrame"></iframe>
+    <iframe id="f2" class="guestFrame"></iframe>
+    <iframe id="f3" class="guestFrame"></iframe>
+    <iframe id="f4" class="guestFrame"></iframe>
 
-      url = String(url).trim();
+  </div>
 
-      // If user pasted a full VDO.Ninja URL, keep it.
-      if (/^https?:\/\//i.test(url)) {
-  if (!url.includes("autostart")) url += "&autostart";
+</div>
+
+<script>
+const frames = [
+  document.getElementById("f1"),
+  document.getElementById("f2"),
+  document.getElementById("f3"),
+  document.getElementById("f4")
+];
+
+const panel = document.getElementById("panel");
+const placeholder = document.getElementById("placeholder");
+
+let currentGuests = ["", "", "", ""];
+let currentLayout = "solo";
+
+// ✅ Clean VDO.Ninja URLs
+function cleanURL(url) {
+  if (!url) return "";
+
+  url = String(url).trim();
+
+  if (!/^https?:\/\//i.test(url)) {
+    url = "https://vdo.ninja/?view=" + encodeURIComponent(url);
+  }
+
   if (!url.includes("cleanoutput")) url += "&cleanoutput";
+  if (!url.includes("autostart")) url += "&autostart";
   if (!url.includes("noheader")) url += "&noheader";
+
   return url;
 }
 
+// ✅ Apply layout
+function applyLayout(layout) {
+  currentLayout = layout || "solo";
 
-      // If user pasted only a room/scene/view token, turn it into a VDO.Ninja view link.
-      return "https://vdo.ninja/?view=" + encodeURIComponent(url) + "&cleanoutput&autostart&noheader";
-    }
-
-    function setDinabUrl(url) {
-  const finalUrl = cleanDinabUrl(url);
-
-if (!finalUrl) {
-  frame.src = "about:blank";
-  placeholder.classList.remove("hidden");
-  currentUrl = ""; // ✅ ADD THIS
-  return;
+  panel.className = "";
+  panel.classList.add("layout-" + currentLayout);
 }
 
-  if (currentUrl === finalUrl) return;
+// ✅ Apply guest URLs
+function applyGuests(guests) {
+  currentGuests = Array.isArray(guests)
+    ? guests.slice(0, 4)
+    : ["", "", "", ""];
 
-  currentUrl = finalUrl;
-  placeholder.classList.add("hidden");
-  frame.src = finalUrl;
-}
+  while (currentGuests.length < 4) {
+    currentGuests.push("");
+  }
 
+  let visible = 0;
 
-    // Allow query-param loading for local preview/program frames in control room
-    const params = new URLSearchParams(window.location.search);
-    const urlFromQuery = params.get("dinab");
-    if (urlFromQuery) {
-      setDinabUrl(urlFromQuery);
+  frames.forEach((frame, i) => {
+    const url = cleanURL(currentGuests[i]);
+
+    if (!url) {
+      frame.style.display = "none";
+      frame.src = "about:blank";
+      return;
     }
 
-    // Allow postMessage loading for viewer/program restore
-    window.addEventListener("message", (event) => {
-      const data = event.data;
-      if (!data || typeof data !== "object") return;
+    visible++;
+    frame.style.display = "block";
 
-      if (data.type === "dinab") {
-        setDinabUrl(data.url || "");
-      }
+    // ✅ prevent reload flicker
+    if (frame.dataset.url !== url) {
+      frame.dataset.url = url;
+      frame.src = url;
+    }
+  });
 
-      if (data.type === "reload_dinab" && currentUrl) {
-  const old = currentUrl;
-
-  placeholder.classList.remove("hidden"); // ✅ show loading
-  frame.src = "about:blank";
-
-  setTimeout(() => {
+  if (visible === 0) {
+    placeholder.classList.remove("hidden");
+  } else {
     placeholder.classList.add("hidden");
-    frame.src = old;
-  }, 150);
+  }
 }
 
-    });
-  </script>
+// ✅ Reload guests (used by viewer)
+function reloadGuests() {
+  frames.forEach(frame => {
+    if (frame.dataset.url) {
+      const url = frame.dataset.url;
+      frame.src = "about:blank";
+
+      setTimeout(() => {
+        frame.src = url;
+      }, 150);
+    }
+  });
+}
+
+// ✅ Message listener (from viewer)
+window.addEventListener("message", (event) => {
+  const data = event.data;
+
+  if (!data || typeof data !== "object") return;
+
+  // ✅ MULTI GUEST
+  if (data.type === "dinab_multi") {
+    console.log("👥 DINAB multi:", data);
+
+    applyLayout(data.layout);
+    applyGuests(data.guests);
+
+    return;
+  }
+
+  // ✅ SINGLE MODE (fallback)
+  if (data.type === "dinab") {
+    console.log("📺 DINAB single:", data);
+
+    applyLayout("solo");
+    applyGuests([data.url]);
+
+    return;
+  }
+
+  // ✅ RELOAD
+  if (data.type === "reload_dinab") {
+    reloadGuests();
+    return;
+  }
+
+});
+
+// ✅ Optional: query param fallback
+const params = new URLSearchParams(window.location.search);
+const single = params.get("dinab");
+
+if (single) {
+  applyLayout("solo");
+  applyGuests([single]);
+}
+
+</script>
+
 </body>
 </html>
