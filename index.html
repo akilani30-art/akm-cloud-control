@@ -639,7 +639,6 @@ function connectWS() {
     return;
   }
 
-
   ws.onopen = () => {
     console.log("✅ WebSocket Connected");
 
@@ -659,78 +658,73 @@ function connectWS() {
   };
 
   ws.onmessage = (event) => {
-  let data;
-  try {
-    data = JSON.parse(event.data);
-  } catch {
-    return;
-  }
+    let data;
+    try {
+      data = JSON.parse(event.data);
+    } catch {
+      return;
+    }
 
-  // ✅ Existing handlers
-  if (data.type === "request_current_scene") {
-    sendJSON({ type: "scene", scene: currentSceneLive });
-  }
+    // Request handlers
+    if (data.type === "request_current_scene") {
+      sendJSON({ type: "scene", scene: currentSceneLive });
+    }
 
-  if (data.type === "request_latest_scripture") {
-    sendJSON({
-      type: "scripture",
-      title: lastScriptureTitle,
-      text: lastScriptureBody
-    });
-  }
+    if (data.type === "request_latest_scripture") {
+      sendJSON({
+        type: "scripture",
+        title: lastScriptureTitle,
+        text: lastScriptureBody
+      });
+    }
 
-  // ✅ ✅ PASTE YOUR BLOCK RIGHT HERE
-if(data.type === "full_state") {
-  if (data.scene) {
-    currentSceneLive = data.scene;
-    currentProgramScene = data.scene;
-    currentPreviewScene = data.scene;
+    // ✅ FULL STATE HANDLER (FIXED)
+    if (data.type === "full_state") {
 
-    const program = document.getElementById("programFrame");
-    const preview = document.getElementById("previewFrame");
+      if (data.scene) {
+        currentSceneLive = data.scene;
+        currentProgramScene = data.scene;
+        currentPreviewScene = data.scene;
 
-    program.src = "";
-    preview.src = "";
+        const program = document.getElementById("programFrame");
+        const preview = document.getElementById("previewFrame");
 
-    setTimeout(() => {
-      program.src = getSceneSrc(data.scene);
-      preview.src = getSceneSrc(data.scene);
-    }, 50);
+        program.src = "";
+        preview.src = "";
 
-    setActiveSceneButton(data.scene);
-  }
+        setTimeout(() => {
+          program.src = getSceneSrc(data.scene);
+          preview.src = getSceneSrc(data.scene);
+        }, 50);
 
-  if (data.transitionStyle) {
-    currentTransitionStyle = data.transitionStyle;
-    setActiveTransitionButton(currentTransitionStyle);
-  }
+        setActiveSceneButton(data.scene);
+      }
 
-  if (typeof data.dinabUrl === "string") {
-    currentDINABUrl = data.dinabUrl;
+      if (data.transitionStyle) {
+        currentTransitionStyle = data.transitionStyle;
+        setActiveTransitionButton(currentTransitionStyle);
+      }
 
+      if (typeof data.dinabUrl === "string") {
+        currentDINABUrl = data.dinabUrl;
 
-    const dinabInput = document.getElementById("dinabUrl");
-    if (dinabInput) dinabInput.value = data.dinabUrl;
-  }
+        const dinabInput = document.getElementById("dinabUrl");
+        if (dinabInput) dinabInput.value = data.dinabUrl;
+      }
 
-  if (Array.isArray(data.dinabGuests)) {
-    currentDINABGuests = data.dinabGuests;
-    currentDINABLayout = data.dinabLayout || "solo";
-    currentDINABUrl = "";
+      if (Array.isArray(data.dinabGuests)) {
+        currentDINABGuests = data.dinabGuests;
+        currentDINABLayout = data.dinabLayout || "solo";
+        currentDINABUrl = "";
 
-    const ids = ["guest1Url", "guest2Url", "guest3Url", "guest4Url"];
-    ids.forEach((id, i) => {
-      const el = document.getElementById(id);
-      if (el) el.value = currentDINABGuests[i] || "";
-    });
-  }
-}
-
-
-
-  
-};
-
+        const ids = ["guest1Url", "guest2Url", "guest3Url", "guest4Url"];
+        ids.forEach((id, i) => {
+          const el = document.getElementById(id);
+          if (el) el.value = currentDINABGuests[i] || "";
+        });
+      }
+    }
+  };
 }
 
 function scheduleReconnect() {
