@@ -599,25 +599,48 @@ function connectWS() {
   };
 
   ws.onmessage = (event) => {
-    let data;
-    try {
-      data = JSON.parse(event.data);
-    } catch {
-      return;
+  let data;
+  try {
+    data = JSON.parse(event.data);
+  } catch {
+    return;
+  }
+
+  // ✅ Existing handlers
+  if (data.type === "request_current_scene") {
+    sendJSON({ type: "scene", scene: currentSceneLive });
+  }
+
+  if (data.type === "request_latest_scripture") {
+    sendJSON({
+      type: "scripture",
+      title: lastScriptureTitle,
+      text: lastScriptureBody
+    });
+  }
+
+  // ✅ ✅ PASTE YOUR BLOCK RIGHT HERE
+  if (data.type === "full_state") {
+    if (data.scene) {
+      currentSceneLive = data.scene;
+      currentProgramScene = data.scene;
+      document.getElementById("programFrame").src = getSceneSrc(data.scene);
     }
 
-    if (data.type === "request_current_scene") {
-      sendJSON({ type: "scene", scene: currentSceneLive });
+    if (data.transitionStyle) {
+      currentTransitionStyle = data.transitionStyle;
+      setActiveTransitionButton(currentTransitionStyle);
     }
 
-    if (data.type === "request_latest_scripture") {
-      sendJSON({
-        type: "scripture",
-        title: lastScriptureTitle,
-        text: lastScriptureBody
-      });
+    if (data.dinabUrl) {
+      currentDINABUrl = data.dinabUrl;
+
+      const dinabInput = document.getElementById("dinabUrl");
+      if (dinabInput) dinabInput.value = data.dinabUrl;
     }
-  };
+  }
+};
+
 }
 
 function scheduleReconnect() {
