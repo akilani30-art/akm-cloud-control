@@ -1043,24 +1043,22 @@ async function switchScene(scene, style = "cut", force = false){
       }
     }
 
+    if (currentScene === "sceneDINAB.html" && window._pendingDINABMulti) {
+      const activeFrame = showingA ? A : B;
+      console.log("👥 [VIEWER] Sending DINAB multi to active frame");
+      try {
+        activeFrame.contentWindow.postMessage(window._pendingDINABMulti, "*");
+        console.log("✅ [VIEWER] DINAB multi sent");
+      } catch (e) {
+        console.error("❌ [VIEWER] DINAB multi error:", e);
+      }
+    }
+
+
   } finally {
     isTransitioning = false;
   }
 }
-
-if (currentScene === "sceneDINAB.html" && window._pendingDINABMulti) {
-  const activeFrame = showingA ? A : B;
-
-  console.log("👥 [VIEWER] Sending DINAB multi to active frame");
-
-  try {
-    activeFrame.contentWindow.postMessage(window._pendingDINABMulti, "*");
-    console.log("✅ [VIEWER] DINAB multi sent");
-  } catch (e) {
-    console.error("❌ [VIEWER] DINAB multi error:", e);
-  }
-}
-
 
 // ---------- Safety helper ----------
 function escapeHTML(str) {
