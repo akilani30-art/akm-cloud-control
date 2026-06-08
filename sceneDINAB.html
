@@ -77,18 +77,21 @@
     }
 
     function setDinabUrl(url) {
-      const finalUrl = cleanDinabUrl(url);
-      currentUrl = finalUrl;
+  const finalUrl = cleanDinabUrl(url);
 
-      if (!finalUrl) {
-        frame.src = "about:blank";
-        placeholder.classList.remove("hidden");
-        return;
-      }
+  if (!finalUrl) {
+    frame.src = "about:blank";
+    placeholder.classList.remove("hidden");
+    return;
+  }
 
-      placeholder.classList.add("hidden");
-      frame.src = finalUrl;
-    }
+  if (frame.src === finalUrl) return;
+
+  currentUrl = finalUrl;
+  placeholder.classList.add("hidden");
+  frame.src = finalUrl;
+}
+
 
     // Allow query-param loading for local preview/program frames in control room
     const params = new URLSearchParams(window.location.search);
