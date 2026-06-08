@@ -550,9 +550,16 @@ function preloadScene(scene) {
 }
 
 function preloadCommonScenes() {
-  ["scene1.html", "scene2.html", "scene3.html", "scene4.html", "sceneStudioB.html"]
- .forEach(preloadScene);
+  [
+    "scene1.html",
+    "scene2.html",
+    "scene3.html",
+    "scene4.html",
+    "sceneStudioB.html",
+    "sceneDINAB.html"
+  ].forEach(preloadScene);
 }
+
 
 // ---------- Transition Queue ----------
 function enqueueScene(scene, style = "cut", options = {}) {
