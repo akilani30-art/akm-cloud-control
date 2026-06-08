@@ -304,6 +304,17 @@ function sendJSON(obj) {
   }
 }
 
+function getSceneSrc(scene) {
+  if (scene === "sceneStudioB") return "sceneStudioB.html";
+
+  if (scene === "sceneDINAB") {
+    if (!currentDINABUrl) return "sceneDINAB.html";
+    return "sceneDINAB.html?dinab=" + encodeURIComponent(currentDINABUrl);
+  }
+
+  return scene + ".html";
+}
+
 
 // ---------- SCENES ----------
 function loadPreview(e, scene) {
