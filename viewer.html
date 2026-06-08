@@ -877,13 +877,7 @@ if (data.type === "full_state") {
   }
 
   return;
-}
 
-
-(data.type === "reload_dinab") {
-  postToSceneFrames({ type: "reload_dinab" });
-  return;
-}
 
 async function switchScene(scene, style = "cut", force = false) {
   if (isTransitioning) return;
