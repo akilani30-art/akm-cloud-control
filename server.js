@@ -252,6 +252,8 @@ wss.on("connection", (ws) => {
   console.log("✅ WebSocket client connected");
 
   // SEND CURRENT STATE TO NEW VIEWER
+  // SEND CURRENT STATE TO NEW VIEWER
+  const playback = getPlaybackState();
   ws.send(JSON.stringify({
     type: "full_state",
     scene: currentState.scene,
@@ -261,7 +263,8 @@ wss.on("connection", (ws) => {
     scripture: currentState.scripture,
     camera: currentState.camera,
     lowerThird: currentState.lowerThird,
-    ticker: currentState.ticker
+    ticker: currentState.ticker,
+    playback: playback
   }));
 
   ws.on("message", (message) => {
