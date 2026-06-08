@@ -180,14 +180,23 @@
   <input id="studioBUrl" placeholder="Paste YouTube / Spotify / Stream URL">
   <br>
   <button type="button" onclick="playStudioB()">▶ Play in Studio B</button>
+
 <h2>DINAB Group Scene</h2>
 <input id="dinabUrl" placeholder="Paste VDO.Ninja group scene link">
 <br>
 <button type="button" onclick="setDINABUrl()">Load DINAB</button>
 <button type="button" onclick="reloadDINAB()">Reload DINAB</button>
 
+<h2>DINAB Multi Guest Panel</h2>
+<input id="guest1Url" placeholder="Guest 1 VDO.Ninja link"><br>
+<input id="guest2Url" placeholder="Guest 2 VDO.Ninja link"><br>
+<input id="guest3Url" placeholder="Guest 3 VDO.Ninja link"><br>
+<input id="guest4Url" placeholder="Guest 4 VDO.Ninja link"><br>
 
-
+<button type="button" onclick="setDINABMulti('solo')">Solo</button>
+<button type="button" onclick="setDINABMulti('two-up')">Two-Up</button>
+<button type="button" onclick="setDINABMulti('three-up')">Three-Up</button>
+<button type="button" onclick="setDINABMulti('grid-4')">Grid 4</button>
 
   <div class="monitorRow">
   <div class="monitorBox">
