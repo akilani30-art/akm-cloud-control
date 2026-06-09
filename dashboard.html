@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Studio Dashboard</title>
+
+dashboard.css
+</head>
+
+<body>
+
+<div class="container">
+
+  <h1>Studio B Dashboard</h1>
+  <p class="sub">Live Control Panel</p>
+
+  <!-- STATUS -->
+  <div id="status" class="status offline">
+    OFFLINE
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="card">
+    <h3>Controls</h3>
+    <div class="buttons">
+      <button class="start" onclick="startStream()">Go Live</button>
+      <button class="stop" onclick="stopStream()">Stop</button>
+      <button class="preview" onclick="openPreview()">Preview</button>
+    </div>
+  </div>
+
+  <!-- DESTINATIONS -->
+  <div class="card">
+    <h3>Destinations</h3>
+    <div class="grid">
+      <div id="yt" class="badge off" onclick="toggle('yt')">YouTube</div>
+      <div id="fb" class="badge off" onclick="toggle('fb')">Facebook</div>
+      <div id="tw" class="badge off" onclick="toggle('tw')">Twitch</div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="card">
+    <h3>Settings</h3>
+    <label>Server IP</label>
+    <input id="ip" value="192.168.1.23"/>
+
+    <label>Stream Key</label>
+    <input id="key" value="studiob"/>
+  </div>
+
+</div>
+
+dashboard.jsscript>
+</body>
+</html>
