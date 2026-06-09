@@ -258,6 +258,19 @@
   </div>
 
   <script>
+let hostLocked = false;
+
+function toggleHostLock() {
+  hostLocked = !hostLocked;
+
+  sendJSON({
+    type: "host_lock",
+    enabled: hostLocked
+  });
+
+  console.log("Host Lock:", hostLocked ? "ON" : "OFF");
+}
+
    
 const WS_URL = "wss://akm-cloud-control-production.up.railway.app";
 
