@@ -1163,6 +1163,20 @@ async function switchScene(scene, style = "cut", force = false) {
         console.error("❌ [VIEWER] DINAB multi error:", e);
       }
     }
+if (currentScene === "sceneDINAB.html") {
+  const forcedIndex = hostLocked ? HOST_INDEX : currentActiveSpeaker;
+  const activeFrame = showingA ? A : B;
+
+  try {
+    activeFrame.contentWindow.postMessage({
+      type: "active_speaker",
+      index: forcedIndex
+    }, "*");
+  } catch (e) {
+    console.error("❌ [VIEWER] active speaker restore error:", e);
+  }
+}
+
   } finally {
     isTransitioning = false;
   }
