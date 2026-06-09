@@ -18,7 +18,7 @@ app.use(
     origin: "*",
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type"],
-  })
+  }) 
 );
 
 // ---------- Static files ----------
@@ -361,6 +361,13 @@ else if (data.type === "dinab_multi") {
       };
       broadcast(data);
     }
+else if (data.type === "host_lock") {
+  broadcast({
+    type: "host_lock",
+    enabled: data.enabled
+  });
+}
+
 
     else if (data.type === "ticker") {
       state.ticker = {
