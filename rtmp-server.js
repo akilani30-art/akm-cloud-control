@@ -43,7 +43,7 @@ function startRestream() {
 
   const input = 'rtmp://127.0.0.1:1935/live/studiob';
 
-  const youtube = 'rtmp://a.rtmp.youtube.com/live2/YOUR_YOUTUBE_KEY';
+  const youtube = 'rtmp://a.rtmp.youtube.com/live2/ u8pj-wg1b-mzzm-kh1d-2xve';
   const facebook = 'rtmp://live-api-s.facebook.com:80/rtmp/YOUR_FACEBOOK_KEY';
 
   const args = [
