@@ -1,81 +1,174 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Soul Time TV</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Soul Time TV</title>
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
 
-    <style>
-        body {
-            margin: 0;
-            background: black;
-            overflow: hidden;
-        }
+    iframe {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      border: none;
+    }
 
-        iframe {
-            width: 100%;
-            height: 100vh;
-            border: none;
-        }
+    #topBar {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      display: flex;
+      justify-content: space-between;
+      z-index: 10;
+      color: white;
+      font-size: 14px;
+    }
 
-        #label {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            color: white;
-            background: rgba(0,0,0,0.6);
-            padding: 5px 10px;
-            font-family: Arial;
-            z-index: 10;
-        }
-    </style>
+    .box {
+      background: rgba(0,0,0,0.65);
+      padding: 8px 12px;
+      border-radius: 6px;
+    }
+
+    #ticker {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #c40000;
+      color: white;
+      overflow: hidden;
+      white-space: nowrap;
+      z-index: 10;
+      font-size: 16px;
+      padding: 8px 0;
+    }
+
+    #tickerText {
+      display: inline-block;
+      padding-left: 100%;
+      animation: tickerMove 20s linear infinite;
+    }
+
+    @keyframes tickerMove {
+      from { transform: translateX(0); }
+      to { transform: translateX(-100%); }
+    }
+  </style>
 </head>
-
 <body>
 
-<div id="label">Now Playing: Music</div>
+  <div id="topBar">
+    <div class="box" id="channelName">📺 Soul Time TV</div>
+    <div class="box" id="nowPlaying">Now Playing: Loading...</div>
+    <div class="box" id="clock">Time: --:--</div>
+  </div>
 
-<iframe id="player" allow="autoplay"></iframe>
+  <iframe id="player" allow="autoplay; encrypted-media"></iframe>
 
-<script>
+  <div id="ticker">
+    <div id="tickerText">
+      Welcome to Soul Time TV • Chill music • AI News • Inspiration • Preaching • Broadcasting 24/7
+    </div>
+  </div>
 
-// ✅ YOUR CHANNEL CONTENT
-const shows = [
-  {
-    name: "🎧 Chill Music",
-    url: "https://www.youtube.com/embed/videoseries?list=PLQwVIlKxHM6qv-o99iX9R85og7IzF9YS_&autoplay=1&mute=1"
-  },
-  {
-    name: "📰 AI News",
-    url: "https://www.youtube.com/embed/YOUR_NEWS_VIDEO_ID?autoplay=1&mute=1"
-  },
-  {
-    name: "🎤 Preaching",
-    url: "https://www.youtube.com/embed/YOUR_PREACH_VIDEO_ID?autoplay=1&mute=1"
-  }
-];
+  <script>
+    // =========================
+    // 1. PUT YOUR VIDEO IDs HERE
+    // =========================
 
-// ✅ TIMING (milliseconds)
-const durations = [
-  180000, // 3 min music
-  120000, // 2 min news
-  180000  // 3 min preaching
-];
+    const CHANNELS = {
+      music: "https://www.youtube.com/embed/videoseries?list=PLQwVIlKxHM6qv-o99iX9R85og7IzF9YS_&autoplay=1&mute=1&loop=1&controls=0",
+      news: "https://www.youtube.com/embed/YOUR_NEWS_VIDEO_ID?autoplay=1&mute=1&controls=0",
+      preaching: "https://www.youtube.com/embed/YOUR_PREACH_VIDEO_ID?autoplay=1&mute=1&controls=0"
+    };
 
-let index = 0;
+    // =========================
+    // 2. BROADCAST SCHEDULE
+    // =========================
+    // Time is based on 24-hour clock.
+    // Each item = startMinute to endMinute of the day.
+    // Example: 09:00 = 540 minutes, 09:10 = 550 minutes
 
-function playNext() {
-  document.getElementById("player").src = shows[index].url;
-  document.getElementById("label").innerText = "Now Playing: " + shows[index].name;
+    const SCHEDULE = [
+      { start: 0,    end: 539,  name: "🎧 Chill / Lo-fi Music", url: CHANNELS.music },
+      { start: 540,  end: 549,  name: "📰 AI Morning News",     url: CHANNELS.news },
+      { start: 550,  end: 1079, name: "🎶 Daytime Music",       url: CHANNELS.music },
+      { start: 1080, end: 1094, name: "🎤 Evening Preaching",   url: CHANNELS.preaching },
+      { start: 1095, end: 1439, name: "🌙 Night Music",         url: CHANNELS.music }
+    ];
 
-  setTimeout(() => {
-    index = (index + 1) % shows.length;
-    playNext();
-  }, durations[index]);
-}
+    const player = document.getElementById("player");
+    const nowPlaying = document.getElementById("nowPlaying");
+    const clock = document.getElementById("clock");
 
-// START CHANNEL
-playNext();
+    let currentUrl = "";
 
-</script>
+    function getJohannesburgTime() {
+      const now = new Date();
+      const parts = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Africa/Johannesburg',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      }).formatToParts(now);
 
+      let hour = 0;
+      let minute = 0;
+
+      for (const part of parts) {
+        if (part.type === "hour") hour = parseInt(part.value, 10);
+        if (part.type === "minute") minute = parseInt(part.value, 10);
+      }
+
+      return { hour, minute };
+    }
+
+    function getCurrentShow() {
+      const { hour, minute } = getJohannesburgTime();
+      const totalMinutes = hour * 60 + minute;
+
+      for (const show of SCHEDULE) {
+        if (totalMinutes >= show.start && totalMinutes <= show.end) {
+          return show;
+        }
+      }
+
+      return SCHEDULE[0];
+    }
+
+    function updateClock() {
+      const { hour, minute } = getJohannesburgTime();
+      clock.textContent = `Time: ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+    }
+
+    function updateBroadcast() {
+      const show = getCurrentShow();
+      nowPlaying.textContent = `Now Playing: ${show.name}`;
+
+      if (currentUrl !== show.url) {
+        currentUrl = show.url;
+        player.src = currentUrl;
+      }
+
+      updateClock();
+    }
+
+    // Initial load
+    updateBroadcast();
+
+    // Update every 15 seconds
+    setInterval(updateBroadcast, 15000);
+
+  </script>
 </body>
 </html>
