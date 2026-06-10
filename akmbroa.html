@@ -77,7 +77,10 @@
 
   <div id="ticker">
     <div id="tickerText">
-      Welcome to Soul Time TV • Chill music • AI News • Inspiration • Preaching • Broadcasting 24/7
+      const CHANNEL_TICKER_TEXT = "Welcome to Soul Time TV • Chill music • AI News • Inspiration • Preaching • Broadcasting 24/7";
+
+document.getElementById("tickerText").textContent = CHANNEL_TICKER_TEXT;
+
     </div>
   </div>
 
@@ -91,6 +94,17 @@
       news: "https://www.youtube.com/embed/YOUR_NEWS_VIDEO_ID?autoplay=1&mute=1&controls=0",
       preaching: "https://www.youtube.com/embed/YOUR_PREACH_VIDEO_ID?autoplay=1&mute=1&controls=0"
     };
+
+
+const WEEKLY_SCHEDULE = {
+  0: SCHEDULE, // Sunday
+  1: SCHEDULE, // Monday
+  2: SCHEDULE,
+  3: SCHEDULE,
+  4: SCHEDULE,
+  5: SCHEDULE,
+  6: SCHEDULE  // Saturday
+};
 
     // =========================
     // 2. BROADCAST SCHEDULE
@@ -124,6 +138,14 @@
 
       let hour = 0;
       let minute = 0;
+let LAST_AUTO_UPDATE = Date.now();
+if (currentUrl !== show.url) {
+  currentUrl = show.url;
+  player.src = currentUrl;
+
+  LAST_AUTO_UPDATE = Date.now();
+}
+
 
       for (const part of parts) {
         if (part.type === "hour") hour = parseInt(part.value, 10);
@@ -134,17 +156,23 @@
     }
 
     function getCurrentShow() {
-      const { hour, minute } = getJohannesburgTime();
-      const totalMinutes = hour * 60 + minute;
+  const now = new Date();
+  const day = now.getDay();
 
-      for (const show of SCHEDULE) {
-        if (totalMinutes >= show.start && totalMinutes <= show.end) {
-          return show;
-        }
-      }
+  const { hour, minute } = getJohannesburgTime();
+  const totalMinutes = hour * 60 + minute;
 
-      return SCHEDULE[0];
+  const todaySchedule = WEEKLY_SCHEDULE[day];
+
+  for (const show of todaySchedule) {
+    if (totalMinutes >= show.start && totalMinutes <= show.end) {
+      return show;
     }
+  }
+
+  return todaySchedule[0];
+}
+
 
     function updateClock() {
       const { hour, minute } = getJohannesburgTime();
