@@ -10,44 +10,37 @@ const server = http.createServer((req, res) => {
 
 const wss = new WebSocket.Server({ server });
 
-// -------------------------
-// CHANNEL / PLAYLIST CONFIG
-// -------------------------
 const PLAYLIST = {
-  music1: {
-    id: "music1",
-    title: "Morning Worship Mix",
-    src: "/video/worship.mp4",
-    duration: 1800
+  main: {
+    id: "main",
+    title: "Main Broadcast",
+    src: "https://akilani30-art.github.io/akm-cloud-control/videos/akm.mp4"
   },
-  news1: {
-    id: "news1",
-    title: "Morning News",
-    src: "/video/morning-news.mp4",
-    duration: 600
+  news: {
+    id: "news",
+    title: "News Update",
+    src: "https://akilani30-art.github.io/akm-cloud-control/videos/news.mp4"
   },
-  preach1: {
-    id: "preach1",
-    title: "Preaching Session",
-    src: "/video/preaching.mp4",
-    duration: 1500
+  preach: {
+    id: "preach",
+    title: "Preaching",
+    src: "https://akilani30-art.github.io/akm-cloud-control/videos/preach.mp4"
   },
-  night1: {
-    id: "night1",
-    title: "Night Music",
-    src: "/video/night-mix.mp4",
-    duration: 3600
+  worship: {
+    id: "worship",
+    title: "Worship Session",
+    src: "https://akilani30-art.github.io/akm-cloud-control/videos/worship.mp4"
   }
 };
 
-// minutes since midnight
+// minutes since midnight (Johannesburg time)
 const SCHEDULE = [
-  { start: 0, end: 359, contentId: "night1" },
-  { start: 360, end: 539, contentId: "music1" },
-  { start: 540, end: 549, contentId: "news1" },
-  { start: 550, end: 1079, contentId: "music1" },
-  { start: 1080, end: 1109, contentId: "preach1" },
-  { start: 1110, end: 1439, contentId: "night1" }
+  { start: 0, end: 359, contentId: "main" },
+  { start: 360, end: 539, contentId: "worship" },
+  { start: 540, end: 569, contentId: "news" },
+  { start: 570, end: 1079, contentId: "main" },
+  { start: 1080, end: 1139, contentId: "preach" },
+  { start: 1140, end: 1439, contentId: "main" }
 ];
 
 function getJohannesburgMinutes() {
@@ -72,19 +65,14 @@ function getJohannesburgMinutes() {
 
 function getScheduledContent() {
   const minutes = getJohannesburgMinutes();
-
   for (const slot of SCHEDULE) {
     if (minutes >= slot.start && minutes <= slot.end) {
       return PLAYLIST[slot.contentId];
     }
   }
-
-  return PLAYLIST.night1;
+  return PLAYLIST.main;
 }
 
-// -------------------------
-// SHARED STATE
-// -------------------------
 let state = {
   contentId: null,
   startedAtEpochMs: Date.now(),
@@ -99,23 +87,18 @@ function setCurrentContent(contentId, offsetSeconds = 0) {
   state.playing = true;
 }
 
-function getCurrentContent() {
-  return PLAYLIST[state.contentId];
-}
-
-function getCurrentPlaybackTime() {
+function getCurrentTime() {
   if (!state.playing) return state.baseOffsetSeconds;
   return state.baseOffsetSeconds + ((Date.now() - state.startedAtEpochMs) / 1000);
 }
 
 function getSyncPayload() {
-  const content = getCurrentContent();
+  const content = PLAYLIST[state.contentId];
   return {
     type: "sync",
     contentId: state.contentId,
-    title: content?.title || "",
-    src: content?.src || "",
-    duration: content?.duration || 0,
+    title: content.title,
+    src: content.src,
     startedAtEpochMs: state.startedAtEpochMs,
     baseOffsetSeconds: state.baseOffsetSeconds,
     playing: state.playing
@@ -124,40 +107,26 @@ function getSyncPayload() {
 
 function broadcastSync() {
   const payload = JSON.stringify(getSyncPayload());
-  for (const client of wss.clients) {
+  wss.clients.forEach(client => {
     if (client.readyState === WebSocket.OPEN) {
       client.send(payload);
     }
-  }
+  });
 }
 
-// -------------------------
-// AUTO SWITCHER
-// -------------------------
-function ensureScheduleIsCurrent() {
+function checkSchedule() {
   const scheduled = getScheduledContent();
-  if (!scheduled) return;
-
   if (state.contentId !== scheduled.id) {
     setCurrentContent(scheduled.id, 0);
     broadcastSync();
-    console.log("Switched to scheduled content:", scheduled.title);
+    console.log("Switched to:", scheduled.title);
   }
 }
 
-// initial content
-const initial = getScheduledContent();
-setCurrentContent(initial.id, 0);
+setCurrentContent(getScheduledContent().id, 0);
+setInterval(checkSchedule, 15000);
 
-// check every 15 sec for schedule changes
-setInterval(ensureScheduleIsCurrent, 15000);
-
-// -------------------------
-// WEBSOCKET
-// -------------------------
 wss.on("connection", (ws) => {
-  console.log("Client connected");
-
   ws.on("message", (raw) => {
     let msg;
     try {
@@ -174,22 +143,18 @@ wss.on("connection", (ws) => {
       }));
 
       ws.send(JSON.stringify(getSyncPayload()));
-      return;
     }
 
-    // manual admin controls
     if (msg.type === "pause") {
-      state.baseOffsetSeconds = getCurrentPlaybackTime();
+      state.baseOffsetSeconds = getCurrentTime();
       state.playing = false;
       broadcastSync();
-      return;
     }
 
     if (msg.type === "play") {
       state.startedAtEpochMs = Date.now();
       state.playing = true;
       broadcastSync();
-      return;
     }
 
     if (msg.type === "seek" && typeof msg.offsetSeconds === "number") {
@@ -197,21 +162,10 @@ wss.on("connection", (ws) => {
       state.startedAtEpochMs = Date.now();
       state.playing = true;
       broadcastSync();
-      return;
     }
-
-    if (msg.type === "switchContent" && PLAYLIST[msg.contentId]) {
-      setCurrentContent(msg.contentId, 0);
-      broadcastSync();
-      return;
-    }
-  });
-
-  ws.on("close", () => {
-    console.log("Client disconnected");
   });
 });
 
 server.listen(PORT, () => {
-  console.log(`AKM Sync Server listening on port ${PORT}`);
+  console.log("AKM Sync Server listening on port " + PORT);
 });
