@@ -264,15 +264,26 @@
     }
 
     function loadMedia(url, titleText) {
-      if (!url) return;
+  if (!url) return;
 
-      if (url.toLowerCase().includes(".mp4")) {
-        loadMP4(url, titleText);
-      } else {
-        loadYouTube(url, titleText);
-      }
-      requestAnimationFrame(fitMediaCover);
-    }
+  const nextTitle = titleText || "Studio B";
+
+  // ✅ BLOCK duplicate reloads
+  if (url === currentRawUrl && nextTitle === currentTitle && mediaLoaded) {
+    console.log("⏭️ [StudioB] Same media already loaded, skipping reload");
+    requestAnimationFrame(fitMediaCover);
+    return;
+  }
+
+  if (url.toLowerCase().includes(".mp4")) {
+    loadMP4(url, nextTitle);
+  } else {
+    loadYouTube(url, nextTitle);
+  }
+
+  requestAnimationFrame(fitMediaCover);
+}
+
 
     function reloadForPlay() {
       const frame = document.getElementById("studioBFrame");
