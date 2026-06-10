@@ -2,8 +2,9 @@
   "name": "v5-studio",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "sync-server.js",
   "scripts": {
+    "start": "node sync-server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -14,6 +15,7 @@
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "node-media-server": "^4.2.4",
-    "socket.io": "^4.8.3"
+    "socket.io": "^4.8.3",
+    "ws": "^8.18.0"
   }
 }
