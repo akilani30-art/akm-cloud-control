@@ -19,7 +19,7 @@ const PLAYLIST = {
   news: {
     id: "news",
     title: "News Update",
-    src: "https://akilani30-art.github.io/akm-cloud-control/videos/news.mp4"
+    src: "https://akilani30-art.github.io/akm-cloud-control/videos/ai_news_video.mp4
   },
   preach: {
     id: "preach",
