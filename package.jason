@@ -5,7 +5,7 @@
   "main": "akm-sync-server.js",
   "scripts": {
     "start": ""scripts": {
-  "start": "node akm-sync.server.js",
+  "start": "node akm-sync-server.js",
 }
 
     "test": "echo \"Error: no test specified\" && exit 1"
