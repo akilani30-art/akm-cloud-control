@@ -63,6 +63,26 @@
       from { transform: translateX(0); }
       to { transform: translateX(-100%); }
     }
+
+<video
+  id="player"
+  autoplay
+  muted
+  playsinline
+  style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    background: black;
+  "
+>
+  ./video/main.mp4
+</video>
+
+
   </style>
 </head>
 <body>
@@ -198,5 +218,88 @@ if (currentUrl !== show.url) {
     setInterval(updateBroadcast, 15000);
 
   </script>
+<script>
+const video = document.getElementById("player");
+
+// use local first
+const WS_URL = "ws://localhost:3000";
+
+let ws;
+let lastSync = null;
+let offsetMs = 0;
+
+function getTargetTime() {
+  if (!lastSync) return null;
+
+  const now = Date.now() + offsetMs;
+
+  if (!lastSync.playing) return lastSync.baseOffsetSeconds;
+
+  return lastSync.baseOffsetSeconds +
+    ((now - lastSync.startedAtEpochMs) / 1000);
+}
+
+function syncLoop() {
+  const target = getTargetTime();
+  if (!target || video.readyState < 2) return;
+
+  const drift = target - video.currentTime;
+
+  // BIG difference → jump
+  if (Math.abs(drift) > 1) {
+    video.currentTime = target;
+    return;
+  }
+
+  // SMALL difference → smooth fix
+  if (Math.abs(drift) > 0.1) {
+    video.playbackRate = drift > 0 ? 1.03 : 0.97;
+  } else {
+    video.playbackRate = 1.0;
+  }
+}
+
+function connect() {
+  ws = new WebSocket(WS_URL);
+
+  ws.onopen = () => {
+    ws.send(JSON.stringify({
+      type: "hello",
+      sentAt: Date.now()
+    }));
+  };
+
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+
+    if (msg.type === "hello") {
+      const now = Date.now();
+      const rtt = now - msg.sentAt;
+      offsetMs = msg.serverTimeMs - (msg.sentAt + rtt/2);
+    }
+
+    if (msg.type === "sync") {
+      lastSync = msg;
+
+      const t = getTargetTime();
+      if (t) video.currentTime = t;
+
+      if (msg.playing) video.play().catch(()=>{});
+      else video.pause();
+    }
+  };
+
+  ws.onclose = () => {
+    setTimeout(connect, 2000);
+  };
+}
+
+video.addEventListener("loadedmetadata", () => {
+  setInterval(syncLoop, 250);
+});
+
+window.addEventListener("load", connect);
+</script>
+
 </body>
 </html>
