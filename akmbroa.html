@@ -12,13 +12,14 @@
       font-family: Arial, sans-serif;
     }
 
-    iframe {
+    #player {
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
-      border: none;
+      object-fit: cover;
+      background: black;
     }
 
     #topBar {
@@ -63,134 +64,138 @@
       from { transform: translateX(0); }
       to { transform: translateX(-100%); }
     }
-
-<video
-  id="player"
-  autoplay
-  muted
-  playsinline
-  style="
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    object-fit: cover;
-    background: black;
-  "
->
-  ./video/main.mp4
-</video>
-
-
   </style>
 </head>
 <body>
 
   <div id="topBar">
     <div class="box" id="channelName">📺 Soul Time TV</div>
-    <div class="box" id="nowPlaying">Now Playing: Loading...</div>
+    <div class="box" id="nowPlaying">Now Playing: Main Broadcast</div>
     <div class="box" id="clock">Time: --:--</div>
   </div>
 
-  <iframe id="player" allow="autoplay; encrypted-media"></iframe>
+  <video
+    id="player"
+    autoplay
+    muted
+    playsinline
+    preload="auto"
+  >
+    ./video/main.mp4
+    Your browser does not support HTML5 video.
+  </video>
 
   <div id="ticker">
-    <div id="tickerText">
-      const CHANNEL_TICKER_TEXT = "Welcome to Soul Time TV • Chill music • AI News • Inspiration • Preaching • Broadcasting 24/7";
-
-document.getElementById("tickerText").textContent = CHANNEL_TICKER_TEXT;
-
-    </div>
+    <div id="tickerText"></div>
   </div>
 
-  
-   <script>
-const video = document.getElementById("player");
-const WS_URL = "wss://your-server-url";
+  <script>
+    const video = document.getElementById("player");
+    const clock = document.getElementById("clock");
+    const tickerText = document.getElementById("tickerText");
 
-let ws;
-let lastSync = null;
-let offsetMs = 0;
+    const CHANNEL_TICKER_TEXT =
+      "Welcome to Soul Time TV • Chill music • AI News • Inspiration • Preaching • Broadcasting 24/7";
 
-function getTargetTime() {
-  if (!lastSync) return null;
+    tickerText.textContent = CHANNEL_TICKER_TEXT;
 
-  const now = Date.now() + offsetMs;
+    // Replace with your actual Render WebSocket URL
+    const WS_URL = "wss://your-server-url.onrender.com";
 
-  if (!lastSync.playing) {
-    return lastSync.baseOffsetSeconds;
-  }
+    let ws;
+    let lastSync = null;
+    let offsetMs = 0;
 
-  return lastSync.baseOffsetSeconds +
-    ((now - lastSync.startedAtEpochMs) / 1000);
-}
-
-// 🧠 Sync loop
-function syncLoop() {
-  if (!lastSync || video.readyState < 2) return;
-
-  const target = getTargetTime();
-  const drift = target - video.currentTime;
-
-  // big jump
-  if (Math.abs(drift) > 1) {
-    video.currentTime = target;
-    return;
-  }
-
-  // smooth adjust
-  if (Math.abs(drift) > 0.1) {
-    video.playbackRate = drift > 0 ? 1.03 : 0.97;
-  } else {
-    video.playbackRate = 1;
-  }
-}
-
-// 🔌 connect
-function connect() {
-  ws = new WebSocket(WS_URL);
-
-  ws.onopen = () => {
-    ws.send(JSON.stringify({
-      type: "hello",
-      sentAt: Date.now()
-    }));
-  };
-
-  ws.onmessage = (e) => {
-    const msg = JSON.parse(e.data);
-
-    if (msg.type === "hello") {
-      const rtt = Date.now() - msg.sentAt;
-      offsetMs = msg.serverTimeMs - (msg.sentAt + rtt/2);
+    function updateClock() {
+      const now = new Date();
+      clock.textContent = "Time: " + now.toLocaleTimeString();
     }
 
-    if (msg.type === "sync") {
-      lastSync = msg;
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    function getTargetTime() {
+      if (!lastSync) return null;
+
+      const now = Date.now() + offsetMs;
+
+      if (!lastSync.playing) {
+        return lastSync.baseOffsetSeconds;
+      }
+
+      return lastSync.baseOffsetSeconds +
+        ((now - lastSync.startedAtEpochMs) / 1000);
+    }
+
+    function syncLoop() {
+      if (!lastSync || video.readyState < 2) return;
 
       const target = getTargetTime();
-      if (target) video.currentTime = target;
+      if (target == null) return;
 
-      if (msg.playing) {
-        video.play().catch(()=>{});
+      const drift = target - video.currentTime;
+
+      if (Math.abs(drift) > 1) {
+        video.currentTime = target;
+        return;
+      }
+
+      if (Math.abs(drift) > 0.1) {
+        video.playbackRate = drift > 0 ? 1.03 : 0.97;
       } else {
-        video.pause();
+        video.playbackRate = 1;
       }
     }
-  };
 
-  ws.onclose = () => setTimeout(connect, 2000);
-}
+    function connect() {
+      ws = new WebSocket(WS_URL);
 
-// start loop
-video.addEventListener("loadedmetadata", () => {
-  setInterval(syncLoop, 250);
-});
+      ws.onopen = () => {
+        ws.send(JSON.stringify({
+          type: "hello",
+          sentAt: Date.now()
+        }));
+      };
 
-window.addEventListener("load", connect);
-</script>
+      ws.onmessage = (e) => {
+        const msg = JSON.parse(e.data);
 
+        if (msg.type === "hello") {
+          const rtt = Date.now() - msg.sentAt;
+          offsetMs = msg.serverTimeMs - (msg.sentAt + rtt / 2);
+        }
+
+        if (msg.type === "sync") {
+          lastSync = msg;
+
+          const target = getTargetTime();
+          if (target != null) {
+            video.currentTime = target;
+          }
+
+          if (msg.playing) {
+            video.play().catch(() => {});
+          } else {
+            video.pause();
+          }
+        }
+      };
+
+      ws.onclose = () => {
+        setTimeout(connect, 2000);
+      };
+
+      ws.onerror = () => {
+        console.log("WebSocket connection error");
+      };
+    }
+
+    video.addEventListener("loadedmetadata", () => {
+      setInterval(syncLoop, 250);
+    });
+
+    window.addEventListener("load", connect);
+  </script>
 
 </body>
 </html>
