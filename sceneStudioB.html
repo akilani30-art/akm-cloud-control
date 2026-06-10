@@ -344,11 +344,11 @@
 
     // When page visibility changes (device returns to focus)
     document.addEventListener("visibilitychange", () => {
-      if (!document.hidden && window.studioBState.url) {
-        console.log("🔄 [StudioB] Page became visible, reloading current media:", window.studioBState.title);
-        loadMedia(window.studioBState.url, window.studioBState.title);
-      }
-    });
+  if (!document.hidden) {
+    requestAnimationFrame(fitMediaCover);
+  }
+});
+
 
     console.log("✅ [StudioB] Ready - waiting for media from viewer...");
 
