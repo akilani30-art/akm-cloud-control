@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Soul Time TV</title>
+  <title>AKM TV</title>
   <style>
     body {
       margin: 0;
@@ -69,69 +69,69 @@
 <body>
 
   <div id="topBar">
-    <div class="box" id="channelName">📺 Soul Time TV</div>
-    <div class="box" id="nowPlaying">Now Playing: Main Broadcast</div>
-    <div class="box" id="clock">Time: --:--</div>
+    <div class="box" id="channelName">📺 AKM TV</div>
+    <div class="box" id="nowPlaying">Now Playing: Loading...</div>
+    <div class="box" id="clock">Time: --:--:--</div>
   </div>
 
-  <video 
-  id="player"
-  autoplay 
-  muted 
-  playsinline 
-  controls
-  preload="auto"
->
-  <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
-  Your browser does not support HTML5 video.
-</video>
-
-    
-  
+  <video id="player" autoplay muted playsinline preload="auto">
+    <source src="" type="video/mp4">
     Your browser does not support HTML5 video.
   </video>
 
   <div id="ticker">
-    <div id="tickerText"></div>
+    <div id="tickerText">Welcome to AKM TV • 24/7 Broadcast • News • Worship • Preaching • Synced Worldwide</div>
   </div>
 
   <script>
     const video = document.getElementById("player");
+    const source = video.querySelector("source");
     const clock = document.getElementById("clock");
-    const tickerText = document.getElementById("tickerText");
+    const nowPlaying = document.getElementById("nowPlaying");
 
-    const CHANNEL_TICKER_TEXT =
-      "Welcome to Soul Time TV • Chill music • AI News • Inspiration • Preaching • Broadcasting 24/7";
-
-    tickerText.textContent = CHANNEL_TICKER_TEXT;
-
-    // Replace with your actual Render WebSocket URL
     const WS_URL = "wss://akm-sync.onrender.com";
-
 
     let ws;
     let lastSync = null;
     let offsetMs = 0;
+    let currentContentId = null;
 
     function updateClock() {
       const now = new Date();
       clock.textContent = "Time: " + now.toLocaleTimeString();
     }
-
     setInterval(updateClock, 1000);
     updateClock();
 
     function getTargetTime() {
       if (!lastSync) return null;
-
       const now = Date.now() + offsetMs;
 
       if (!lastSync.playing) {
         return lastSync.baseOffsetSeconds;
       }
 
-      return lastSync.baseOffsetSeconds +
-        ((now - lastSync.startedAtEpochMs) / 1000);
+      return lastSync.baseOffsetSeconds + ((now - lastSync.startedAtEpochMs) / 1000);
+    }
+
+    async function switchContent(sync) {
+      if (currentContentId === sync.contentId) return;
+
+      currentContentId = sync.contentId;
+      nowPlaying.textContent = "Now Playing: " + sync.title;
+
+      source.src = sync.src;
+      video.load();
+
+      video.addEventListener("loadedmetadata", () => {
+        const target = getTargetTime();
+        if (target != null && video.duration) {
+          video.currentTime = target % video.duration;
+        }
+        if (sync.playing) {
+          video.play().catch(() => {});
+        }
+      }, { once: true });
     }
 
     function syncLoop() {
@@ -140,10 +140,15 @@
       const target = getTargetTime();
       if (target == null) return;
 
-      const drift = target - video.currentTime;
+      let safeTarget = target;
+      if (video.duration) {
+        safeTarget = target % video.duration;
+      }
+
+      const drift = safeTarget - video.currentTime;
 
       if (Math.abs(drift) > 1) {
-        video.currentTime = target;
+        video.currentTime = safeTarget;
         return;
       }
 
@@ -164,7 +169,7 @@
         }));
       };
 
-      ws.onmessage = (e) => {
+      ws.onmessage = async (e) => {
         const msg = JSON.parse(e.data);
 
         if (msg.type === "hello") {
@@ -174,10 +179,11 @@
 
         if (msg.type === "sync") {
           lastSync = msg;
+          await switchContent(msg);
 
           const target = getTargetTime();
-          if (target != null) {
-            video.currentTime = target;
+          if (target != null && video.duration) {
+            video.currentTime = target % video.duration;
           }
 
           if (msg.playing) {
@@ -188,13 +194,7 @@
         }
       };
 
-      ws.onclose = () => {
-        setTimeout(connect, 2000);
-      };
-
-      ws.onerror = () => {
-        console.log("WebSocket connection error");
-      };
+      ws.onclose = () => setTimeout(connect, 2000);
     }
 
     video.addEventListener("loadedmetadata", () => {
