@@ -33,14 +33,15 @@ const PLAYLIST = {
   }
 };
 
-// minutes since midnight (Johannesburg time)
-const SCHEDULE = [
-  { start: 0, end: 359, contentId: "main" },
-  { start: 360, end: 539, contentId: "worship" },
-  { start: 540, end: 569, contentId: "news" },
-  { start: 570, end: 1079, contentId: "main" },
-  { start: 1080, end: 1139, contentId: "preach" },
-  { start: 1140, end: 1439, contentId: "main" }
+// minutes since midnight (Johannesbur time const SCHEDULE = [
+  // Midnight → 8:59 → Main
+  { start: 0, end: 539, contentId: "main" },
+
+  // 09:00 → 09:09 → AI News (10 min slot)
+  { start: 540, end: 549, contentId: "news" },
+
+  // 09:10 → end of day → Main again
+  { start: 550, end: 1439, contentId: "main" }
 ];
 
 function getJohannesburgMinutes() {
