@@ -104,125 +104,10 @@ document.getElementById("tickerText").textContent = CHANNEL_TICKER_TEXT;
     </div>
   </div>
 
-  <script>
-    // =========================
-    // 1. PUT YOUR VIDEO IDs HERE
-    // =========================
-
-    const CHANNELS = {
-      music: "https://www.youtube.com/embed/videoseries?list=PLQwVIlKxHM6qv-o99iX9R85og7IzF9YS_&autoplay=1&mute=1&loop=1&controls=0",
-      news: "https://www.youtube.com/embed/YOUR_NEWS_VIDEO_ID?autoplay=1&mute=1&controls=0",
-      preaching: "https://www.youtube.com/embed/YOUR_PREACH_VIDEO_ID?autoplay=1&mute=1&controls=0"
-    };
-
-
-const WEEKLY_SCHEDULE = {
-  0: SCHEDULE, // Sunday
-  1: SCHEDULE, // Monday
-  2: SCHEDULE,
-  3: SCHEDULE,
-  4: SCHEDULE,
-  5: SCHEDULE,
-  6: SCHEDULE  // Saturday
-};
-
-    // =========================
-    // 2. BROADCAST SCHEDULE
-    // =========================
-    // Time is based on 24-hour clock.
-    // Each item = startMinute to endMinute of the day.
-    // Example: 09:00 = 540 minutes, 09:10 = 550 minutes
-
-    const SCHEDULE = [
-      { start: 0,    end: 539,  name: "🎧 Chill / Lo-fi Music", url: CHANNELS.music },
-      { start: 540,  end: 549,  name: "📰 AI Morning News",     url: CHANNELS.news },
-      { start: 550,  end: 1079, name: "🎶 Daytime Music",       url: CHANNELS.music },
-      { start: 1080, end: 1094, name: "🎤 Evening Preaching",   url: CHANNELS.preaching },
-      { start: 1095, end: 1439, name: "🌙 Night Music",         url: CHANNELS.music }
-    ];
-
-    const player = document.getElementById("player");
-    const nowPlaying = document.getElementById("nowPlaying");
-    const clock = document.getElementById("clock");
-
-    let currentUrl = "";
-
-    function getJohannesburgTime() {
-      const now = new Date();
-      const parts = new Intl.DateTimeFormat('en-GB', {
-        timeZone: 'Africa/Johannesburg',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      }).formatToParts(now);
-
-      let hour = 0;
-      let minute = 0;
-let LAST_AUTO_UPDATE = Date.now();
-if (currentUrl !== show.url) {
-  currentUrl = show.url;
-  player.src = currentUrl;
-
-  LAST_AUTO_UPDATE = Date.now();
-}
-
-
-      for (const part of parts) {
-        if (part.type === "hour") hour = parseInt(part.value, 10);
-        if (part.type === "minute") minute = parseInt(part.value, 10);
-      }
-
-      return { hour, minute };
-    }
-
-    function getCurrentShow() {
-  const now = new Date();
-  const day = now.getDay();
-
-  const { hour, minute } = getJohannesburgTime();
-  const totalMinutes = hour * 60 + minute;
-
-  const todaySchedule = WEEKLY_SCHEDULE[day];
-
-  for (const show of todaySchedule) {
-    if (totalMinutes >= show.start && totalMinutes <= show.end) {
-      return show;
-    }
-  }
-
-  return todaySchedule[0];
-}
-
-
-    function updateClock() {
-      const { hour, minute } = getJohannesburgTime();
-      clock.textContent = `Time: ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
-    }
-
-    function updateBroadcast() {
-      const show = getCurrentShow();
-      nowPlaying.textContent = `Now Playing: ${show.name}`;
-
-      if (currentUrl !== show.url) {
-        currentUrl = show.url;
-        player.src = currentUrl;
-      }
-
-      updateClock();
-    }
-
-    // Initial load
-    updateBroadcast();
-
-    // Update every 15 seconds
-    setInterval(updateBroadcast, 15000);
-
-  </script>
-<script>
+  
+   <script>
 const video = document.getElementById("player");
-
-// use local first
-const WS_URL = "wss://akm-sync.onrender.com";
+const WS_URL = "wss://your-server-url";
 
 let ws;
 let lastSync = null;
@@ -233,32 +118,36 @@ function getTargetTime() {
 
   const now = Date.now() + offsetMs;
 
-  if (!lastSync.playing) return lastSync.baseOffsetSeconds;
+  if (!lastSync.playing) {
+    return lastSync.baseOffsetSeconds;
+  }
 
   return lastSync.baseOffsetSeconds +
     ((now - lastSync.startedAtEpochMs) / 1000);
 }
 
+// 🧠 Sync loop
 function syncLoop() {
-  const target = getTargetTime();
-  if (!target || video.readyState < 2) return;
+  if (!lastSync || video.readyState < 2) return;
 
+  const target = getTargetTime();
   const drift = target - video.currentTime;
 
-  // BIG difference → jump
+  // big jump
   if (Math.abs(drift) > 1) {
     video.currentTime = target;
     return;
   }
 
-  // SMALL difference → smooth fix
+  // smooth adjust
   if (Math.abs(drift) > 0.1) {
     video.playbackRate = drift > 0 ? 1.03 : 0.97;
   } else {
-    video.playbackRate = 1.0;
+    video.playbackRate = 1;
   }
 }
 
+// 🔌 connect
 function connect() {
   ws = new WebSocket(WS_URL);
 
@@ -273,33 +162,35 @@ function connect() {
     const msg = JSON.parse(e.data);
 
     if (msg.type === "hello") {
-      const now = Date.now();
-      const rtt = now - msg.sentAt;
+      const rtt = Date.now() - msg.sentAt;
       offsetMs = msg.serverTimeMs - (msg.sentAt + rtt/2);
     }
 
     if (msg.type === "sync") {
       lastSync = msg;
 
-      const t = getTargetTime();
-      if (t) video.currentTime = t;
+      const target = getTargetTime();
+      if (target) video.currentTime = target;
 
-      if (msg.playing) video.play().catch(()=>{});
-      else video.pause();
+      if (msg.playing) {
+        video.play().catch(()=>{});
+      } else {
+        video.pause();
+      }
     }
   };
 
-  ws.onclose = () => {
-    setTimeout(connect, 2000);
-  };
+  ws.onclose = () => setTimeout(connect, 2000);
 }
 
+// start loop
 video.addEventListener("loadedmetadata", () => {
   setInterval(syncLoop, 250);
 });
 
 window.addEventListener("load", connect);
 </script>
+
 
 </body>
 </html>
