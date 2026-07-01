@@ -1,0 +1,23 @@
+[
+  {
+    "time": "14:00",
+    "label": "AI News",
+    "url": "https://example.com/ai-news.mp4",
+    "durationSec": 300,
+    "revertScene": "scene1.html"
+  },
+  {
+    "time": "15:30",
+    "label": "Worship Playlist",
+    "url": "https://youtube.com/watch?v=dQw4w9WgXcQ",
+    "durationSec": 600,
+    "revertScene": "scene2.html"
+  },
+  {
+    "time": "17:00",
+    "label": "Evening Broadcast",
+    "url": "https://example.com/evening-broadcast.mp4",
+    "durationSec": 450,
+    "revertScene": "sceneStudioB.html"
+  }
+]
