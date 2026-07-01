@@ -206,6 +206,8 @@ app.post("/api/channel/reload", (_req, res) => {
 // ---------- Schedule management ----------
 let schedule = [];
 let lastTriggered = null;
+let scheduledRevertTimer = null;
+let currentScheduledItem = null;
 
 function loadSchedule() {
   try {
@@ -237,16 +239,40 @@ function runScheduler() {
     if (now === itemTime && lastTriggered !== item.time) {
       console.log("⏰ Trigger:", item.label);
 
+      // ✅ Store current item for revert
+      currentScheduledItem = item;
+
+      // Send scene change to Studio B
+      broadcast({
+        type: "scene",
+        scene: "sceneStudioB",
+      });
+
+      // Send media to Studio B
       broadcast({
         type: "studioB",
         action: "play",
         url: item.url,
       });
 
-      broadcast({
-        type: "scene",
-        scene: "sceneStudioB",
-      });
+      // ✅ Schedule the revert
+      if (item.durationSec && item.revertScene) {
+        if (scheduledRevertTimer) {
+          clearTimeout(scheduledRevertTimer);
+        }
+
+        scheduledRevertTimer = setTimeout(() => {
+          console.log("⏰ Reverting to:", item.revertScene);
+          
+          broadcast({
+            type: "scene",
+            scene: item.revertScene,
+          });
+
+          currentScheduledItem = null;
+          scheduledRevertTimer = null;
+        }, item.durationSec * 1000);
+      }
 
       lastTriggered = item.time;
     }
@@ -286,6 +312,12 @@ loadSchedule();
     if (data.type === "scene") {
       state.scene = data.scene;
       broadcast({ type: "scene", scene: data.scene });
+      
+      // ✅ Cancel revert if manual scene change
+      if (scheduledRevertTimer) {
+        clearTimeout(scheduledRevertTimer);
+        scheduledRevertTimer = null;
+      }
     }
 
     else if (data.type === "transition") {
