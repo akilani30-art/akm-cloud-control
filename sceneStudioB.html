@@ -339,7 +339,7 @@ setTitle(currentTitle);
     }
 
     // Listen for messages from viewer/parent
-    window.addEventListener("message", (event) => {
+window.addEventListener("message", (event) => {
   const data = event.data;
   if (!data) return;
 
@@ -355,19 +355,7 @@ setTitle(currentTitle);
     if (data.action === "play" || data.action === "resume") reloadForPlay();
   }
 });
-  
 
-
-
-        }
-        return;
-      }
-
-      if (data.type === "studioB_control") {
-        if (data.action === "pause") pauseMedia();
-        if (data.action === "play" || data.action === "resume") reloadForPlay();
-      }
-    });
 
     // Single click to unmute and play
     document.body.addEventListener("click", () => {
