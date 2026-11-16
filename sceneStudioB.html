@@ -295,8 +295,7 @@ setTitle(currentTitle);
     function loadMedia(url, titleText) {
   if (!url) return;
 
-  const nextTitle = titleText || "Studio B";
-
+  const nextTitle = titleText || "";
   // ✅ BLOCK duplicate reloads
   if (url === currentRawUrl && nextTitle === currentTitle && mediaLoaded) {
     console.log("⏭️ [StudioB] Same media already loaded, skipping reload");
