@@ -340,16 +340,23 @@ setTitle(currentTitle);
 
     // Listen for messages from viewer/parent
     window.addEventListener("message", (event) => {
-      const data = event.data;
-      if (!data) return;
+  const data = event.data;
+  if (!data) return;
 
-      console.log("📨 [StudioB] Received message:", data);
+  if (data.type === "studioB") {
+    if (data.url) {
+      loadMedia(data.url, data.title || "");
+    }
+    return;
+  }
 
-      if (data.type === "studioB") {
-        
-          if (data.url) {
-  loadMedia(data.url, data.title || "");
-}
+  if (data.type === "studioB_control") {
+    if (data.action === "pause") pauseMedia();
+    if (data.action === "play" || data.action === "resume") reloadForPlay();
+  }
+});
+  
+
 
 
         }
