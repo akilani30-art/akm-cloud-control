@@ -450,10 +450,15 @@ function getActiveSceneFrame() {
 function setWSStatus(state) {
   const el = document.getElementById("wsStatus");
   const label = el.querySelector(".label");
+
   el.classList.remove("online", "offline", "connecting");
   el.classList.add(state);
-  label.textContent = state.toUpperCase();
+
+  label.textContent = state === "offline"
+    ? "SIGNAL LOST"
+    : state.toUpperCase();
 }
+
 
 function transitionDuration(style) {
   switch (style) {
