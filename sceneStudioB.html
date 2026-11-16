@@ -346,8 +346,10 @@ setTitle(currentTitle);
       console.log("📨 [StudioB] Received message:", data);
 
       if (data.type === "studioB") {
-        if (data.url) {
-          
+        
+          if (data.url) {
+  loadMedia(data.url, data.title || "");
+}
 
 
         }
