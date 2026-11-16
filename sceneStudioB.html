@@ -218,8 +218,8 @@ function setTitle(text) {
         embedUrl: currentEmbedUrl
       };
 
-      document.getElementById("mediaTitle").textContent = currentTitle;
-
+      
+setTitle(currentTitle);
       document.getElementById("playerMount").innerHTML = `
         <iframe
           id="studioBFrame"
