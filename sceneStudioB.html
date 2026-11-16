@@ -150,6 +150,19 @@
     function hideLoading() {
       document.getElementById("loadingSpinner").style.display = "none";
     }
+function setTitle(text) {
+  const titleEl = document.getElementById("mediaTitle");
+  const cleanText = (text || "").trim();
+
+  if (!cleanText) {
+    titleEl.classList.remove("show");
+    titleEl.textContent = "";
+    return;
+  }
+
+  titleEl.textContent = cleanText;
+  titleEl.classList.add("show");
+}
 
     function getYouTubeId(url) {
       try {
