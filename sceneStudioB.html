@@ -214,7 +214,7 @@ function setTitle(text) {
       currentType = "youtube";
       currentRawUrl = url;
       currentEmbedUrl = buildYouTubeEmbed(videoId);
-      currentTitle = titleText || "Studio B";
+      currentTitle = titleText || "";
 
       // Save state for new devices
       window.studioBState = {
@@ -252,7 +252,7 @@ setTitle(currentTitle);
       currentType = "mp4";
       currentRawUrl = url;
       currentEmbedUrl = url;
-      currentTitle = titleText || "Studio B";
+      currentTitle = titleText || "";
 
       // Save state for new devices
       window.studioBState = {
