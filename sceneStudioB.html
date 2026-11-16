@@ -53,16 +53,24 @@
 
 
     #mediaTitle {
-      position: fixed;
-      top: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 28px;
-      font-weight: bold;
-      color: gold;
-      text-shadow: 0 0 10px rgba(255,215,0,0.6);
-      z-index: 3;
-    }
+  position: fixed;
+  left: 32px;
+  bottom: 26px;
+  max-width: 60vw;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(255,255,255,0.9);
+  text-shadow: 0 0 10px rgba(0,0,0,0.8);
+  z-index: 3;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+#mediaTitle.show {
+  opacity: 1;
+}
 
     #hint {
       position: fixed;
