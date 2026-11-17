@@ -683,11 +683,21 @@ function requestFullState() {
 
 function replayScriptureToFrame(frame) {
   if (!frame || !lastScripture) return;
-  try {
-    frame.contentWindow && frame.contentWindow.postMessage(lastScripture, getTargetOrigin());
-  } catch {}
-}
 
+  const scripture = { ...lastScripture };
+
+  [0, 200, 600, 1200].forEach((delay) => {
+    setTimeout(() => {
+      try {
+        if (frame.contentWindow) {
+          frame.contentWindow.postMessage(scripture, getTargetOrigin());
+        }
+      } catch (error) {
+        console.warn("Could not replay scripture to scene:", error);
+      }
+    }, delay);
+  });
+}
 // ---------- Speaker Engine ----------
 function sendActiveSpeakerToDINAB(index) {
   if (currentScene !== "sceneDINAB.html") return;
