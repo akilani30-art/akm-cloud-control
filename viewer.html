@@ -165,6 +165,31 @@
   z-index: 9998;
 }
 
+#lowerThird::before {
+  content: "";
+  position: absolute;
+  top: -20%;
+  left: -150%;
+  width: 55%;
+  height: 140%;
+  pointer-events: none;
+  background: linear-gradient(
+    110deg,
+    transparent,
+    rgba(255, 215, 0, 0.08) 35%,
+    rgba(255, 230, 130, 0.55) 50%,
+    rgba(255, 215, 0, 0.08) 65%,
+    transparent
+  );
+  transform: skewX(-20deg);
+  animation: shimmerMove 3.5s ease-in-out infinite;
+}
+
+#lowerThird > div {
+  position: relative;
+  z-index: 1;
+}
+
 #lowerThird.show {
   opacity: 1;
   transform: translateX(0);
