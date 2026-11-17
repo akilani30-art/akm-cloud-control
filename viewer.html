@@ -1012,12 +1012,32 @@ if (data.type === "host_lock") {
       postToSceneFrames(lastScripture);
     }
 
-    if (data.studioBUrl) {
+    
+if (data.studioBUrl) {
   window._pendingStudioB = {
     type: "studioB",
     url: data.studioBUrl
   };
 
+  // switchScene sends the pending media after Studio B loads.
+  // If Studio B is already active, retry in case its listener
+  // hasn't started yet.
+  if (
+    currentScene === "sceneStudioB.html" &&
+    (!data.scene || normalizeScene(data.scene) === "sceneStudioB.html")
+  ) {
+    const message = window._pendingStudioB;
+    const frame = getActiveSceneFrame();
+
+    [0, 300, 800, 1500].forEach((delay) => {
+      setTimeout(() => {
+        if (currentScene === "sceneStudioB.html" && frame.contentWindow) {
+          frame.contentWindow.postMessage(message, "*");
+        }
+      }, delay);
+    });
+  }
+}
   // If Studio B is already active, retry briefly in case its page
   // hasn't finished setting up its message listener yet.
   if (
