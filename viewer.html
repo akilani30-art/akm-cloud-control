@@ -1013,11 +1013,32 @@ if (data.type === "host_lock") {
     }
 
     if (data.studioBUrl) {
-      postToSceneFrames({
-        type: "studioB",
-        url: data.studioBUrl
-      });
-    }
+  window._pendingStudioB = {
+    type: "studioB",
+    url: data.studioBUrl
+  };
+
+  // If Studio B is already active, retry briefly in case its page
+  // hasn't finished setting up its message listener yet.
+  if (
+    currentScene === "sceneStudioB.html" &&
+    (!data.scene || normalizeScene(data.scene) === "sceneStudioB.html")
+  ) {
+    const message = window._pendingStudioB;
+    const frame = getActiveSceneFrame();
+
+    [0, 300, 800, 1500].forEach((delay) => {
+      setTimeout(() => {
+        if (
+          currentScene === "sceneStudioB.html" &&
+          frame.contentWindow
+        ) {
+          frame.contentWindow.postMessage(message, "*");
+        }
+      }, delay);
+    });
+  }
+}
 
     if (data.dinabUrl) {
       window._pendingDINAB = {
