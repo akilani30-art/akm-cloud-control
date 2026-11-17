@@ -1297,6 +1297,10 @@ async function switchScene(scene, style = "cut", force = false) {
       setTimeout(resolve, transitionDuration(style))
     );
 
+if (scene === "scene3.html") {
+  replayScriptureToFrame(nextFrame);
+}
+
     resetFrame(currentFrame);
     currentFrame.style.left = "0";
     nextFrame.style.left = "0";
