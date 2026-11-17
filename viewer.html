@@ -145,65 +145,72 @@
     animation: livePulse 1.5s infinite;
   }
 
+  
+    
+    #lowerThird {
+  position: fixed;
+  left: 20px;
+  bottom: 50px;
+  max-width: calc(100vw - 40px);
+  box-sizing: border-box;
+  transform: translateX(-150%);
+  background: rgba(0, 0, 0, 0.75);
+  padding: 12px 18px;
+  border-radius: 8px;
+  border: 1px solid gold;
+  color: white;
+  opacity: 0;
+  transition: all 0.6s ease;
+  overflow: hidden;
+  z-index: 9998;
+}
+
+#lowerThird.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+#lowerThird.hide {
+  opacity: 0;
+  transform: translateX(-150%);
+}
+
+#ltTitle {
+  font-size: clamp(17px, 2.2vw, 26px);
+  font-weight: bold;
+  line-height: 1.2;
+}
+
+#ltSub {
+  margin-top: 4px;
+  font-size: clamp(13px, 1.6vw, 18px);
+  line-height: 1.3;
+  color: #ddd;
+}
+
+@media (max-width: 600px) {
   #lowerThird {
-    position: absolute;
-    bottom: 50px;
-    left: 20px;
-    transform: translateX(-150%);
-    background: rgba(0,0,0,0.75);
-    padding: 16px 28px;
-    border-radius: 10px;
-    border: 2px solid gold;
-    color: white;
-    opacity: 0;
-    transition: all 0.6s ease;
-    overflow: hidden;
-    z-index: 9998;
-  }
-
-  #lowerThird::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -150%;
-    width: 60%;
-    height: 100%;
-    background: linear-gradient(
-      120deg,
-      transparent 0%,
-      rgba(255,215,0,0.15) 30%,
-      rgba(255,215,0,0.6) 50%,
-      rgba(255,215,0,0.15) 70%,
-      transparent 100%
-    );
-    transform: skewX(-25deg);
-  }
-
-  #lowerThird.show::before {
-    animation: shimmerMove 2.5s infinite;
-  }
-
-  #lowerThird.show {
-    opacity: 1;
-    transform: translateX(0);
-  }
-
-  #lowerThird.hide {
-    opacity: 0;
-    transform: translateX(-150%);
+    left: 12px;
+    bottom: 48px;
+    max-width: calc(100vw - 24px);
+    padding: 8px 12px;
+    border-radius: 6px;
   }
 
   #ltTitle {
-    font-size: 26px;
-    font-weight: bold;
+    font-size: 16px;
   }
 
   #ltSub {
-    margin-top: 4px;
-    font-size: 18px;
-    color: #ddd;
+    font-size: 13px;
   }
+}
 
+  
+    
+    
+
+  
   #tickerBar {
     position: fixed;
     bottom: 0;
