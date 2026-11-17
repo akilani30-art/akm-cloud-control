@@ -143,7 +143,10 @@ function applyScripture(data) {
 
   document.getElementById("scriptureText").innerText =
     data.text || "";
+
+  document.getElementById("scripturePanel").classList.add("ready");
 }
+  
 
 // ---------- 1) Receive from Viewer (MOST IMPORTANT) ----------
 window.addEventListener("message", (event) => {
