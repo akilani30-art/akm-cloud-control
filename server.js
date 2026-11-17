@@ -385,6 +385,14 @@ else if (data.type === "dinab_multi") {
       broadcast(data);
     }
 
+else if (data.type === "request_latest_scripture") {
+  ws.send(JSON.stringify({
+    type: "scripture",
+    title: state.scripture.title || "",
+    text: state.scripture.text || ""
+  }));
+}
+
     else if (data.type === "lowerthird") {
       state.lowerThird = {
         show: !!data.show,
