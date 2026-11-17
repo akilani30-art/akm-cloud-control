@@ -1013,15 +1013,12 @@ if (data.type === "host_lock") {
     }
 
     
-if (data.studioBUrl) {
+
+ if (data.studioBUrl) {
   window._pendingStudioB = {
     type: "studioB",
-    url: data.studioBUrl
-  };
+    url: data.studio  };
 
-  // switchScene sends the pending media after Studio B loads.
-  // If Studio B is already active, retry in case its listener
-  // hasn't started yet.
   if (
     currentScene === "sceneStudioB.html" &&
     (!data.scene || normalizeScene(data.scene) === "sceneStudioB.html")
@@ -1038,6 +1035,8 @@ if (data.studioBUrl) {
     });
   }
 }
+   
+    
 
 
     if (data.dinabUrl) {
