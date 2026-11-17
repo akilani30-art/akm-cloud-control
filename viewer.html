@@ -347,7 +347,123 @@
   color: #fff;
 }
    
+/* Mobile sizing for the viewer and its overlays */
+@media (max-width: 600px) {
+  html,
+  body,
+  #slideContainer {
+    width: 100%;
+    height: 100%;
+    height: 100dvh;
+  }
 
+  .sceneFrame {
+    width: 100%;
+    height: 100%;
+    height: 100dvh;
+  }
+
+  #logoWrapper {
+    top: max(8px, env(safe-area-inset-top));
+    right: 10px;
+    gap: 4px;
+  }
+
+  #logoMark {
+    width: 42px;
+  }
+
+  #liveBadge {
+    font-size: 9px;
+    padding: 3px 5px;
+  }
+
+  #lowerThird {
+    left: 10px;
+    bottom: calc(36px + env(safe-area-inset-bottom) + 8px);
+    width: auto;
+    max-width: calc(100vw - 20px);
+    padding: 7px 10px;
+    border-width: 1px;
+    border-radius: 6px;
+  }
+
+  #ltTitle {
+    font-size: 15px;
+    line-height: 1.2;
+  }
+
+  #ltSub {
+    margin-top: 3px;
+    font-size: 12px;
+    line-height: 1.25;
+  }
+
+  #tickerBar {
+    bottom: env(safe-area-inset-bottom, 0px);
+    height: 36px;
+  }
+
+  #tickerClock {
+    padding: 0 7px;
+    font-size: 11px;
+  }
+
+  #tickerLabel {
+    padding: 0 8px;
+    font-size: 10px;
+  }
+
+  #tickerWrapper {
+    min-width: 0;
+    padding-left: 12px;
+  }
+
+  #tickerWrapper::before,
+  #tickerWrapper::after {
+    width: 12px;
+  }
+
+  .tickerItem {
+    padding: 0 14px;
+    font-size: 12px;
+  }
+
+  .tickerItem::after {
+    margin-left: 8px;
+  }
+
+  .wsStatus {
+    top: max(8px, env(safe-area-inset-top));
+    left: 8px;
+    padding: 4px 7px;
+    font-size: 9px;
+  }
+}
+
+/* Extra compact spacing on phones held horizontally */
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
+  #logoMark {
+    width: 34px;
+  }
+
+  #lowerThird {
+    bottom: calc(32px + env(safe-area-inset-bottom) + 5px);
+    padding: 5px 8px;
+  }
+
+  #ltTitle {
+    font-size: 13px;
+  }
+
+  #ltSub {
+    font-size: 11px;
+  }
+
+  #tickerBar {
+    height: 32px;
+  }
+}
   
 </style>
 </head>
