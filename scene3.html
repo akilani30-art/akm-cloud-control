@@ -17,11 +17,12 @@ body {
   display: flex;
 }
 
-#cameraBox {
-  width: 55%;
+
+  #cameraBox {
+  width: 60%;
   height: 100%;
   background: #000;
-  border-right: 4px solid gold;
+  border-right: 2px solid rgba(255, 215, 0, 0.65);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -35,40 +36,38 @@ body {
 }
 
 #scripturePanel {
-  width: 45%;
+  width: 40%;
   height: 100%;
-  padding: 40px;
-  color: white;
+  padding: clamp(28px, 4vw, 64px);
+  color: #fff;
   display: flex;
   flex-direction: column;
   justify-content: center;
-
-  background: rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-
-  border-left: 3px solid rgba(255, 215, 0, 0.4);
-  border-right: 3px solid rgba(255, 215, 0, 0.4);
+  background: linear-gradient(145deg, #101820, #05080c);
 }
 
 #scriptureTitle {
-  font-size: 30px;
-  font-weight: bold;
-  color: gold;
-  margin-top: -190px;
-  text-shadow: 0 0 8px rgba(0,0,0,0.7);
+  margin: 0 0 22px;
+  font-size: clamp(24px, 2.4vw, 38px);
+  line-height: 1.15;
+  font-weight: 700;
+  color: #f5d875;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
 }
 
 #scriptureText {
-  font-size: 28px;
-  line-height: 1.35;
-  max-height: 60vh;
+  font-size: clamp(20px, 2vw, 30px);
+  line-height: 1.5;
+  max-height: 65vh;
   overflow-y: auto;
-  padding-top: 10px;
-  margin-top: -1px;
   white-space: pre-wrap;
-  text-shadow: 0 0 8px rgba(0,0,0,0.7);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.65);
 }
+
+ 
+ 
+ 
+
 </style>
 </head>
 
