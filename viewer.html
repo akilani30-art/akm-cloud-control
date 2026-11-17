@@ -1108,7 +1108,9 @@ async function switchScene(scene, style = "cut", force = false) {
       }, 3000);
     });
 
-    replayScriptureToFrame(nextFrame);
+    if (scene === "sceneStudioB.html" && window._pendingStudioB?.url) {
+  nextFrame.contentWindow?.postMessage(window._pendingStudioB, "*");
+}
     sendStudioBControl(currentFrame, "pause");
 
     switch (style) {
