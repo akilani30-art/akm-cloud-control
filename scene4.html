@@ -116,6 +116,49 @@
       line-height: 1.4;
     }
   }
+
+@media (max-width: 900px) and (orientation: landscape) {
+  html,
+  body {
+    height: 100dvh;
+  }
+
+  #topBar {
+    height: 48px;
+    min-height: 48px;
+    padding: 0 12px;
+    font-size: 19px;
+    white-space: nowrap;
+  }
+
+  #main {
+    flex-direction: row;
+    min-height: 0;
+  }
+
+  #cameraArea {
+    width: 62%;
+    height: 100%;
+    min-height: 0;
+  }
+
+  #side {
+    width: 38%;
+    height: 100%;
+    padding: 12px;
+    overflow-y: auto;
+  }
+
+  #sideTitle {
+    font-size: 20px;
+    margin-bottom: 6px;
+  }
+
+  #sideText {
+    font-size: 15px;
+    line-height: 1.35;
+  }
+}
 </style>
   
 
