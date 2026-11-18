@@ -263,16 +263,17 @@ setTitle(currentTitle);
       setTitle(currentTitle);
 
       document.getElementById("playerMount").innerHTML = `
-        <video
-  id="studioBFrame"
-  autoplay
-  loop
-  playsinline
-  style="width:100%; height:100%; background:black;">
-</video>
+  <video
+    id="studioBFrame"
+    autoplay
+    loop
+    playsinline
+    style="width:100%; height:100%; background:black;">
+  </video>
+`;
 
-      const video = document.getElementById("studioBFrame");
-      video.src = url;
+const video = document.getElementById("studioBFrame");
+video.src = url;
 
       requestAnimationFrame(fitMediaCover);
       mediaLoaded = true;
