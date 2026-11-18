@@ -96,19 +96,24 @@ body {
   }
 
   #scripturePanel {
-    padding: 8px 12px;
+    padding: 52px 12px 8px;
     justify-content: flex-start;
-;
-    font-size: 14px;
+    overflow: hidden;
+  }
+
+  #scriptureTitle {
+    margin: 0 0 6px;
+   Text {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    overflow-y: auto;
+    font-size: clamp(13px, 1.6vw, 18px);
     line-height: 1.2;
   }
 }
 
-
-  #scriptureTitle {
-    margin-bottom: 10px;
-    font-size: clamp(18px, 2vw, 26px);
-  }
+  
 
   #scriptureText {
     max-height: 76dvh;
