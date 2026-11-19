@@ -12,7 +12,8 @@
       box-sizing: border-box;
     }
 
-    html, body {
+    html,
+    body {
       width: 100%;
       height: 100%;
       overflow: hidden;
@@ -22,74 +23,72 @@
     }
 
     .bgGlow {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      background: radial-gradient(circle at center, rgba(255,215,0,0.08), transparent 70%);
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(
+        circle at center,
+        rgba(255, 215, 0, 0.08),
+        transparent 70%
+      );
       z-index: 0;
       pointer-events: none;
     }
 
-.playerContainer {
-    position: fixed;
-    inset: 0;
-    overflow: hidden;
-    z-index: 2;
-    background: black;
-  }
+    .playerContainer {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      z-index: 2;
+      background: black;
+    }
 
-  .playerContainer iframe,
-  .playerContainer video {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100vw;
-  height: 100vh;
-  transform: translate(-50%, -50%);
-  border: none;
-  background: black;
-  display: block;
-}
-
+    .playerContainer iframe,
+    .playerContainer video {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      border: none;
+      background: black;
+      display: block;
+      transform: translate(-50%, -50%);
+    }
 
     #mediaTitle {
-  position: fixed;
-  left: 32px;
-  bottom: 26px;
-  max-width: 60vw;
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: rgba(255,255,255,0.9);
-  text-shadow: 0 0 10px rgba(0,0,0,0.8);
-  z-index: 3;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  pointer-events: none;
-}
+      position: fixed;
+      left: 32px;
+      bottom: 26px;
+      max-width: 60vw;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: rgba(255, 255, 255, 0.9);
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+      z-index: 3;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      pointer-events: none;
+    }
 
-#mediaTitle.show {
-  opacity: 1;
-}
+    #mediaTitle.show {
+      opacity: 1;
+    }
 
-
-      
-      #hint {
-  position: fixed;
-  right: 28px;
-  bottom: 28px;
-  z-index: 3;
-  color: rgba(255,255,255,0.85);
-  font-size: 12px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  background: rgba(0,0,0,0.45);
-  border: 1px solid rgba(255,255,255,0.14);
-  border-radius: 999px;
-  padding: 8px 12px;
-  display: none;
-  backdrop-filter: blur(6px);
-}
+    #hint {
+      position: fixed;
+      right: 28px;
+      bottom: 28px;
+      z-index: 3;
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 999px;
+      padding: 8px 12px;
+      display: none;
+      backdrop-filter: blur(6px);
+    }
 
     #loadingSpinner {
       position: fixed;
@@ -111,15 +110,19 @@
     }
 
     @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
     }
   </style>
 </head>
 
 <body>
   <div class="bgGlow"></div>
-  
+
   <div class="playerContainer">
     <div id="playerMount"></div>
   </div>
@@ -127,19 +130,17 @@
   <div id="loadingSpinner">
     <div class="spinner"></div>
   </div>
-<div id="mediaTitle"></div>
-<div id="hint">Sound is browser-controlled 🔊</div>
 
+  <div id="mediaTitle"></div>
+  <div id="hint">Sound is browser-controlled 🔊</div>
 
   <script>
     let currentEmbedUrl = "";
     let currentRawUrl = "";
     let currentType = "";
-    let hasUserInteracted = false;
     let mediaLoaded = false;
     let currentTitle = "";
 
-    // Store current media state globally so new instances load it immediately
     window.studioBState = {
       url: null,
       title: currentTitle,
@@ -154,54 +155,62 @@
     function hideLoading() {
       document.getElementById("loadingSpinner").style.display = "none";
     }
-function setTitle(text) {
-  const titleEl = document.getElementById("mediaTitle");
-  const cleanText = (text || "").trim();
 
-  if (!cleanText) {
-    titleEl.classList.remove("show");
-    titleEl.textContent = "";
-    return;
-  }
+    function setTitle(text) {
+      const titleElement = document.getElementById("mediaTitle");
+      const cleanText = (text || "").trim();
 
-  titleEl.textContent = cleanText;
-  titleEl.classList.add("show");
-}
+      if (!cleanText) {
+        titleElement.classList.remove("show");
+        titleElement.textContent = "";
+        return;
+      }
+
+      titleElement.textContent = cleanText;
+      titleElement.classList.add("show");
+    }
 
     function getYouTubeId(url) {
       try {
-        const u = new URL(url);
+        const parsedUrl = new URL(url);
 
-        if (u.hostname.includes("youtu.be")) {
-          return u.pathname.replace(/^\/+/, "").split("/")[0];
+        if (parsedUrl.hostname.includes("youtu.be")) {
+          return parsedUrl.pathname.replace(/^\/+/, "").split("/")[0];
         }
 
-        if (u.hostname.includes("youtube.com")) {
-          if (u.pathname.startsWith("/embed/")) {
-            return u.pathname.split("/embed/")[1].split("/")[0];
+        if (parsedUrl.hostname.includes("youtube.com")) {
+          if (parsedUrl.pathname.startsWith("/embed/")) {
+            return parsedUrl.pathname.split("/embed/")[1].split("/")[0];
           }
-          if (u.pathname.startsWith("/shorts/")) {
-            return u.pathname.split("/shorts/")[1].split("/")[0];
-          }
-          return u.searchParams.get("v");
-        }
 
-        return null;
-      } catch (e) {
-        return null;
+          if (parsedUrl.pathname.startsWith("/shorts/")) {
+            return parsedUrl.pathname.split("/shorts/")[1].split("/")[0];
+          }
+
+          return parsedUrl.searchParams.get("v");
+        }
+      } catch (error) {
+        console.error("Invalid media URL:", error);
       }
+
+      return null;
     }
 
     function buildYouTubeEmbed(videoId) {
       if (!videoId) return null;
-      return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&loop=1&playlist=${videoId}&playsinline=1&rel=0&enablejsapi=1`;
 
-
+      return (
+        "https://www.youtube.com/embed/" +
+        videoId +
+        "?autoplay=1&mute=1&loop=1&playlist=" +
+        videoId +
+        "&playsinline=1&rel=0&enablejsapi=1"
+      );
     }
 
     function loadYouTube(url, titleText) {
       showLoading();
-      
+
       const videoId = getYouTubeId(url);
       if (!videoId) {
         console.error("Invalid YouTube URL:", url);
@@ -214,107 +223,114 @@ function setTitle(text) {
       currentEmbedUrl = buildYouTubeEmbed(videoId);
       currentTitle = titleText || "";
 
-      // Save state for new devices
       window.studioBState = {
-        url: url,
+        url,
         title: currentTitle,
         type: "youtube",
         embedUrl: currentEmbedUrl
       };
 
-      
-setTitle(currentTitle);
+      setTitle(currentTitle);
+
       document.getElementById("playerMount").innerHTML = `
         <iframe
           id="studioBFrame"
           src="${currentEmbedUrl}"
           allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
           allowfullscreen
-        ></iframe>`;
+        ></iframe>
+      `;
 
       requestAnimationFrame(fitMediaCover);
-
       mediaLoaded = true;
       hideLoading();
 
       const hint = document.getElementById("hint");
       hint.style.display = "block";
-      setTimeout(() => { hint.style.display = "none"; }, 4000);
 
-      console.log("✅ YouTube loaded:", currentTitle);
+      setTimeout(() => {
+        hint.style.display = "none";
+      }, 4000);
+
+      console.log("YouTube loaded:", currentTitle);
     }
 
     function loadMP4(url, titleText) {
       showLoading();
-      
+
       currentType = "mp4";
       currentRawUrl = url;
       currentEmbedUrl = url;
       currentTitle = titleText || "";
 
-      // Save state for new devices
       window.studioBState = {
-        url: url,
+        url,
         title: currentTitle,
         type: "mp4",
         embedUrl: url
       };
 
       setTitle(currentTitle);
-document.getElementById("playerMount").innerHTML = `
-  <video
-    id="studioBFrame"
-    autoplay
-    loop
-    playsinline
-    style="width:100%; height:100%; background:black;">
-  </video>
-`;
 
-const video = document.getElementById("studioBFrame");
-video.src = url;
+      document.getElementById("playerMount").innerHTML = `
+        <video
+          id="studioBFrame"
+          autoplay
+          muted
+          loop
+          playsinline
+          preload="auto"
+        ></video>
+      `;
+
+      const video = document.getElementById("studioBFrame");
+      video.src = url;
+      video.load();
 
       requestAnimationFrame(fitMediaCover);
+
+      video.play().catch((error) => {
+        console.log("MP4 autoplay is waiting for a browser interaction:", error);
+      });
+
       mediaLoaded = true;
       hideLoading();
 
       const hint = document.getElementById("hint");
       hint.style.display = "block";
-      setTimeout(() => { hint.style.display = "none"; }, 4000);
 
       setTimeout(() => {
-        const video = document.getElementById("studioBFrame");
-        if (video) {
-          video.muted = false;
-          video.play().catch((err) => {
-            console.log("Auto-play blocked, waiting for user interaction:", err);
-          });
-        }
-      }, 500);
+        hint.style.display = "none";
+      }, 4000);
 
-      console.log("✅ MP4 loaded:", currentTitle);
+      console.log("MP4 loaded:", currentTitle);
     }
 
     function loadMedia(url, titleText) {
-  if (!url) return;
+      if (!url) return;
 
-  const nextTitle = titleText || "";
-  // ✅ BLOCK duplicate reloads
-  if (url === currentRawUrl && nextTitle === currentTitle && mediaLoaded) {
-    console.log("⏭️ [StudioB] Same media already loaded, skipping reload");
-    requestAnimationFrame(fitMediaCover);
-    return;
-  }
+      const nextTitle = titleText || "";
 
-  if (url.toLowerCase().includes(".mp4")) {
-    loadMP4(url, nextTitle);
-  } else {
-    loadYouTube(url, nextTitle);
-  }
+      if (
+        url === currentRawUrl &&
+        nextTitle === currentTitle &&
+        mediaLoaded
+      ) {
+        console.log("Same media is already loaded");
+        requestAnimationFrame(fitMediaCover);
+        return;
+      }
 
-  requestAnimationFrame(fitMediaCover);
-}
+      const lowerUrl = url.toLowerCase();
 
+      if (lowerUrl.includes(".mp4") || lowerUrl.includes("video/mp4")) {
+        loadMP4(url, nextTitle);
+      } else {
+        loadYouTube(url, nextTitle);
+      }
+
+      requestAnimationFrame(fitMediaCover);
+    }
 
     function reloadForPlay() {
       const frame = document.getElementById("studioBFrame");
@@ -343,91 +359,91 @@ video.src = url;
       }
     }
 
-    // Listen for messages from viewer/parent
-window.addEventListener("message", (event) => {
-  const data = event.data;
-  if (!data) return;
+    window.addEventListener("message", (event) => {
+      const data = event.data;
+      if (!data) return;
 
-  if (data.type === "studioB") {
-    if (data.url) {
-      loadMedia(data.url, data.title || "");
-    }
-    return;
-  }
+      if (data.type === "studioB") {
+        if (data.url) {
+          loadMedia(data.url, data.title || "");
+        }
+        return;
+      }
 
-  if (data.type === "studioB_control") {
-    if (data.action === "pause") pauseMedia();
-    if (data.action === "play" || data.action === "resume") reloadForPlay();
-  }
-});
+      if (data.type === "studioB_control") {
+        if (data.action === "pause") {
+          pauseMedia();
+        }
 
+        if (
+          data.action === "play" ||
+          data.action === "resume"
+        ) {
+          reloadForPlay();
+        }
+      }
+    });
 
-    // Single click to unmute and play
     document.body.addEventListener("click", () => {
       const frame = document.getElementById("studioBFrame");
       if (!frame) return;
 
-      hasUserInteracted = true;
-
-      if (currentType === "youtube" && frame.src.includes("mute=1")) {
-        frame.src = frame.src.replace("mute=1", "mute=0");
+      if (currentType === "youtube") {
+        reloadForPlay();
         return;
       }
 
       if (currentType === "mp4") {
         frame.muted = false;
         frame.play().catch(() => {});
-        return;
       }
-
-      reloadForPlay();
     });
 
-    // When page visibility changes (device returns to focus)
     document.addEventListener("visibilitychange", () => {
-  if (!document.hidden) {
-    requestAnimationFrame(fitMediaCover);
-  }
-});
+      if (!document.hidden) {
+        requestAnimationFrame(fitMediaCover);
+      }
+    });
 
+    function fitMediaCover() {
+      const frame = document.getElementById("studioBFrame");
+      const container = document.querySelector(".playerContainer");
+      if (!frame || !container) return;
 
-    console.log("✅ [StudioB] Ready - waiting for media from viewer..."); 
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      if (!width || !height) return;
 
+      frame.style.top = "50%";
+      frame.style.left = "50%";
+      frame.style.transform = "translate(-50%, -50%)";
 
-  function fitMediaCover() {
-  const frame = document.getElementById("studioBFrame");
-  const container = document.querySelector(".playerContainer");
-  if (!frame || !container) return;
+      if (frame.tagName === "VIDEO") {
+        frame.style.width = `${width}px`;
+        frame.style.height = `${height}px`;
+        frame.style.objectFit = "cover";
+      } else {
+        const aspect = 16 / 9;
 
-  const width = container.clientWidth;
-  const height = container.clientHeight;
-  if (!width || !height) return;
-
-  frame}px`;
-    frame.style.objectFit = "cover";
-  } else {
-    const aspect = 16 / 9;
-
-    if (width / height > aspect) {
-      frame.style.width = `${width}px`;
-      frame.style.height = `${width / aspect}px`;
-    } else {
-      frame.style.width = `${height * aspect}px`;
-      frame.style.height = `${height}px`;
+        if (width / height > aspect) {
+          frame.style.width = `${width}px`;
+          frame.style.height = `${width / aspect}px`;
+        } else {
+          frame.style.width = `${height * aspect}px`;
+          frame.style.height = `${height}px`;
+        }
+      }
     }
-  }
-}
-  
-   
-window.addEventListener("resize", fitMediaCover);
 
-window.addEventListener("orientationchange", () => {
-  setTimeout(fitMediaCover, 100);
-});
+    window.addEventListener("resize", fitMediaCover);
 
-document.addEventListener("fullscreenchange", fitMediaCover);
+    window.addEventListener("orientationchange", () => {
+      setTimeout(fitMediaCover, 100);
+    });
 
-   
+    document.addEventListener("fullscreenchange", fitMediaCover);
+
+    console.log("Studio B is ready");
   </script>
 </body>
 </html>
