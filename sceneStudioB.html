@@ -393,22 +393,28 @@ window.addEventListener("message", (event) => {
 
 
     console.log("✅ [StudioB] Ready - waiting for media from viewer..."); 
-
 function fitMediaCover() {
   const frame = document.getElementById("studioBFrame");
   const container = document.querySelector(".playerContainer");
-  if (!frame || !container) frame.style.top = "50%";
+  if (!frame || !container) return;
+
+  const width = container.clientwidth || !height) return;
+
+  frame.style.top = "50%";
   frame.style.left = "50%";
   frame.style.transform = "translate(-50%, -50%)";
 
   if (frame.tagName === "VIDEO") {
-    // Fill the screen; this can crop the video's edges.
+    // Fill the screen; this may crop the video edges.
     frame.style.width = `${width}px`;
-    frame}px`;
-      frame.style.height = `${height}px`;
-    }
-  }
-}
+    frame.style.height = `${height}px`;
+    frame.style.objectFit = "cover";
+  } else {
+    // Size the YouTube iframe as 16:9 and cover the screen.
+    const aspect = 16 / 9;
+
+    if (width / height > aspect) {
+ and deploy the file, then reload Studio B. If it still doesn’t play after this fix, check the browser console for the next error; autoplay with sound may also require a click.
 
 window.addEventListener("resize", fitMediaCover);
 
