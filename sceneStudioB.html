@@ -392,13 +392,9 @@ window.addEventListener("message", (event) => {
 });
 
 
-    console.log("✅ [StudioB] Ready - waiting for media from viewer...");
+    console.log("✅ [StudioB] Ready - waiting for media from viewer..."); 
 
-
-
-
- 
-  function fitMediaCover() {
+function fitMediaCover() {
   const frame = document.getElementById("studioBFrame");
   const container = document.querySelector(".playerContainer");
   if (!frame || !container) return;
@@ -407,10 +403,13 @@ window.addEventListener("message", (event) => {
   const height = container.clientHeight;
   if (!width || !height) return;
 
-  frame.style.top = "50`;
-    frame.style.objectFit = "cover";
-  } else {
-    // Fill the screen using a 16:9 YouTube player; this can crop its edges.
+  frame.style.top = "50%";
+  frame.style.left = "50%";
+  frame.style.transform = "translate(-50%, -50%)";
+
+  if (frame.tagName === "VIDEO") {
+    frame.style.width = `${width}px`;
+    frame.style.height = `${height}pxTube embeds are treated as 16:9.
     const aspect = 16 / 9;
 
     if (width / height > aspect) {
