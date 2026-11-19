@@ -397,31 +397,19 @@ window.addEventListener("message", (event) => {
 function fitMediaCover() {
   const frame = document.getElementById("studioBFrame");
   const container = document.querySelector(".playerContainer");
-  if (!frame || !container) return;
-
-  const width = container.clientWidth;
-  const height = container.clientHeight;
-  if (!width || !height) return;
-
-  frame.style.top = "50%";
+  if (!frame || !container) frame.style.top = "50%";
   frame.style.left = "50%";
   frame.style.transform = "translate(-50%, -50%)";
 
   if (frame.tagName === "VIDEO") {
+    // Fill the screen; this can crop the video's edges.
     frame.style.width = `${width}px`;
-    frame.style.height = `${height}pxTube embeds are treated as 16:9.
-    const aspect = 16 / 9;
-
-    if (width / height > aspect) {
-      frame.style.width = `${width}px`;
-      frame.style.height = `${width / aspect}px`;
-    } else {
-      frame.style.width = `${height * aspect}px`;
+    frame}px`;
       frame.style.height = `${height}px`;
     }
   }
 }
-  
+
 window.addEventListener("resize", fitMediaCover);
 
 window.addEventListener("orientationchange", () => {
