@@ -397,6 +397,7 @@ window.addEventListener("message", (event) => {
 
 
 
+ 
   function fitMediaCover() {
   const frame = document.getElementById("studioBFrame");
   const container = document.querySelector(".playerContainer");
@@ -406,13 +407,10 @@ window.addEventListener("message", (event) => {
   const height = container.clientHeight;
   if (!width || !height) return;
 
-  frame.style.top =  if (frame.tagName === "VIDEO") {
-    // Fill the screen; crop edges if the video and screen ratios differ.
-    frame.style.width = `${width}px`;
-    frame.style.height = `${height}px`;
+  frame.style.top = "50`;
     frame.style.objectFit = "cover";
   } else {
-    // YouTube embeds are typically 16:9. Enlarge the iframe to cover the screen.
+    // Fill the screen using a 16:9 YouTube player; this can crop its edges.
     const aspect = 16 / 9;
 
     if (width / height > aspect) {
