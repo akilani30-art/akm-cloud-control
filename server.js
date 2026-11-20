@@ -313,6 +313,15 @@ loadSchedule();
       state.scene = data.scene;
       broadcast({ type: "scene", scene: data.scene });
       
+
+else if (
+  data.type === "podcast_layout" ||
+  data.type === "podcast_active_guest" ||
+  data.type === "podcast_guest_names" ||
+  data.type === "reload_podcast"
+) {
+  broadcast(data);
+}
       // ✅ Cancel revert if manual scene change
       if (scheduledRevertTimer) {
         clearTimeout(scheduledRevertTimer);
