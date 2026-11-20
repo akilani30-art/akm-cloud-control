@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initialguestGrid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      width: 100%;
+      height: 100%;
+      gap: 4px;
+      padding: 4px;
+      background: #000;
+    }
+
+    .guest {
+      position: none;
+    }
+
+    @media (max-width: 700px) and (orientation: portrait) {
+      #guestGrid {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main id stream IDs.
+    const HOST_ID = "AKM_HOST";
+    const INTERPRETER_ID = "AKM_INTERPRETER";
+
+    function viewUrl(streamId) {
+      return `https://vdo.ninja/?view=${encodeURIComponent(streamId)}&cleanoutput&autoplay=1`;
+    }
+
+    document.getElementById("hostFrame").src = viewUrl(HOST_ID);
+    document.getElementById("interpreterFrame").src = viewUrl(INTERPRETER_ID);
+  </script>
+</body>
+</html>
