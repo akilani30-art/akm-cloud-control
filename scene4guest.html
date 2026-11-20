@@ -7,7 +7,25 @@
 
   <style>
     * {
-      box-sizing100%;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+      font-family: Arial, sans-serif;
+    }
+
+    #guestGrid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: repeat(2, minmax(0, 1fr));
+      width: 100%;
       height: 100%;
       gap: 4px;
       padding: 4px;
@@ -34,7 +52,31 @@
       position: absolute;
       left: 12px;
       bottom: 12px;
-      padding: fullscreen>
+      padding: 6px 10px;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.75);
+      color: #fff;
+      font-size: clamp(14px, 2vw, 24px);
+      pointer-events: none;
+    }
+
+    @media (max-width: 700px) and (orientation: portrait) {
+      #guestGrid {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(4, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main id="guestGrid">
+    <section class="guest">
+      <iframe
+        id="guest1Frame"
+        title="Podcast guest 1"
+        allow="autoplay; fullscreen; picture-in-picture"
+        allowfullscreen>
       </iframe>
       <div class="guestLabel">Guest 1</div>
     </section>
@@ -55,7 +97,26 @@
         title="Podcast guest 3"
         allow="autoplay; fullscreen; picture-in-picture"
         allowfullscreen>
-AKM_PODCAST_GUEST2",
+      </iframe>
+      <div class="guestLabel">Guest 3</div>
+    </section>
+
+    <section class="guest">
+      <iframe
+        id="guest4Frame"
+        title="Podcast guest 4"
+        allow="autoplay; fullscreen; picture-in-picture"
+        allowfullscreen>
+      </iframe>
+      <div class="guestLabel">Guest 4</div>
+    </section>
+  </main>
+
+  <script>
+    // Replace these with the podcast speakers' real VDO.Ninja stream IDs.
+    const guestStreamIds = [
+      "AKM_PODCAST_GUEST1",
+      "AKM_PODCAST_GUEST2",
       "AKM_PODCAST_GUEST3",
       "AKM_PODCAST_GUEST4"
     ];
