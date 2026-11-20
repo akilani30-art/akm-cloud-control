@@ -114,22 +114,21 @@
     </section>
   </main>
 
-  <script>
-    const guestStreamIds = [
-      "https://vdo.ninja/?room=AKM_CONGREGANTS_2026&view=AKM_GUEST_1&cleanoutput&autoplay=1",
-      "https://vdo.ninja/?room=AKM_CONGREGANTS_2026&view=AKM_GUEST_2&cleanoutput&autoplay=1",
-      "https://vdo.ninja/?room=AKM_CONGREGANTS_2026&view=AKM_GUEST_3&cleanoutput&autoplay=1",
-      "https://vdo.ninja/?room=AKM_CONGREGANTS_2026&view=AKM_GUEST_4&cleanoutput&autoplay=1"
-    ];
+  
+<script>
+  const guestViewUrls = [
+    "https://vdo.ninja/?room=AKM_CONGREGANTS_2026&view=AKM_GUEST_1&cleanoutput&autoplay=1",
+    "https://vdo.ninja/?room=AKM_CONGREGANTS_2026&view=AKM_GUEST_2&cleanoutput&autoplay=1",
+    "https://vdo.ninja/?room=AKM_CONGREGANTS_2026&view=AKM_GUEST_3&cleanoutput&autoplay=1",
+    "https://vdo.ninja/?room=AKM_CONGREGANTS_2026&view=AKM_GUEST_4&cleanoutput&autoplay=1"
+  ];
 
-    guestStreamIds.forEach((streamId, index) => {
-      const frame = document.getElementById(`guest${index + 1}Frame`);
+  guestViewUrls.forEach((url, index) => {
+    document.getElementById(`guest${index + 1}Frame`).src = url;
+  });
+</script>
+    
 
-      frame.src =
-        "https://vdo.ninja/?view=" +
-        encodeURIComponent(streamId) +
-        "&cleanoutput&autoplay=1";
-    });
-  </script>
+   
 </body>
 </html>
