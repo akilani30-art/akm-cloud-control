@@ -310,9 +310,15 @@ loadSchedule();
     }
 
     if (data.type === "scene") {
-      state.scene = data.scene;
-      broadcast({ type: "scene", scene: data.scene });
-      
+  state.scene = data.scene;
+  broadcast({ type: "scene", scene: data.scene });
+
+  // ✅ Cancel revert if manual scene change
+  if (scheduledRevertTimer) {
+    clearTimeout(scheduledRevertTimer);
+    scheduledRevertTimer = null;
+  }
+}
 
 else if (
   data.type === "podcast_layout" ||
@@ -322,12 +328,10 @@ else if (
 ) {
   broadcast(data);
 }
-      // ✅ Cancel revert if manual scene change
-      if (scheduledRevertTimer) {
-        clearTimeout(scheduledRevertTimer);
-        scheduledRevertTimer = null;
-      }
-    }
+      
+
+
+     
 
     else if (data.type === "transition") {
       state.transitionStyle = data.style || "slide";
