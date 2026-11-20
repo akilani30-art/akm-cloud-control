@@ -386,7 +386,32 @@ function sendJSON(obj) {
   return scene + ".html";
 }
 
+function setPodcastLayout(layout) {
+  sendJSON({
+    type: "podcast_layout",
+    layout
+  });
+}
 
+function reloadPodcast() {
+  sendJSON({
+    type: "reload_podcast"
+  });
+}
+
+function savePodcastNames() {
+  const names = [
+    document.getElementById("podcastName1").value.trim(),
+    document.getElementById("podcastName2").value.trim(),
+    document.getElementById("podcastName3").value.trim(),
+    document.getElementById("podcastName4").value.trim()
+  ];
+
+  sendJSON({
+    type: "podcast_guest_names",
+    names
+  });
+}
 
 
 // ---------- SCENES --------
