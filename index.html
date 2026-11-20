@@ -330,11 +330,15 @@ let currentDINABLayout = "solo";
 function sendActive(index) {
   sendJSON({
     type: "speaker_level",
-    index: index,
+    index,
     level: 1.0
   });
-}
 
+  sendJSON({
+    type: "podcast_active_guest",
+    index
+  });
+}
 
  
 
