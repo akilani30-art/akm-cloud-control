@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Congregants Group</title>
+  <style>
+    html, body, iframe {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      border: 0;
+      overflow: hidden;
+      background: #000;
+    }
+  </style>
+</head>
+<body>
+  <iframe
+    id="groupScene"
+    title="Congregants group video"
+    allow="autoplay; camera; microphone; fullscreen; picture-in-picture"
+    allowfullscreen>
+  </iframe>
+
+  <script>
+    // Paste the VDO.Ninja group/scene viewing URL for your congregants' room.
+    const GROUP_SCENE_URL = "PASTE_YOUR_GROUP_SCENE_URL_HERE";
+
+    document.getElementById("groupScene").src = GROUP_SCENE_URL;
+  </script>
+</body>
+</html>
