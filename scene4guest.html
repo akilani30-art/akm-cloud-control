@@ -6,38 +6,35 @@
   <title>Four Guest Scene</title>
 
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
-    html, body {
-      width: 100%;
-      height: 100%;
-      height: 100dvh;
+    height: 100%;
       margin: 0;
       overflow: hidden;
-      background: #000;
+      background: var(--deep-green);
       font-family: Arial, sans-serif;
     }
 
     #guestGrid {
+      position: fixed;
+      inset: 0;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       grid-template-rows: repeat(2, minmax(0, 1fr));
-      width: 100%;
-      height: 100%;
-      gap: 4px;
-      padding: 4px;
-      background: #000;
-    }
-
-    .guest {
-      position: relative;
-      min-width: 0;
-      min-height: 0;
-      overflow: hidden;
-      background: #111;
+      gap: 5px;
+      padding:
+        max(4px, env(safe-area-inset-top))
+        max(4px, env(safe-area-inset-right);
+      border-radius: 8px;
+      background: linear-gradient(145deg, #194a38, var(--ministry-green));
+      box-shadow: 0 0 14px rgba(214, 173, 69, 0.14);
     }
 
     .guest iframe {
+      position: absolute;
+      inset: 0;
       display: block;
       width: 100%;
       height: 100%;
@@ -47,30 +44,38 @@
 
     .guestLabel {
       position: absolute;
-      left: 8px;
-      bottom: 8px;
+      left: 10px;
+      bottom: 10px;
       z-index: 2;
-      max-width: calc(100% - 16px);
-      padding: 6px 10px;
-      border-radius: 4px;
-      background: rgba(0, 0, 0, 0.75);
-      color: #fff;
-      font-size: clamp(14px, 2vw, 24px);
-      pointer-events: none;
+     px;
+      background: rgba(8, 27, 21, 0.94);
+      color: var(--gold);
+      font-size: clamp(13px, 1.8vw, 20px);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-over-delay: 300ms;
     }
 
+    @keyframes labelFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Solo: the visible guest keeps the same gold-and-green styling. */
     #guestGrid.layout-solo {
-      grid-template-columns: 1fr;
-      grid-template-rows: 1fr;
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr);
     }
 
     #guestGrid.layout-solo .guest:not(.active) {
-      display: none;
-    }
-
-    #guestGrid.layout-active-speaker {
-      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-      grid-template-rows: repeat(3, minmax(0, 1fr));
+      display: none, minmax(0, 1fr));
     }
 
     #guestGrid.layout-active-speaker .guest.active {
@@ -83,18 +88,10 @@
       grid-row: var(--thumb-row);
     }
 
+    /* Keep the four-guest grid in a 2-by-2 arrangement on portrait phones. */
     @media (max-width: 700px) and (orientation: portrait) {
       #guestGrid.layout-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        grid-template-rows: repeat(2, minmax(0, 1fr));
-      }
-
-      #guestGrid.layout-active-speaker {
-        grid-template-columns: 1fr;
-        grid-template-rows: 3fr repeat(3, minmax(0, 1fr));
-      }
-
-      #guestGrid.layout-active-speaker .guest.active {
+        grid-template-columns: repeat(2, minGrid.layout-active-speaker .guest.active {
         grid-column: 1;
         grid-row: 1;
       }
@@ -104,15 +101,18 @@
         grid-row: var(--thumb-row-mobile);
       }
     }
-  </style>
-</head>
 
-<body>
-  <main id="guestGrid" class="layout-grid">
-    <section class="guest" data-index="0">
-      <iframe id="guest1Frame" title="Guest 1"
-        allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
-      <div class="guestLabel" data-label="0">Guest 1</div>
+    @media (max-height: 500px) and (orientation: landscape) {
+      .guestLabel {
+        left: 8px;
+        bottom: 8px;
+        padding: 6px 9px;
+        font-size: 13px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+="0">Guest 1</div>
     </section>
 
     <section class="guest" data-index="1">
@@ -124,15 +124,7 @@
     <section class="guest" data-index="2">
       <iframe id="guest3Frame" title="Guest 3"
         allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
-      <div class="guestLabel" data-label="2">Guest 3</div>
-    </section>
-
-    <section class="guest" data-index="3">
-      <iframe id="guest4Frame" title="Guest 4"
-        allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
-      <div class="guestLabel" data-label="3">Guest 4</div>
-    </section>
-  </main>
+      <div class="guest </main>
 
   <script>
     const WS_URL = "wss://akm-cloud-control.onrender.com";
@@ -152,15 +144,7 @@
     let ws;
     let reconnectTimer;
 
-    function buildVdoViewUrl(streamId) {
-      return "https://vdo.ninja/?view=" +
-        encodeURIComponent(streamId) +
-        "&cleanoutput&autoplay=1";
-    }
-
-    function loadGuests() {
-      GUEST_IDS.forEach((streamId, index) => {
-        const frame = document.getElementById(`guest${index + 1}Frame`);
+    function buildVdoViewUrl(streamIdguest${index + 1}Frame`);
         frame.src = buildVdoViewUrl(streamId);
       });
     }
@@ -179,21 +163,8 @@
           guest.classList.add("active");
         } else if (currentLayout === "active-speaker") {
           thumbnailRow++;
-          guest.classList.add("thumb");
-          guest.style.setProperty("--thumb-row", String(thumbnailRow));
-          guest.style.setProperty(
-            "--thumb-row-mobile",
-            String(thumbnailRow + 1)
-          );
-        }
-      });
-    }
+          guest.classindex}"]`);
 
-    function setGuestNames(names) {
-      if (!Array.isArray(names)) return;
-
-      names.forEach((name, index) => {
-        const label = document.querySelector(`[data-label="${index}"]`);
         if (label) {
           label.textContent =
             String(name || "").trim() || `Guest ${index + 1}`;
@@ -215,23 +186,7 @@
       if (data.type === "podcast_active_guest") {
         const index = Number(data.index);
 
-        if (Number.isInteger(index) && index >= 0 && index < guests.length) {
-          activeGuestIndex = index;
-          applyLayout();
-        }
-      }
-
-      if (data.type === "podcast_guest_names") {
-        setGuestNames(data.names);
-      }
-
-      if (data.type === "reload_podcast") {
-        loadGuests();
-      }
-    }
-
-    function connectWS() {
-      ws = new WebSocket(WS_URL);
+        if (Number.isInteger(index);
 
       ws.onopen = () => {
         console.log("Podcast scene WebSocket connected");
