@@ -2,17 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover border-box;
-    }
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Two Guest Scene</title>
+
+  <style>
+    * { box-sizing: border-box; }
 
     :root {
-      --ministry-green: #123b2d;
+      --green: #123b2d;
       --deep-green: #081b15;
       --gold: #d6ad45;
     }
 
-    html,
-    body {
+    html, body {
       width: 100%;
       height: 100%;
       height: 100dvh;
@@ -20,48 +22,132 @@
       overflow: hidden;
       background: var(--deep-green);
       font-family: Arial, sans-serif;
+    }
+
+    #guestGrid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: 1fr;
+      width: 100%;
+      height: 100%;
+      gap: 6px;
+      padding: 6px;
+      background: var(--deep-green);
+    }
+
+    .guest {
+      position: relative;
       min-width: 0;
       min-height: 0;
       overflow: hidden;
-      background: linear-gradient(145deg, #194a38, #0b2119);
+      background: var(--green);
       border: 2px solid var(--gold);
       border-radius: 8px;
-      box-shadow: 0 : 6px;
+    }
+
+    .guest iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #000;
+    }
+
+    .guestLabel {
+      position: absolute;
+      left: 16px;
+      bottom: 16px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 46px;
+      padding: 10px 16px 10px 12px;
+      border: 1px solid var(--gold);
+      border-radius: 6px;
       background: rgba(8, 27, 21, 0.92);
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
       color: var(--gold);
-      font-size: clamp(14px,1;
+      font-size: clamp(14px, 1.8vw, 21px);
+      font-weight: 700;
+      text-transform: uppercase;
+      animation: labelFadeIn 600ms ease-out both;
+      pointer-events: none;
+    }
+
+    .guestLabel::before {
+      content: "";
+      width: 4px;
+      height: 24px;
+      background: var(--gold);
+      border-radius: 4px;
+    }
+
+    .guest:nth-child(2) .guestLabel {
+      animation-delay: 150ms;
+    }
+
+    @keyframes labelFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
         transform: translateY(0);
       }
     }
 
-    /* Stack on narrow portrait screens */
     @media (max-width: 700px) and (orientation: portrait) {
       #guestGrid {
-        grid-template-columns: minmax(0, 1fr);
+        grid-template-columns: 1fr;
         grid-template-rows: repeat(2, minmax(0, 1fr));
       }
 
       .guestLabel {
         left: 12px;
         bottom: 12px;
-        padding: 8px 12px 8px 10px;
-        font-size: 15px;
       }
     }
 
-    @mediaHost</div>
+    @media (prefers-reduced-motion: reduce) {
+      .guestLabel { animation: none; }
+    }
+  </style>
+</head>
+
+<body>
+  <main id="guestGrid">
+    <section class="guest">
+      <iframe id="hostFrame" title="Host"
+        allow="autoplay; fullscreen; picture-in-picture"
+        allowfullscreen></iframe>
+      <div class="guestLabel">Host</div>
     </section>
 
     <section class="guest">
-      <iframe
-        id="interpreterFrame"
-        title="Interpreter"
+      <iframe id="interpreterFrame" title="Interpreter"
         allow="autoplay; fullscreen; picture-in-picture"
-        allowfullscreen>
-      </iframe>
+        allowfullscreen></iframe>
       <div class="guestLabel">Interpreter</div>
-    </sectionById("interpreterFrame").src =
+    </section>
+  </main>
+
+  <script>
+    const HOST_ID = "AKM_HOST_8d72c19f4a6e3b50d1c8a7f2";
+    const INTERPRETER_ID =
+      "AKM_INTERPRETER_31b7e5a9c2048fd6a3e17";
+
+    function buildVdoViewUrl(streamId) {
+      return "https://vdo.ninja/?view=" +
+        encodeURIComponent(streamId) +
+        "&cleanoutput&autoplay=1";
+    }
+
+    document.getElementById("hostFrame").src =
+      buildVdoViewUrl(HOST_ID);
+
+    document.getElementById("interpreterFrame").src =
       buildVdoViewUrl(INTERPRETER_ID);
   </script>
 </body>
