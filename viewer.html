@@ -1061,15 +1061,6 @@ if (data.type === "reload_congregants") {
     return;
   }
 
-  if (data.type === "dinab") {
-    window._pendingDINAB = {
-      type: "dinab",
-      url: data.url || ""
-    };
-    postToSceneFrames(window._pendingDINAB);
-    return;
-  }
-
 if (
   data.type === "podcast_layout" ||
   data.type === "podcast_active_guest" ||
