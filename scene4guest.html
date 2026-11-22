@@ -80,12 +80,7 @@
       grid-row: var(--thumb-row);
     }
 
-    @media (max-width: 700px) and (orientation: portrait) {
-      #guestGrid.layout-grid {
-        grid-template-columns: 1fr;
-        grid-template-rows: repeat(4, minmax(0, 1fr));
-      }
-
+    
       #guestGrid.layout-active-speaker {
         grid-template-columns: 1fr;
         grid-template-rows: 3fr repeat(3, minmax(0, 1fr));
