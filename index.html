@@ -205,6 +205,22 @@
 <input id="podcastName4" placeholder="Guest 4 name">
 <button type="button" onclick="savePodcastNames()">Save Names</button>
 
+<button type="button" class="podcastLayoutBtn active"
+        data-layout="grid" onclick="setPodcastLayout('grid')">
+  Podcast Grid
+</button>
+
+<button type="button" class="podcastLayoutBtn"
+        data-layout="solo" onclick="setPodcastLayout('solo')">
+  Podcast Solo
+</button>
+
+<button type="button" class="podcastLayoutBtn"
+        data-layout="active-speaker"
+        onclick="setPodcastLayout('active-speaker')">
+  Podcast Active Speaker
+</button>
+
   <h2>Transitions</h2>
   <div class="transitionPanel">
     <button type="button" data-transition="cut" onclick="sendTransition(event, 'cut')">CUT</button>
