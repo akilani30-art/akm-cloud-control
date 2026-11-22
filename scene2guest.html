@@ -2,55 +2,44 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Two Guest Scene</title>
-
-  <style>
-    * {
-      box-sizing:;
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover border-box;
     }
 
-    /* Default: side by side on tablets, computers, and landscape screens */
-    #guestGrid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      grid-template-rows: 1fr;
+    :root {
+      --ministry-green: #123b2d;
+      --deep-green: #081b15;
+      --gold: #d6ad45;
+    }
+
+    html,
+    body {
       width: 100%;
       height: 100%;
-      gap: 4px;
-      padding: 4px;
-      background: linear-gradient(135deg, #16243a, #080d18 55%, #172338);
-    }
-
-    .guest {
-      position: relative;
+      height: 100dvh;
+      margin: 0;
+      overflow: hidden;
+      background: var(--deep-green);
+      font-family: Arial, sans-serif;
       min-width: 0;
-      min-height: background: #000;
+      min-height: 0;
+      overflow: hidden;
+      background: linear-gradient(145deg, #194a38, #0b2119);
+      border: 2px solid var(--gold);
+      border-radius: 8px;
+      box-shadow: 0 : 6px;
+      background: rgba(8, 27, 21, 0.92);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+      color: var(--gold);
+      font-size: clamp(14px,1;
+        transform: translateY(0);
+      }
     }
 
-    /* Broadcast-style name labels with a subtle fade-in */
-    .guestLabel {
-      position: absolute;
-      left: 16px;
-      bottom: 16px;
-      z-index: 2;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 16px 10px 12px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 6px;
-      background: rgba(8, 15, 27, 0. text-transform: uppercase;
-      animation: labelFadeIn 600ms ease-out both;
-      pointer-events: none;
-    }
-
-    .guestLabel::before {
-      content: "";
-      width: 4px;
-      height: 26px;
-      border-radius: 4px;
-      background: #39b8(2, minmax(0, 1fr));
+    /* Stack on narrow portrait screens */
+    @media (max-width: 700px) and (orientation: portrait) {
+      #guestGrid {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: repeat(2, minmax(0, 1fr));
       }
 
       .guestLabel {
@@ -61,35 +50,19 @@
       }
     }
 
-    @media (prefers-reduced-motion: reduce) {
-      .guestLabel {
-        animation: none;
-      }
-    }
-  </style>
-</head>
+    @mediaHost</div>
+    </section>
 
-<body>
-  <main id="guestGrid">
     <section class="guest">
       <iframe
-        id="hostFrame"
-; picture-in-picture"
+        id="interpreterFrame"
+        title="Interpreter"
+        allow="autoplay; fullscreen; picture-in-picture"
         allowfullscreen>
       </iframe>
       <div class="guestLabel">Interpreter</div>
-    </section>
-  </main>
-
-  <script>
-    const HOST_ID = "AKM_HOST_8d72c19f4a6e3b50d1c8a7f2";
-    const INTERPRETER_ID =
-      "AKM_INTERPRETER_31b7e5a9c2048fd6a3e17";
-
-    function buildVdoViewUrl(streamId) {
-      return (
-        "https://vdo.ninja/?view=" +
-        encodeURIComponentTER_ID);
+    </sectionById("interpreterFrame").src =
+      buildVdoViewUrl(INTERPRETER_ID);
   </script>
 </body>
 </html>
