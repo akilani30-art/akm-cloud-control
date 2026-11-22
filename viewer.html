@@ -1032,8 +1032,8 @@ function handleMessage(data) {
     transitionStyle = data.style || "cut";
     return;
   }
-if (data.type === "host_lock") {
-  hostLocked = !!data.enabled;
+if (data.type === "reload_congregants") {
+  postToSceneFrames({ type: "reload_congregants" });
   return;
 }
 
