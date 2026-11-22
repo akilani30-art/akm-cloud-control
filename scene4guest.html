@@ -3,17 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Four Guest Scene</title>
-
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    height: 100%;
-      margin: 0;
-      overflow: hidden;
-      background: var(--deep-green);
+  <title>Four Guest Scene</titledeep-green);
       font-family: Arial, sans-serif;
     }
 
@@ -26,15 +16,15 @@
       gap: 5px;
       padding:
         max(4px, env(safe-area-inset-top))
-        max(4px, env(safe-area-inset-right);
-      border-radius: 8px;
-      background: linear-gradient(145deg, #194a38, var(--ministry-green));
-      box-shadow: 0 0 14px rgba(214, 173, 69, 0.14);
+        max(4px, env(safe-area-inset-right))
+        max(4px, env(safe-area-inset-bottom))
+        max(4px, 0.14);
     }
 
     .guest iframe {
       position: absolute;
       inset: 0;
+      z-index: 0;
       display: block;
       width: 100%;
       height: 100%;
@@ -43,62 +33,58 @@
     }
 
     .guestLabel {
-      position: absolute;
-      left: 10px;
-      bottom: 10px;
-      z-index: 2;
-     px;
-      background: rgba(8, 27, 21, 0.94);
-      color: var(--gold);
-      font-size: clamp(13px, 1.8vw, 20px);
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      text-over-delay: 300ms;
+.04em;
+      text-overflow: ellipsis;
+      text-transform: uppercase;
+      white-space: nowrap;
+      animation: labelFadeIn 500ms ease-out both;
+      pointer-events: none;
     }
 
-    @keyframes labelFadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(6px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+    .guestLabel::before {
+      content: "";
+      width: 4px;
+      height: 22px;
+      flex: 0 0 4px;
+      border-radius: 4px;
+      background: var(--gold);
     }
 
-    /* Solo: the visible guest keeps the same gold-and-green styling. */
+    .guest:nth-child(2) .guestLabel {
+      animation-delay: 100ms;
+    }
+
+    .guest:nth-child(3) .guest: the active guest keeps the gold-and-green styling. */
     #guestGrid.layout-solo {
       grid-template-columns: minmax(0, 1fr);
       grid-template-rows: minmax(0, 1fr);
     }
 
     #guestGrid.layout-solo .guest:not(.active) {
-      display: none, minmax(0, 1fr));
+      display: none;
     }
 
-    #guestGrid.layout-active-speaker .guest.active {
-      grid-column: 1;
-      grid-row: 1 / span 3;
-    }
-
-    #guestGrid.layout-active-speaker .guest.thumb {
-      grid-column: 2;
-      grid-row: var(--thumb-row);
-    }
-
-    /* Keep the four-guest grid in a 2-by-2 arrangement on portrait phones. */
+    /* Active-speaker mode: large speaker plus three thumbnails. */
+    #guestGrid.layout-active-speaker {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+      grid-template-rows: repeat(3, minmax in a 2-by-2 grid. */
     @media (max-width: 700px) and (orientation: portrait) {
       #guestGrid.layout-grid {
-        grid-template-columns: repeat(2, minGrid.layout-active-speaker .guest.active {
-        grid-column: 1;
-        grid-row: 1;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: repeat(2, minmax(0, 1fr));
       }
 
-      #guestGrid.layout-active-speaker .guest.thumb {
-        grid-column: 1;
-        grid-row: var(--thumb-row-mobile);
+      #guestGrid.layout-active-speaker {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: 3fr repeat(3, minmax(0, 1fr));
+      }
+
+      #guestGrid.layout-active-speaker . 8px;
+        font-size: clamp(11px, 3vw, 15px);
+      }
+
+      .guestLabel::before {
+        height: 18px;
       }
     }
 
@@ -112,22 +98,19 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-="0">Guest 1</div>
-    </section>
-
-    <section class="guest" data-index="1">
-      <iframe id="guest2Frame" title="Guest 2"
-        allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+      .guestLabel {
+        animation: none;
+      }
+    }
+  </style class="guest" data-index="1">
+      <iframe
+        id="guest2Frame"
+        title="Guest 2"
+        allow="autoplay; fullscreen; picture-in-picture"
+        allowfullscreen>
+      </iframe>
       <div class="guestLabel" data-label="1">Guest 2</div>
-    </section>
-
-    <section class="guest" data-index="2">
-      <iframe id="guest3Frame" title="Guest 3"
-        allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
-      <div class="guest </main>
-
-  <script>
-    const WS_URL = "wss://akm-cloud-control.onrender.com";
+.com";
 
     const GUEST_IDS = [
       "AKM_GUEST_1",
@@ -144,16 +127,9 @@
     let ws;
     let reconnectTimer;
 
-    function buildVdoViewUrl(streamIdguest${index + 1}Frame`);
-        frame.src = buildVdoViewUrl(streamId);
-      });
-    }
-
-    function applyLayout() {
-      grid.className = `layout-${currentLayout}`;
-
-      let thumbnailRow = 0;
-
+    function buildVdoViewUrl(streamId) {
+      return "https://vdo.ninja/?view=" +
+        encodeURIComponent(streamId) +
       guests.forEach((guest, index) => {
         guest.classList.remove("active", "thumb");
         guest.style.removeProperty("--thumb-row");
@@ -161,19 +137,7 @@
 
         if (index === activeGuestIndex) {
           guest.classList.add("active");
-        } else if (currentLayout === "active-speaker") {
-          thumbnailRow++;
-          guest.classindex}"]`);
-
-        if (label) {
-          label.textContent =
-            String(name || "").trim() || `Guest ${index + 1}`;
-        }
-      });
-    }
-
-    function handleCommand(data) {
-      if (!data || typeof data !== "object") return;
+        } else if (currentLayout") return;
 
       if (
         data.type === "podcast_layout" &&
@@ -186,26 +150,23 @@
       if (data.type === "podcast_active_guest") {
         const index = Number(data.index);
 
-        if (Number.isInteger(index);
-
-      ws.onopen = () => {
-        console.log("Podcast scene WebSocket connected");
-      };
-
-      ws.onmessage = (event) => {
-        try {
-          handleCommand(JSON.parse(event.data));
-        } catch (error) {
-          console.warn("Could not read WebSocket message:", error);
+        if (Number.isInteger(index) && index >= 0 && index < guests.length) {
+          activeGuestIndex = index;
+          applyLayout();
         }
-      };
+      }
 
-      ws.onclose = () => {
-        clearTimeout(reconnectTimer);
+      if (data.type === "podcast_guest_names") {
+        setGuestNames(data.names);
+      }
+
+      if (dataconnectTimer);
         reconnectTimer = setTimeout(connectWS, 3000);
       };
 
-      ws.onerror = () => ws.close();
+      ws.onerror = () => {
+        ws.close();
+      };
     }
 
     loadGuests();
