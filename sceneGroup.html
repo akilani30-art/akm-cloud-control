@@ -4,17 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Congregants Group</title>
+
   <style>
-    html, body, iframe {
+    html,
+    body,
+    iframe {
       width: 100%;
       height: 100%;
       margin: 0;
+      padding: 0;
       border: 0;
       overflow: hidden;
       background: #000;
     }
   </style>
 </head>
+
 <body>
   <iframe
     id="groupScene"
@@ -24,10 +29,52 @@
   </iframe>
 
   <script>
-    // Paste the VDO.Ninja group/scene viewing URL for your congregants' room.
-    const GROUP_SCENE_URL = "https://vdo.ninja/auto/?room=AKM_CONGREGANTS_2026";
+    const GROUP_SCENE_URL =
+      "https://vdo.ninja/auto/?room=AKM_CONGREGANTS_2026";
 
-    document.getElementById("groupScene").src = GROUP_SCENE_URL;
+    const WS_URL = "wss://akm-cloud-control.onrender.com";
+
+    let ws;
+    let reconnectTimer;
+    const frame = document.getElementById("groupScene");
+
+    function loadGroupScene() {
+      frame.src = "about:blank";
+
+      setTimeout(() => {
+        frame.src = GROUP_SCENE_URL;
+      }, 100);
+    }
+
+    function handleMessage(data) {
+      if (!data || typeof data !== "object") return;
+
+      if (data.type === "reload_congregants") {
+        loadGroupScene();
+      }
+    }
+
+    function connectWS() {
+      ws = new WebSocket(WS_URL);
+
+      ws.onmessage = (event) => {
+        try {
+          handleMessage(JSON.parse(event.data));
+        } catch (error) {
+          console.warn("Could not read Congregants command:", error);
+        }
+      };
+
+      ws.onclose = () => {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = setTimeout(connectWS, 3000);
+      };
+
+      ws.onerror = () => ws.close();
+    }
+
+    loadGroupScene();
+    connectWS();
   </script>
 </body>
 </html>
