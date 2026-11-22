@@ -103,14 +103,15 @@
 
 
 
-@media (orientation: landscape) and (max-height: 500px) {
-  #guestGrid.layout-grid .guest:nth-child(3) .guestLabel,
-  #guestGrid.layout-grid .guest:nth-child(4) .guestLabel {
-    bottom: 40px;
-    z-index: 10;
+@media (orientation: landscape) {
+  #guestGrid.layout-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+  }
+
+  #guestGrid.layout-grid .guest:nth-child(3) .guest + env(safe-area-inset-bottom, 0px));
   }
 }
-``
   </style>
 </head>
 
