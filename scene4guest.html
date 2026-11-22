@@ -1,16 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-
   <title>Four Guest Scene</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
-    html,
-    body {
+    html, body {
       width: 100%;
       height: 100%;
       height: 100dvh;
@@ -47,13 +45,19 @@
       background: #000;
     }
 
-    
-.guestLabel {
-  position: absolute;
-  left: 8px;
-  bottom: 8px;
-  z-index: 2;
-  max-width:
+    .guestLabel {
+      position: absolute;
+      left: 8px;
+      bottom: 8px;
+      z-index: 2;
+      max-width: calc(100% - 16px);
+      padding: 6px 10px;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.75);
+      color: #fff;
+      font-size: clamp(14px, 2vw, 24px);
+      pointer-events: none;
+    }
 
     #guestGrid.layout-solo {
       grid-template-columns: 1fr;
@@ -100,14 +104,6 @@
         grid-row: var(--thumb-row-mobile);
       }
     }
-
-
-
-@media (orientation: landscape) and (max-height: 500px) {
-  #guestGrid.layout-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: repeat(2, minmax(0, 1fr));
-    padding-bottom: 40 as-is, makes all four landscape tiles equal-sized, and raises the bottom row so guests 3 and 4—and their names—aren’t covered. Save the file, then reload the scene on your phone.
   </style>
 </head>
 
@@ -115,29 +111,25 @@
   <main id="guestGrid" class="layout-grid">
     <section class="guest" data-index="0">
       <iframe id="guest1Frame" title="Guest 1"
-        allow="autoplay; fullscreen; picture-in-picture"
-        allowfullscreen></iframe>
+        allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
       <div class="guestLabel" data-label="0">Guest 1</div>
     </section>
 
     <section class="guest" data-index="1">
       <iframe id="guest2Frame" title="Guest 2"
-        allow="autoplay; fullscreen; picture-in-picture"
-        allowfullscreen></iframe>
+        allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
       <div class="guestLabel" data-label="1">Guest 2</div>
     </section>
 
     <section class="guest" data-index="2">
       <iframe id="guest3Frame" title="Guest 3"
-        allow="autoplay; fullscreen; picture-in-picture"
-        allowfullscreen></iframe>
+        allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
       <div class="guestLabel" data-label="2">Guest 3</div>
     </section>
 
     <section class="guest" data-index="3">
       <iframe id="guest4Frame" title="Guest 4"
-        allow="autoplay; fullscreen; picture-in-picture"
-        allowfullscreen></iframe>
+        allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
       <div class="guestLabel" data-label="3">Guest 4</div>
     </section>
   </main>
@@ -258,9 +250,267 @@
         reconnectTimer = setTimeout(connectWS, 3000);
       };
 
-      ws.onerror = () => {
-        ws.close();
+      ws.onerror = () => ws.close();
+    }
+
+    loadGuests();
+    applyLayout();
+    connectWS();
+  </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Four Guest Scene</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+      font-family: Arial, sans-serif;
+    }
+
+    #guestGrid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: repeat(2, minmax(0, 1fr));
+      width: 100%;
+      height: 100%;
+      gap: 4px;
+      padding: 4px;
+      background: #000;
+    }
+
+    .guest {
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+      background: #111;
+    }
+
+    .guest iframe {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #000;
+    }
+
+    .guestLabel {
+      position: absolute;
+      left: 8px;
+      bottom: 8px;
+      z-index: 2;
+      max-width: calc(100% - 16px);
+      padding: 6px 10px;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.75);
+      color: #fff;
+      font-size: clamp(14px, 2vw, 24px);
+      pointer-events: none;
+    }
+
+    #guestGrid.layout-solo {
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr;
+    }
+
+    #guestGrid.layout-solo .guest:not(.active) {
+      display: none;
+    }
+
+    #guestGrid.layout-active-speaker {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+      grid-template-rows: repeat(3, minmax(0, 1fr));
+    }
+
+    #guestGrid.layout-active-speaker .guest.active {
+      grid-column: 1;
+      grid-row: 1 / span 3;
+    }
+
+    #guestGrid.layout-active-speaker .guest.thumb {
+      grid-column: 2;
+      grid-row: var(--thumb-row);
+    }
+
+    @media (max-width: 700px) and (orientation: portrait) {
+      #guestGrid.layout-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(4, minmax(0, 1fr));
+      }
+
+      #guestGrid.layout-active-speaker {
+        grid-template-columns: 1fr;
+        grid-template-rows: 3fr repeat(3, minmax(0, 1fr));
+      }
+
+      #guestGrid.layout-active-speaker .guest.active {
+        grid-column: 1;
+        grid-row: 1;
+      }
+
+      #guestGrid.layout-active-speaker .guest.thumb {
+        grid-column: 1;
+        grid-row: var(--thumb-row-mobile);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main id="guestGrid" class="layout-grid">
+    <section class="guest" data-index="0">
+      <iframe id="guest1Frame" title="Guest 1"
+        allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+      <div class="guestLabel" data-label="0">Guest 1</div>
+    </section>
+
+    <section class="guest" data-index="1">
+      <iframe id="guest2Frame" title="Guest 2"
+        allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+      <div class="guestLabel" data-label="1">Guest 2</div>
+    </section>
+
+    <section class="guest" data-index="2">
+      <iframe id="guest3Frame" title="Guest 3"
+        allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+      <div class="guestLabel" data-label="2">Guest 3</div>
+    </section>
+
+    <section class="guest" data-index="3">
+      <iframe id="guest4Frame" title="Guest 4"
+        allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+      <div class="guestLabel" data-label="3">Guest 4</div>
+    </section>
+  </main>
+
+  <script>
+    const WS_URL = "wss://akm-cloud-control.onrender.com";
+
+    const GUEST_IDS = [
+      "AKM_GUEST_1",
+      "AKM_GUEST_2",
+      "AKM_GUEST_3",
+      "AKM_GUEST_4"
+    ];
+
+    const grid = document.getElementById("guestGrid");
+    const guests = [...document.querySelectorAll(".guest")];
+
+    let currentLayout = "grid";
+    let activeGuestIndex = 0;
+    let ws;
+    let reconnectTimer;
+
+    function buildVdoViewUrl(streamId) {
+      return "https://vdo.ninja/?view=" +
+        encodeURIComponent(streamId) +
+        "&cleanoutput&autoplay=1";
+    }
+
+    function loadGuests() {
+      GUEST_IDS.forEach((streamId, index) => {
+        const frame = document.getElementById(`guest${index + 1}Frame`);
+        frame.src = buildVdoViewUrl(streamId);
+      });
+    }
+
+    function applyLayout() {
+      grid.className = `layout-${currentLayout}`;
+
+      let thumbnailRow = 0;
+
+      guests.forEach((guest, index) => {
+        guest.classList.remove("active", "thumb");
+        guest.style.removeProperty("--thumb-row");
+        guest.style.removeProperty("--thumb-row-mobile");
+
+        if (index === activeGuestIndex) {
+          guest.classList.add("active");
+        } else if (currentLayout === "active-speaker") {
+          thumbnailRow++;
+          guest.classList.add("thumb");
+          guest.style.setProperty("--thumb-row", String(thumbnailRow));
+          guest.style.setProperty(
+            "--thumb-row-mobile",
+            String(thumbnailRow + 1)
+          );
+        }
+      });
+    }
+
+    function setGuestNames(names) {
+      if (!Array.isArray(names)) return;
+
+      names.forEach((name, index) => {
+        const label = document.querySelector(`[data-label="${index}"]`);
+        if (label) {
+          label.textContent =
+            String(name || "").trim() || `Guest ${index + 1}`;
+        }
+      });
+    }
+
+    function handleCommand(data) {
+      if (!data || typeof data !== "object") return;
+
+      if (
+        data.type === "podcast_layout" &&
+        ["grid", "solo", "active-speaker"].includes(data.layout)
+      ) {
+        currentLayout = data.layout;
+        applyLayout();
+      }
+
+      if (data.type === "podcast_active_guest") {
+        const index = Number(data.index);
+
+        if (Number.isInteger(index) && index >= 0 && index < guests.length) {
+          activeGuestIndex = index;
+          applyLayout();
+        }
+      }
+
+      if (data.type === "podcast_guest_names") {
+        setGuestNames(data.names);
+      }
+
+      if (data.type === "reload_podcast") {
+        loadGuests();
+      }
+    }
+
+    function connectWS() {
+      ws = new WebSocket(WS_URL);
+
+      ws.onopen = () => {
+        console.log("Podcast scene WebSocket connected");
       };
+
+      ws.onmessage = (event) => {
+        try {
+          handleCommand(JSON.parse(event.data));
+        } catch (error) {
+          console.warn("Could not read WebSocket message:", error);
+        }
+      };
+
+      ws.onclose = () => {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = setTimeout(connectWS, 3000);
+      };
+
+      ws.onerror = () => ws.close();
     }
 
     loadGuests();
