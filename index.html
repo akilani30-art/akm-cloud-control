@@ -360,12 +360,7 @@ function sendActive(index) {
     index
   });
 }
-
-
- function setPodcastLayout(layout) {
-  if (!["grid", "solo", "active-speaker"].includes(layout)) return;
-
-  document.querySelectorAll(".podcastLayoutBtn").forEach(button => {
+ document.querySelectorAll(".podcastLayoutBtn").forEach(button => {
     button.classList.toggle("active", button.dataset.layout === layout);
   });
 
@@ -424,11 +419,18 @@ function sendJSON(obj) {
 }
 
 function setPodcastLayout(layout) {
+  if (!["grid", "solo", "active-speaker"].includes(layout)) return;
+
+  document.querySelectorAll(".podcastLayoutBtn").forEach(button => {
+    button.classList.toggle("active", button.dataset.layout === layout);
+  });
+
   sendJSON({
     type: "podcast_layout",
     layout
   });
 }
+
 
 function reloadPodcast() {
   sendJSON({
