@@ -6,7 +6,9 @@
   <title>Two Guest Scene</title>
 
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     :root {
       --green: #123b2d;
@@ -14,10 +16,12 @@
       --gold: #d6ad45;
     }
 
-    html, body {
+    html,
+    body {
       width: 100%;
       height: 100%;
       height: 100dvh;
+      min-height: 100%;
       margin: 0;
       overflow: hidden;
       background: var(--deep-green);
@@ -25,11 +29,14 @@
     }
 
     #guestGrid {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       grid-template-rows: 1fr;
-      width: 100%;
-      height: 100%;
       gap: 6px;
       padding: 6px;
       background: var(--deep-green);
@@ -57,7 +64,7 @@
     .guestLabel {
       position: absolute;
       left: 16px;
-      bottom: 16px;
+      bottom: 24px;
       z-index: 10;
       display: flex;
       align-items: center;
@@ -106,12 +113,25 @@
 
       .guestLabel {
         left: 12px;
-        bottom: 12px;
+        bottom: 20px;
+      }
+    }
+
+    @media (orientation: landscape) {
+      #guestGrid {
+        height: 100dvh;
+        padding: 4px;
+      }
+
+      .guestLabel {
+        bottom: max(18px, env(safe-area-inset-bottom));
       }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .guestLabel { animation: none; }
+      .guestLabel {
+        animation: none;
+      }
     }
   </style>
 </head>
@@ -119,16 +139,22 @@
 <body>
   <main id="guestGrid">
     <section class="guest">
-      <iframe id="hostFrame" title="Host"
+      <iframe
+        id="hostFrame"
+        title="Host"
         allow="autoplay; fullscreen; picture-in-picture"
-        allowfullscreen></iframe>
+        allowfullscreen>
+      </iframe>
       <div class="guestLabel">Host</div>
     </section>
 
     <section class="guest">
-      <iframe id="interpreterFrame" title="Interpreter"
+      <iframe
+        id="interpreterFrame"
+        title="Interpreter"
         allow="autoplay; fullscreen; picture-in-picture"
-        allowfullscreen></iframe>
+        allowfullscreen>
+      </iframe>
       <div class="guestLabel">Interpreter</div>
     </section>
   </main>
@@ -139,9 +165,11 @@
       "AKM_INTERPRETER_31b7e5a9c2048fd6a3e17";
 
     function buildVdoViewUrl(streamId) {
-      return "https://vdo.ninja/?view=" +
+      return (
+        "https://vdo.ninja/?view=" +
         encodeURIComponent(streamId) +
-        "&cleanoutput&autoplay=1";
+        "&cleanoutput&autoplay=1"
+      );
     }
 
     document.getElementById("hostFrame").src =
