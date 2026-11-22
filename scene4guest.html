@@ -103,15 +103,11 @@
 
 
 
-@media (orientation: landscape) {
+@media (orientation: landscape) and (max-height: 500px) {
   #guestGrid.layout-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-rows: repeat(2, minmax(0, 1fr));
-  }
-
-  #guestGrid.layout-grid .guest:nth-child(3) .guest + env(safe-area-inset-bottom, 0px));
-  }
-}
+    padding-bottom: 40 as-is, makes all four landscape tiles equal-sized, and raises the bottom row so guests 3 and 4—and their names—aren’t covered. Save the file, then reload the scene on your phone.
   </style>
 </head>
 
