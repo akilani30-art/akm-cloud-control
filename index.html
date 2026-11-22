@@ -360,15 +360,6 @@ function sendActive(index) {
     index
   });
 }
- document.querySelectorAll(".podcastLayoutBtn").forEach(button => {
-    button.classList.toggle("active", button.dataset.layout === layout);
-  });
-
-  sendJSON({
-    type: "podcast_layout",
-    layout
-  });
-}
 
 // ---------- UI ----------
 function setActiveSceneButton(scene) {
