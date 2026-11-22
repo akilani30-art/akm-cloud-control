@@ -361,7 +361,19 @@ function sendActive(index) {
   });
 }
 
- 
+
+ function setPodcastLayout(layout) {
+  if (!["grid", "solo", "active-speaker"].includes(layout)) return;
+
+  document.querySelectorAll(".podcastLayoutBtn").forEach(button => {
+    button.classList.toggle("active", button.dataset.layout === layout);
+  });
+
+  sendJSON({
+    type: "podcast_layout",
+    layout
+  });
+}
 
 // ---------- UI ----------
 function setActiveSceneButton(scene) {
