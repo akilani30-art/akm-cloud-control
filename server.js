@@ -263,7 +263,7 @@ function runScheduler() {
 
         scheduledRevertTimer = setTimeout(() => {
           console.log("⏰ Reverting to:", item.revertScene);
-          
+
           broadcast({
             type: "scene",
             scene: item.revertScene,
@@ -328,10 +328,10 @@ else if (
 ) {
   broadcast(data);
 }
-      
 
 
-     
+
+
 
     else if (data.type === "transition") {
       state.transitionStyle = data.style || "slide";
@@ -350,7 +350,7 @@ else if (data.type === "speaker_level") {
   });
 }
 
-   
+
     else if (data.type === "dinab") {
       state.dinabUrl = data.url || "";
       state.dinabGuests = ["", "", "", ""];
