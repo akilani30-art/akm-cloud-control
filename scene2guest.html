@@ -7,74 +7,65 @@
 
   <style>
     * {
-      box-sizing: border-box;
+      box-sizing:;
     }
 
-    html,
-    body      grid-template-rows: 1fr;
+    /* Default: side by side on tablets, computers, and landscape screens */
+    #guestGrid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: 1fr;
       width: 100%;
       height: 100%;
-      gap: 3px;
-      padding: 3px;
+      gap: 4px;
+      padding: 4px;
       background: linear-gradient(135deg, #16243a, #080d18 55%, #172338);
     }
 
     .guest {
       position: relative;
       min-width: 0;
-      min-height: 0;
-      overflow: hidden;
-      background: #101722;
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      min-height: background: #000;
     }
 
-    .guest iframe {
-      display(safe-area-inset-left));
-      bottom: max(16px, env(safe-area-inset-bottom));
+    /* Broadcast-style name labels with a subtle fade-in */
+    .guestLabel {
+      position: absolute;
+      left: 16px;
+      bottom: 16px;
       z-index: 2;
       display: flex;
       align-items: center;
       gap: 10px;
-      min-width: 140px;
-      padding: 10px 16px  1.8vw, 21px);
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      animation: labelFadeIn 500ms ease-out both;
+      padding: 10px 16px 10px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      background: rgba(8, 15, 27, 0. text-transform: uppercase;
+      animation: labelFadeIn 600ms ease-out both;
       pointer-events: none;
     }
 
     .guestLabel::before {
       content: "";
-      align-self: stretch;
       width: 4px;
-      min-height: 24px;
+      height: 26px;
       border-radius: 4px;
-      background: #39b8ff;
-      box-shadow: 0 0 10px rgba(57, 184, 255, 0.35);
-   px rgba(255, 191, 91, 0.3);
-    }
-
-    @keyframes labelFadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(8px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @media (max-width: 700px) and (orientation: portrait) {
-      #guestGrid {
-        grid-template-columns: 1fr;
-        grid-template-rows: repeat(2, minmax(0, 1fr));
+      background: #39b8(2, minmax(0, 1fr));
       }
 
       .guestLabel {
-        left: 12    }
+        left: 12px;
+        bottom: 12px;
+        padding: 8px 12px 8px 10px;
+        font-size: 15px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .guestLabel {
+        animation: none;
+      }
+    }
   </style>
 </head>
 
@@ -83,35 +74,22 @@
     <section class="guest">
       <iframe
         id="hostFrame"
-        title="Host"
-        allow="autoplay; fullscreen; picture-in-picture"
+; picture-in-picture"
         allowfullscreen>
       </iframe>
-      <div class="guestLabel">Host</div>
+      <div class="guestLabel">Interpreter</div>
     </section>
+  </main>
 
-    <section class="guest">
-      <iframe
-        id="interpreterFrame"
-        title="Interpreter"
-        allow="autoplay; fullscreen; picture-in-picture"
-        allowfullscreen>
-      </iframe>
-      <div class="guestLabel">Interpreter</fd6a3e17";
+  <script>
+    const HOST_ID = "AKM_HOST_8d72c19f4a6e3b50d1c8a7f2";
+    const INTERPRETER_ID =
+      "AKM_INTERPRETER_31b7e5a9c2048fd6a3e17";
 
     function buildVdoViewUrl(streamId) {
       return (
         "https://vdo.ninja/?view=" +
-        encodeURIComponent(streamId) +
-        "&cleanoutput&autoplay=1"
-      );
-    }
-
-    document.getElementById("hostFrame").src =
-      buildVdoViewUrl(HOST_ID);
-
-    document.getElementById("interpreterFrame").src =
-      buildVdoViewUrl(INTERPRETER_ID);
+        encodeURIComponentTER_ID);
   </script>
 </body>
 </html>
