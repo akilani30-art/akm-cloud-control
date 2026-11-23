@@ -11,22 +11,50 @@
     }
 
     :root {
-      --green: #);
+      --green: #123b2d;
+      --deep-green: #081b15;
+      --gold: #d6ad45;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      min-height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: var(--deep-green);
       font-family: Arial, sans-serif;
     }
 
     #guestGrid {
       position: fixed;
       inset: 0;
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      grid-template-rows: minmax(0, 1fr);
-      gap: 5px;
-      padding:
-        max(4px, env(safe-area-inset-top))
-        max(4px, env(safe-area-inset-right))
-        max(4px, env(safe-area-inset-bottom))
-        max(4px, env(safe-area-inset: block;
+      grid-template-rows: 1fr;
+      gap: 6px;
+      padding: 6px;
+      background: var(--deep-green);
+    }
+
+    .guest {
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+      background: var(--green);
+      border: 2px solid var(--gold);
+      border-radius: 8px;
+    }
+
+    .guest iframe {
+      position: absolute;
+      inset: 0;
       width: 100%;
       height: 100%;
       border: 0;
@@ -35,21 +63,31 @@
 
     .guestLabel {
       position: absolute;
-      left: 12px;
-      bottom: 12px;
+      left: 16px;
+      bottom: 24px;
       z-index: 10;
       display: flex;
       align-items: center;
       gap: 10px;
-      min-height: 44px;
-      padding: 9px 14px 9px 11px;
+      min-height: 46px;
+      padding: 10px 16px 10px 12px;
       border: 1px solid var(--gold);
       border-radius: 6px;
-      background: rgba(8, 27: 4px;
+      background: rgba(8, 27, 21, 0.92);
+      color: var(--gold);
+      font-size: clamp(14px, 1.8vw, 21px);
+      font-weight: 700;
+      text-transform: uppercase;
+      animation: labelFadeIn 600ms ease-out both;
+      pointer-events: none;
+    }
+
+    .guestLabel::before {
+      content: "";
+      width: 4px;
       height: 24px;
-      flex: 0 0 4px;
-      border-radius: 4px;
       background: var(--gold);
+      border-radius: 4px;
     }
 
     .guest:nth-child(2) .guestLabel {
@@ -61,8 +99,36 @@
         opacity: 0;
         transform: translateY(8px);
       }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
-     -reduced-motion: reduce) {
+    @media (max-width: 700px) and (orientation: portrait) {
+      #guestGrid {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(2, minmax(0, 1fr));
+      }
+
+      .guestLabel {
+        left: 12px;
+        bottom: 20px;
+      }
+    }
+
+    @media (orientation: landscape) {
+      #guestGrid {
+        height: 100dvh;
+        padding: 4px;
+      }
+
+      .guestLabel {
+        bottom: max(18px, env(safe-area-inset-bottom));
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
       .guestLabel {
         animation: none;
       }
@@ -86,7 +152,17 @@
       <iframe
         id="interpreterFrame"
         title="Interpreter"
-        allow="autoplay; fullscreen; picture-in-picture7e5a9c2048fd6a3e17";
+        allow="autoplay; fullscreen; picture-in-picture"
+        allowfullscreen>
+      </iframe>
+      <div class="guestLabel">Interpreter</div>
+    </section>
+  </main>
+
+  <script>
+    const HOST_ID = "AKM_HOST_8d72c19f4a6e3b50d1c8a7f2";
+    const INTERPRETER_ID =
+      "AKM_INTERPRETER_31b7e5a9c2048fd6a3e17";
 
     function buildVdoViewUrl(streamId) {
       return (
